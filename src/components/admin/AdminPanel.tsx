@@ -168,23 +168,40 @@ export default function AdminPanel() {
     setShowPanel(false)
   }
 
+  const [fetchError, setFetchError] = useState('')
+
   const fetchGames = useCallback(async () => {
     try {
+      setFetchError('')
       const res = await fetch('/api/games')
+      if (!res.ok) throw new Error(`Error ${res.status}`)
       const data = await res.json()
-      setGames(data)
+      if (Array.isArray(data)) {
+        setGames(data)
+      } else {
+        setGames([])
+        setFetchError('Error al cargar juegos. Verifica la conexión a la base de datos.')
+      }
     } catch (err) {
       console.error('Error fetching games:', err)
+      setGames([])
+      setFetchError('Error de conexión al cargar juegos.')
     }
   }, [])
 
   const fetchParticipants = useCallback(async () => {
     try {
       const res = await fetch('/api/participants')
+      if (!res.ok) throw new Error(`Error ${res.status}`)
       const data = await res.json()
-      setParticipants(data)
+      if (Array.isArray(data)) {
+        setParticipants(data)
+      } else {
+        setParticipants([])
+      }
     } catch (err) {
       console.error('Error fetching participants:', err)
+      setParticipants([])
     }
   }, [])
 
@@ -590,6 +607,25 @@ export default function AdminPanel() {
             ) : activeTab === 'games' ? (
               /* ========== GAMES TAB ========== */
               <div className="space-y-3">
+                {/* Error message */}
+                {fetchError && (
+                  <div
+                    className="p-3 rounded-xl flex items-center justify-between"
+                    style={{
+                      background: 'rgba(239, 68, 68, 0.1)',
+                      border: '1px solid rgba(239, 68, 68, 0.3)',
+                    }}
+                  >
+                    <span className="text-xs font-bold" style={{ color: '#ef4444' }}>{fetchError}</span>
+                    <button
+                      onClick={() => { fetchGames(); fetchParticipants(); }}
+                      className="px-3 py-1 rounded-lg text-xs font-bold cursor-pointer"
+                      style={{ background: 'rgba(239, 68, 68, 0.2)', color: '#ef4444', border: '1px solid rgba(239, 68, 68, 0.4)' }}
+                    >
+                      Reintentar
+                    </button>
+                  </div>
+                )}
                 {/* Add game button */}
                 <button
                   onClick={handleOpenAddGame}
