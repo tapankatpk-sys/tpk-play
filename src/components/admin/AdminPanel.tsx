@@ -28,6 +28,8 @@ interface Participant {
 
 type Tab = 'games' | 'participants'
 
+const SESSION_KEY = 'tpk_admin_token'
+
 export default function AdminPanel() {
   const [activeTab, setActiveTab] = useState<Tab>('games')
   const [games, setGames] = useState<Game[]>([])
@@ -36,6 +38,92 @@ export default function AdminPanel() {
   const [showAddGame, setShowAddGame] = useState(false)
   const [newGame, setNewGame] = useState({ name: '', description: '' })
   const [showPanel, setShowPanel] = useState(false)
+
+  // Auth state
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [authEmail, setAuthEmail] = useState('')
+  const [authPassword, setAuthPassword] = useState('')
+  const [authLoading, setAuthLoading] = useState(false)
+  const [authError, setAuthError] = useState('')
+  const [adminEmail, setAdminEmail] = useState('')
+
+  // Check existing session on mount
+  useEffect(() => {
+    const verifySession = async () => {
+      const token = localStorage.getItem(SESSION_KEY)
+      if (token) {
+        try {
+          const res = await fetch('/api/auth', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'verify', token }),
+          })
+          const data = await res.json()
+          if (data.valid) {
+            setIsAuthenticated(true)
+            setAdminEmail(data.email)
+          } else {
+            localStorage.removeItem(SESSION_KEY)
+          }
+        } catch {
+          localStorage.removeItem(SESSION_KEY)
+        }
+      }
+    }
+    verifySession()
+  }, [])
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setAuthError('')
+    setAuthLoading(true)
+
+    try {
+      const res = await fetch('/api/auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'login',
+          email: authEmail,
+          password: authPassword,
+        }),
+      })
+
+      const data = await res.json()
+
+      if (!res.ok) {
+        setAuthError(data.error || 'Error al iniciar sesión')
+        return
+      }
+
+      localStorage.setItem(SESSION_KEY, data.token)
+      setIsAuthenticated(true)
+      setAdminEmail(data.email)
+      setAuthEmail('')
+      setAuthPassword('')
+    } catch {
+      setAuthError('Error de conexión. Intenta de nuevo.')
+    } finally {
+      setAuthLoading(false)
+    }
+  }
+
+  const handleLogout = async () => {
+    const token = localStorage.getItem(SESSION_KEY)
+    try {
+      await fetch('/api/auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'logout', token }),
+      })
+    } catch {
+      // ignore
+    }
+    localStorage.removeItem(SESSION_KEY)
+    setIsAuthenticated(false)
+    setAdminEmail('')
+    setShowPanel(false)
+  }
 
   const fetchGames = useCallback(async () => {
     try {
@@ -58,13 +146,15 @@ export default function AdminPanel() {
   }, [])
 
   useEffect(() => {
-    const load = async () => {
-      setLoading(true)
-      await Promise.all([fetchGames(), fetchParticipants()])
-      setLoading(false)
+    if (isAuthenticated && showPanel) {
+      const load = async () => {
+        setLoading(true)
+        await Promise.all([fetchGames(), fetchParticipants()])
+        setLoading(false)
+      }
+      load()
     }
-    load()
-  }, [fetchGames, fetchParticipants])
+  }, [isAuthenticated, showPanel, fetchGames, fetchParticipants])
 
   const handleAddGame = async () => {
     if (!newGame.name.trim()) return
@@ -142,6 +232,7 @@ export default function AdminPanel() {
     window.open(`https://wa.me/573112632365?text=${message}`, '_blank')
   }
 
+  // Floating admin button
   if (!showPanel) {
     return (
       <div className="fixed bottom-6 right-6 z-50">
@@ -163,6 +254,137 @@ export default function AdminPanel() {
     )
   }
 
+  // Login screen (not authenticated)
+  if (!isAuthenticated) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: 'rgba(0,0,0,0.9)' }}>
+        <div
+          className="w-full max-w-md rounded-2xl overflow-hidden"
+          style={{
+            background: 'linear-gradient(135deg, #0a0a0a 0%, #1a0a2e 50%, #0a0a0a 100%)',
+            border: '1px solid rgba(168, 85, 247, 0.3)',
+            boxShadow: '0 0 40px rgba(168, 85, 247, 0.2), 0 0 80px rgba(249, 115, 22, 0.1)',
+          }}
+        >
+          {/* Header */}
+          <div className="p-6 text-center border-b" style={{ borderColor: 'rgba(168, 85, 247, 0.15)' }}>
+            <div
+              className="w-16 h-16 rounded-2xl mx-auto mb-4 flex items-center justify-center"
+              style={{
+                background: 'linear-gradient(135deg, #a855f7, #f97316)',
+                boxShadow: '0 0 20px rgba(168, 85, 247, 0.4), 0 0 40px rgba(249, 115, 22, 0.2)',
+              }}
+            >
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+              </svg>
+            </div>
+            <h2
+              className="text-xl font-black uppercase tracking-wider"
+              style={{
+                background: 'linear-gradient(90deg, #d8b4fe, #f97316)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text',
+              }}
+            >
+              TPK PLAY Admin
+            </h2>
+            <p className="text-xs mt-2" style={{ color: 'rgba(255,255,255,0.4)' }}>
+              Ingresa tus credenciales para acceder al panel
+            </p>
+          </div>
+
+          {/* Login form */}
+          <form onSubmit={handleLogin} className="p-6 space-y-4">
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider mb-2" style={{ color: '#d8b4fe' }}>
+                Correo Electrónico
+              </label>
+              <input
+                type="email"
+                value={authEmail}
+                onChange={(e) => setAuthEmail(e.target.value)}
+                placeholder="admin@tpkplay.com"
+                required
+                className="w-full px-4 py-3 rounded-xl text-sm text-white placeholder-gray-600 outline-none transition-all"
+                style={{
+                  background: 'rgba(0,0,0,0.5)',
+                  border: '1px solid rgba(168, 85, 247, 0.3)',
+                }}
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider mb-2" style={{ color: '#fdba74' }}>
+                Contraseña
+              </label>
+              <input
+                type="password"
+                value={authPassword}
+                onChange={(e) => setAuthPassword(e.target.value)}
+                placeholder="••••••••"
+                required
+                className="w-full px-4 py-3 rounded-xl text-sm text-white placeholder-gray-600 outline-none transition-all"
+                style={{
+                  background: 'rgba(0,0,0,0.5)',
+                  border: '1px solid rgba(249, 115, 22, 0.3)',
+                }}
+              />
+            </div>
+
+            {authError && (
+              <div
+                className="p-3 rounded-xl text-center text-xs font-bold"
+                style={{
+                  background: 'rgba(239, 68, 68, 0.15)',
+                  color: '#ef4444',
+                  border: '1px solid rgba(239, 68, 68, 0.3)',
+                }}
+              >
+                {authError}
+              </div>
+            )}
+
+            <button
+              type="submit"
+              disabled={authLoading}
+              className="w-full py-3 rounded-xl font-bold text-sm uppercase tracking-wider cursor-pointer transition-all hover:scale-[1.02] disabled:opacity-50"
+              style={{
+                background: 'linear-gradient(135deg, #a855f7 0%, #f97316 100%)',
+                color: 'white',
+                boxShadow: '0 0 15px rgba(168, 85, 247, 0.4), 0 0 30px rgba(249, 115, 22, 0.2)',
+              }}
+            >
+              {authLoading ? (
+                <span className="flex items-center justify-center gap-2">
+                  <div className="w-4 h-4 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: 'white', borderTopColor: 'transparent' }} />
+                  Verificando...
+                </span>
+              ) : (
+                'Iniciar Sesión'
+              )}
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                setShowPanel(false)
+                setAuthError('')
+              }}
+              className="w-full py-2 text-xs uppercase tracking-wider cursor-pointer"
+              style={{ color: 'rgba(255,255,255,0.3)' }}
+            >
+              Cancelar
+            </button>
+          </form>
+        </div>
+      </div>
+    )
+  }
+
+  // Admin panel (authenticated)
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: 'rgba(0,0,0,0.85)' }}>
       <div
@@ -179,17 +401,33 @@ export default function AdminPanel() {
             <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #a855f7, #f97316)' }}>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
             </div>
-            <h2 className="text-lg font-bold" style={{ color: '#d8b4fe', textShadow: '0 0 10px rgba(168, 85, 247, 0.5)' }}>
-              TPK PLAY Admin
-            </h2>
+            <div>
+              <h2 className="text-lg font-bold" style={{ color: '#d8b4fe', textShadow: '0 0 10px rgba(168, 85, 247, 0.5)' }}>
+                TPK PLAY Admin
+              </h2>
+              <p className="text-xs" style={{ color: 'rgba(255,255,255,0.3)' }}>{adminEmail}</p>
+            </div>
           </div>
-          <button
-            onClick={() => setShowPanel(false)}
-            className="w-8 h-8 rounded-full flex items-center justify-center cursor-pointer transition-colors"
-            style={{ backgroundColor: 'rgba(255,255,255,0.1)' }}
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleLogout}
+              className="px-3 py-1.5 rounded-lg text-xs font-bold cursor-pointer transition-all"
+              style={{
+                background: 'rgba(239, 68, 68, 0.1)',
+                color: '#ef4444',
+                border: '1px solid rgba(239, 68, 68, 0.2)',
+              }}
+            >
+              Cerrar Sesión
+            </button>
+            <button
+              onClick={() => setShowPanel(false)}
+              className="w-8 h-8 rounded-full flex items-center justify-center cursor-pointer transition-colors"
+              style={{ backgroundColor: 'rgba(255,255,255,0.1)' }}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+            </button>
+          </div>
         </div>
 
         {/* Tabs */}
