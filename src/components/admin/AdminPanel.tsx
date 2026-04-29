@@ -31,7 +31,19 @@ interface Participant {
   createdAt: string
 }
 
-type Tab = 'games' | 'participants' | 'stats'
+interface PopupConfig {
+  id: string
+  text: string
+  linkUrl: string
+  isActive: boolean
+  color: string
+  size: number
+  position: string
+  createdAt: string
+  updatedAt: string
+}
+
+type Tab = 'games' | 'participants' | 'stats' | 'popup'
 
 const SESSION_KEY = 'tpk_admin_token'
 
@@ -81,6 +93,12 @@ export default function AdminPanel() {
 
   // Preview state
   const [previewGame, setPreviewGame] = useState<Game | null>(null)
+
+  // Popup state
+  const [popups, setPopups] = useState<PopupConfig[]>([])
+  const [popupForm, setPopupForm] = useState({ text: 'TPK NUEVO', linkUrl: '#', isActive: true, color: '#f97316', size: 120, position: 'bottom-left' })
+  const [editingPopup, setEditingPopup] = useState<PopupConfig | null>(null)
+  const [savingPopup, setSavingPopup] = useState(false)
 
   // Auth state
   const [isAuthenticated, setIsAuthenticated] = useState(false)
@@ -205,16 +223,32 @@ export default function AdminPanel() {
     }
   }, [])
 
+  const fetchPopups = useCallback(async () => {
+    try {
+      const res = await fetch('/api/popup')
+      if (!res.ok) throw new Error(`Error ${res.status}`)
+      const data = await res.json()
+      if (Array.isArray(data)) {
+        setPopups(data)
+      } else {
+        setPopups([])
+      }
+    } catch (err) {
+      console.error('Error fetching popups:', err)
+      setPopups([])
+    }
+  }, [])
+
   useEffect(() => {
     if (isAuthenticated && showPanel) {
       const load = async () => {
         setLoading(true)
-        await Promise.all([fetchGames(), fetchParticipants()])
+        await Promise.all([fetchGames(), fetchParticipants(), fetchPopups()])
         setLoading(false)
       }
       load()
     }
-  }, [isAuthenticated, showPanel, fetchGames, fetchParticipants])
+  }, [isAuthenticated, showPanel, fetchGames, fetchParticipants, fetchPopups])
 
   // Game CRUD
   const handleOpenAddGame = () => {
@@ -369,6 +403,55 @@ export default function AdminPanel() {
       lines.join('\n')
     )
     window.open(`https://wa.me/573112632365?text=${message}`, '_blank')
+  }
+
+  const handleSavePopup = async () => {
+    if (!popupForm.text.trim()) return
+    setSavingPopup(true)
+    try {
+      if (editingPopup) {
+        await fetch('/api/popup', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: editingPopup.id, ...popupForm }),
+        })
+      } else {
+        await fetch('/api/popup', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(popupForm),
+        })
+      }
+      setEditingPopup(null)
+      setPopupForm({ text: 'TPK NUEVO', linkUrl: '#', isActive: true, color: '#f97316', size: 120, position: 'bottom-left' })
+      fetchPopups()
+    } catch (err) {
+      console.error('Error saving popup:', err)
+    } finally {
+      setSavingPopup(false)
+    }
+  }
+
+  const handleDeletePopup = async (id: string) => {
+    try {
+      await fetch(`/api/popup?id=${id}`, { method: 'DELETE' })
+      fetchPopups()
+    } catch (err) {
+      console.error('Error deleting popup:', err)
+    }
+  }
+
+  const handleTogglePopup = async (popup: PopupConfig) => {
+    try {
+      await fetch('/api/popup', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: popup.id, isActive: !popup.isActive }),
+      })
+      fetchPopups()
+    } catch (err) {
+      console.error('Error toggling popup:', err)
+    }
   }
 
   // Stats calculations
@@ -582,6 +665,7 @@ export default function AdminPanel() {
               { key: 'games' as Tab, label: 'Juegos', count: games.length, color: '#a855f7' },
               { key: 'participants' as Tab, label: 'Participantes', count: participants.length, color: '#f97316' },
               { key: 'stats' as Tab, label: 'Estadísticas', count: null, color: '#22c55e' },
+              { key: 'popup' as Tab, label: 'Popup', count: popups.length, color: '#eab308' },
             ].map((tab) => (
               <button
                 key={tab.key}
@@ -890,6 +974,283 @@ export default function AdminPanel() {
                             Eliminar
                           </button>
                         </div>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            ) : activeTab === 'popup' ? (
+              /* ========== POPUP TAB ========== */
+              <div className="space-y-3">
+                {/* Add popup button */}
+                <button
+                  onClick={() => {
+                    setEditingPopup(null)
+                    setPopupForm({ text: 'TPK NUEVO', linkUrl: '#', isActive: true, color: '#f97316', size: 120, position: 'bottom-left' })
+                  }}
+                  className="w-full py-3 rounded-xl text-sm font-bold uppercase tracking-wider cursor-pointer transition-all"
+                  style={{
+                    border: '1px dashed rgba(234, 179, 8, 0.4)',
+                    color: '#fde047',
+                    background: 'rgba(234, 179, 8, 0.05)',
+                  }}
+                >
+                  + Agregar Popup Circular
+                </button>
+
+                {/* Popup Form */}
+                {(editingPopup || popupForm.text) && (
+                  <div
+                    className="p-4 rounded-xl space-y-3"
+                    style={{
+                      background: 'rgba(234, 179, 8, 0.05)',
+                      border: '1px solid rgba(234, 179, 8, 0.2)',
+                    }}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-bold" style={{ color: '#fde047' }}>
+                        {editingPopup ? 'Editar Popup' : 'Nuevo Popup'}
+                      </span>
+                      <button
+                        onClick={() => {
+                          setEditingPopup(null)
+                          setPopupForm({ text: 'TPK NUEVO', linkUrl: '#', isActive: true, color: '#f97316', size: 120, position: 'bottom-left' })
+                        }}
+                        className="text-xs cursor-pointer"
+                        style={{ color: 'rgba(255,255,255,0.4)' }}
+                      >
+                        Cancelar
+                      </button>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      {/* Text */}
+                      <div>
+                        <label className="block text-xs font-bold uppercase tracking-wider mb-1" style={{ color: '#fde047' }}>Texto</label>
+                        <input
+                          type="text"
+                          value={popupForm.text}
+                          onChange={(e) => setPopupForm({ ...popupForm, text: e.target.value })}
+                          className="w-full px-3 py-2 rounded-lg text-sm text-white outline-none"
+                          style={{ background: 'rgba(0,0,0,0.5)', border: '1px solid rgba(234,179,8,0.3)' }}
+                          placeholder="TPK NUEVO"
+                        />
+                      </div>
+                      {/* URL */}
+                      <div>
+                        <label className="block text-xs font-bold uppercase tracking-wider mb-1" style={{ color: '#fde047' }}>URL de destino</label>
+                        <input
+                          type="url"
+                          value={popupForm.linkUrl}
+                          onChange={(e) => setPopupForm({ ...popupForm, linkUrl: e.target.value })}
+                          className="w-full px-3 py-2 rounded-lg text-sm text-white outline-none"
+                          style={{ background: 'rgba(0,0,0,0.5)', border: '1px solid rgba(234,179,8,0.3)' }}
+                          placeholder="https://ejemplo.com"
+                        />
+                      </div>
+                      {/* Color */}
+                      <div>
+                        <label className="block text-xs font-bold uppercase tracking-wider mb-1" style={{ color: '#fde047' }}>Color</label>
+                        <div className="flex gap-2 flex-wrap">
+                          {['#f97316', '#a855f7', '#eab308', '#22c55e', '#ef4444', '#3b82f6', '#ec4899', '#06b6d4'].map((c) => (
+                            <button
+                              key={c}
+                              onClick={() => setPopupForm({ ...popupForm, color: c })}
+                              className="w-7 h-7 rounded-full cursor-pointer transition-all"
+                              style={{
+                                background: c,
+                                border: popupForm.color === c ? '2px solid white' : '2px solid transparent',
+                                boxShadow: popupForm.color === c ? `0 0 10px ${c}80` : 'none',
+                              }}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                      {/* Position */}
+                      <div>
+                        <label className="block text-xs font-bold uppercase tracking-wider mb-1" style={{ color: '#fde047' }}>Posicion</label>
+                        <select
+                          value={popupForm.position}
+                          onChange={(e) => setPopupForm({ ...popupForm, position: e.target.value })}
+                          className="w-full px-3 py-2 rounded-lg text-sm text-white outline-none"
+                          style={{ background: 'rgba(0,0,0,0.5)', border: '1px solid rgba(234,179,8,0.3)' }}
+                        >
+                          <option value="bottom-left">Abajo Izquierda</option>
+                          <option value="bottom-right">Abajo Derecha</option>
+                          <option value="top-left">Arriba Izquierda</option>
+                          <option value="top-right">Arriba Derecha</option>
+                          <option value="center-left">Centro Izquierda</option>
+                          <option value="center-right">Centro Derecha</option>
+                        </select>
+                      </div>
+                      {/* Size */}
+                      <div className="sm:col-span-2">
+                        <label className="block text-xs font-bold uppercase tracking-wider mb-1" style={{ color: '#fde047' }}>
+                          Tamano: {popupForm.size}px
+                        </label>
+                        <input
+                          type="range"
+                          min="80"
+                          max="200"
+                          step="10"
+                          value={popupForm.size}
+                          onChange={(e) => setPopupForm({ ...popupForm, size: parseInt(e.target.value) })}
+                          className="w-full"
+                          style={{ accentColor: popupForm.color }}
+                        />
+                      </div>
+                      {/* Active toggle */}
+                      <div className="sm:col-span-2 flex items-center gap-3">
+                        <button
+                          onClick={() => setPopupForm({ ...popupForm, isActive: !popupForm.isActive })}
+                          className="px-3 py-1.5 rounded-lg text-xs font-bold cursor-pointer"
+                          style={{
+                            background: popupForm.isActive ? 'rgba(34,197,94,0.15)' : 'rgba(239,68,68,0.15)',
+                            color: popupForm.isActive ? '#4ade80' : '#ef4444',
+                            border: `1px solid ${popupForm.isActive ? 'rgba(34,197,94,0.3)' : 'rgba(239,68,68,0.3)'}`,
+                          }}
+                        >
+                          {popupForm.isActive ? '● Activo' : '○ Inactivo'}
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Mini Preview */}
+                    <div className="flex justify-center py-4">
+                      <div
+                        className="rounded-full flex items-center justify-center relative overflow-hidden"
+                        style={{
+                          width: Math.min(popupForm.size, 100),
+                          height: Math.min(popupForm.size, 100),
+                          background: `radial-gradient(circle at 35% 35%, ${popupForm.color}40, ${popupForm.color}15 50%, rgba(0,0,0,0.9) 80%)`,
+                          border: `2px solid ${popupForm.color}`,
+                          boxShadow: `0 0 15px ${popupForm.color}60, 0 0 30px ${popupForm.color}30`,
+                          animation: 'pulse-glow 2s ease-in-out infinite',
+                        }}
+                      >
+                        <span className="text-xs font-black uppercase" style={{ color: popupForm.color, textShadow: `0 0 6px ${popupForm.color}80` }}>
+                          {popupForm.text.substring(0, 6)}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Save button */}
+                    <button
+                      onClick={handleSavePopup}
+                      disabled={savingPopup}
+                      className="w-full py-2.5 rounded-xl font-bold text-sm uppercase tracking-wider cursor-pointer transition-all disabled:opacity-50"
+                      style={{
+                        background: `linear-gradient(135deg, ${popupForm.color}, ${popupForm.color}cc)`,
+                        color: 'white',
+                        boxShadow: `0 0 15px ${popupForm.color}40`,
+                      }}
+                    >
+                      {savingPopup ? 'Guardando...' : editingPopup ? 'Actualizar Popup' : 'Crear Popup'}
+                    </button>
+                  </div>
+                )}
+
+                {/* Existing popups list */}
+                {popups.length === 0 ? (
+                  <div className="text-center py-8" style={{ color: 'rgba(255,255,255,0.3)' }}>
+                    No hay popups creados. Agrega el primero.
+                  </div>
+                ) : (
+                  popups.map((popup) => (
+                    <div
+                      key={popup.id}
+                      className="p-4 rounded-xl flex items-center gap-3"
+                      style={{
+                        background: 'rgba(255,255,255,0.03)',
+                        border: `1px solid ${popup.isActive ? `${popup.color}30` : 'rgba(255,255,255,0.08)'}`,
+                      }}
+                    >
+                      {/* Mini circle preview */}
+                      <div
+                        className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0"
+                        style={{
+                          background: `radial-gradient(circle, ${popup.color}40, ${popup.color}10)`,
+                          border: `1px solid ${popup.color}`,
+                          boxShadow: `0 0 8px ${popup.color}40`,
+                        }}
+                      >
+                        <span className="text-[0.5rem] font-black uppercase" style={{ color: popup.color }}>
+                          {popup.text.substring(0, 3)}
+                        </span>
+                      </div>
+
+                      {/* Info */}
+                      <div className="flex-1 min-w-0">
+                        <div className="font-bold text-sm" style={{ color: popup.isActive ? '#fef3c7' : 'rgba(255,255,255,0.4)' }}>
+                          {popup.text}
+                        </div>
+                        <div className="text-xs mt-0.5" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                          {popup.linkUrl} | {popup.size}px | {popup.position}
+                        </div>
+                        <div className="flex items-center gap-2 mt-1">
+                          <span
+                            className="px-2 py-0.5 rounded text-xs font-bold"
+                            style={{ background: `${popup.color}20`, color: popup.color, border: `1px solid ${popup.color}40` }}
+                          >
+                            {popup.color}
+                          </span>
+                          <span
+                            className="px-2 py-0.5 rounded text-xs font-bold"
+                            style={{
+                              background: popup.isActive ? 'rgba(34,197,94,0.15)' : 'rgba(239,68,68,0.15)',
+                              color: popup.isActive ? '#4ade80' : '#ef4444',
+                              border: `1px solid ${popup.isActive ? 'rgba(34,197,94,0.3)' : 'rgba(239,68,68,0.3)'}`,
+                            }}
+                          >
+                            {popup.isActive ? 'Activo' : 'Inactivo'}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Actions */}
+                      <div className="flex items-center gap-1.5">
+                        <button
+                          onClick={() => handleTogglePopup(popup)}
+                          className="w-7 h-7 rounded-lg flex items-center justify-center cursor-pointer"
+                          style={{
+                            background: popup.isActive ? 'rgba(34,197,94,0.1)' : 'rgba(239,68,68,0.1)',
+                            color: popup.isActive ? '#4ade80' : '#ef4444',
+                            border: `1px solid ${popup.isActive ? 'rgba(34,197,94,0.2)' : 'rgba(239,68,68,0.2)'}`,
+                          }}
+                          title={popup.isActive ? 'Desactivar' : 'Activar'}
+                        >
+                          {popup.isActive ? (
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18.36 6.64a9 9 0 1 1-12.73 0"/><line x1="12" y1="2" x2="12" y2="12"/></svg>
+                          ) : (
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+                          )}
+                        </button>
+                        <button
+                          onClick={() => {
+                            setEditingPopup(popup)
+                            setPopupForm({
+                              text: popup.text,
+                              linkUrl: popup.linkUrl,
+                              isActive: popup.isActive,
+                              color: popup.color,
+                              size: popup.size,
+                              position: popup.position,
+                            })
+                          }}
+                          className="w-7 h-7 rounded-lg flex items-center justify-center cursor-pointer"
+                          style={{ background: 'rgba(249,115,22,0.1)', color: '#fdba74', border: '1px solid rgba(249,115,22,0.2)' }}
+                          title="Editar"
+                        >
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                        </button>
+                        <button
+                          onClick={() => handleDeletePopup(popup.id)}
+                          className="w-7 h-7 rounded-lg flex items-center justify-center cursor-pointer"
+                          style={{ background: 'rgba(239,68,68,0.1)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.2)' }}
+                          title="Eliminar"
+                        >
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                        </button>
                       </div>
                     </div>
                   ))

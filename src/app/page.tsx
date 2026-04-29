@@ -3,6 +3,7 @@ import RegistrationSection from '@/components/registration/RegistrationSection'
 import TriviaGame from '@/components/trivia/TriviaGame'
 import LightningTriviaGame from '@/components/lightning/LightningTriviaGame'
 import AdminPanel from '@/components/admin/AdminPanel'
+import CircularPopup from '@/components/popup/CircularPopup'
 
 export default function Home() {
   return (
@@ -89,6 +90,9 @@ export default function Home() {
 
       {/* Admin Panel (floating) */}
       <AdminPanel />
+
+      {/* Circular Popup */}
+      <CircularPopup />
     </main>
   )
 }

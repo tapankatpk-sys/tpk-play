@@ -121,3 +121,19 @@ model LightningSession {
 
   @@unique([roundId, participantCode])
 }
+
+// ============================================
+// POPUP CIRCULAR - Banner animado editable
+// ============================================
+
+model PopupConfig {
+  id          String   @id @default(cuid())
+  text        String   @default("TPK NUEVO")
+  linkUrl     String   @default("#")
+  isActive    Boolean  @default(true)
+  color       String   @default("#f97316")
+  size        Int      @default(120)
+  position    String   @default("bottom-left")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
