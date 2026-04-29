@@ -323,3 +323,44 @@ KEY FILES (all games):
 - src/app/api/trivia/route.ts - Regular trivia API
 - src/app/api/lightning/route.ts - Lightning trivia API
 - prisma/schema.prisma - Full DB schema with all game models
+---
+Task ID: 8
+Agent: Main
+Task: Enhance Hero section with dramatic Las Vegas-style reflector/spotlight lights
+
+Work Log:
+- Restarted dev server after context recovery (npm install, prisma generate, db push)
+- Completely rewrote SpotlightBackground.tsx with major enhancements:
+  1. Added 6 MEGA SEARCHLIGHT BEAMS using conic-gradient for realistic 360° rotation
+     - Purple (far left), Orange/Gold (far right), White/Gold (center-left), Pink (center-right), Green (center), Cyan (left)
+     - Each with different rotation speeds (9-15s) and directions (some reverse)
+  2. Added 5 STATIC DRAMATIC CONE BEAMS behind searchlights for depth
+     - Deep Purple, Orange, Gold, Pink, Green - with sweeping animation
+  3. Added LUXOR-STYLE SKY BEAM - the iconic vertical beam shooting upward
+     - Core beam + brighter narrow center beam
+     - Pulsating animation with blur variation
+  4. Enhanced REFLECTOR HOUSING UNITS with realistic fixtures
+     - Each unit has: outer glow halo, lens flare rings (double), core light source, starburst light rays, housing shape
+     - Purple (far left), Orange (far right), Gold (center - largest with 4 starburst rays), Pink (left-center), Green (right-center), Cyan (left), Blue (right)
+  5. Added 25 FLOATING LIGHT PARTICLES with upward drift animation
+     - Random colors matching the Vegas palette, varying sizes and speeds
+  6. Increased marquee lights: 40 top + 40 bottom (from 32), 20 per side (from 16)
+  7. Enhanced atmospheric haze with 3 layers (purple, orange, gold)
+- Added new CSS keyframe animations:
+  - vegas-searchlight-1 through 6 (360° rotation for conic beams)
+  - luxor-beam-pulse (pulsating vertical beam)
+  - reflector-halo (ambient glow around housing)
+  - starburst-ray (light ray emanation effect)
+  - light-particle-float (upward drifting particles with scale/opacity)
+- Server compiles and runs successfully at localhost:3000
+
+Stage Summary:
+- Dramatically enhanced Las Vegas spotlight/reflector effects ✓
+- 6 rotating searchlight beams (conic-gradient, 360° rotation) ✓
+- 5 static cone beams (sweeping animation) ✓
+- Luxor-style vertical sky beam ✓
+- Realistic reflector housing units with lens flares and starburst rays ✓
+- 25 floating light particles ✓
+- More marquee lights (40+40+20+20) ✓
+- All new CSS animations added ✓
+- Build verified successful ✓

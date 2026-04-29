@@ -136,27 +136,146 @@
   50% { transform: rotate(-12deg); opacity: 0.75; }
 }
 
-/* Reflector source pulse - bright white center glow */
+/* ===== VEGAS 360° SEARCHLIGHT ROTATIONS ===== */
+/* These simulate the rotating searchlight beams from the Vegas Strip */
+
+@keyframes vegas-searchlight-1 {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes vegas-searchlight-2 {
+  0% { transform: rotate(360deg); }
+  100% { transform: rotate(0deg); }
+}
+
+@keyframes vegas-searchlight-3 {
+  0% { transform: rotate(0deg); }
+  25% { transform: rotate(90deg); }
+  50% { transform: rotate(180deg); }
+  75% { transform: rotate(270deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes vegas-searchlight-4 {
+  0% { transform: rotate(360deg); }
+  25% { transform: rotate(270deg); }
+  50% { transform: rotate(180deg); }
+  75% { transform: rotate(90deg); }
+  100% { transform: rotate(0deg); }
+}
+
+@keyframes vegas-searchlight-5 {
+  0% { transform: rotate(-30deg); }
+  50% { transform: rotate(30deg); }
+  100% { transform: rotate(-30deg); }
+}
+
+@keyframes vegas-searchlight-6 {
+  0% { transform: rotate(20deg); }
+  50% { transform: rotate(-25deg); }
+  100% { transform: rotate(20deg); }
+}
+
+/* ===== LUXOR-STYLE SKY BEAM ===== */
+/* The iconic vertical beam that shoots up into the night sky */
+
+@keyframes luxor-beam-pulse {
+  0%, 100% {
+    opacity: 0.5;
+    filter: blur(12px);
+  }
+  30% {
+    opacity: 0.8;
+    filter: blur(10px);
+  }
+  50% {
+    opacity: 1;
+    filter: blur(8px);
+  }
+  70% {
+    opacity: 0.7;
+    filter: blur(11px);
+  }
+}
+
+/* ===== REFLECTOR SOURCE PULSE ===== */
+/* Bright white center glow of each reflector unit */
+
 @keyframes reflector-source-pulse {
   0%, 100% { 
     transform: scale(1); 
     opacity: 0.85;
   }
   50% { 
-    transform: scale(1.2); 
+    transform: scale(1.15); 
     opacity: 1;
   }
 }
 
-/* Reflector lens flare ring pulse */
+/* ===== REFLECTOR HALO ===== */
+/* Ambient glow surrounding each reflector housing */
+
+@keyframes reflector-halo {
+  0%, 100% { 
+    transform: scale(1); 
+    opacity: 0.4;
+  }
+  50% { 
+    transform: scale(1.1); 
+    opacity: 0.7;
+  }
+}
+
+/* ===== REFLECTOR LENS FLARE RING PULSE ===== */
 @keyframes reflector-ring-pulse {
   0%, 100% { 
     transform: translate(-50%, -50%) scale(1); 
-    opacity: 0.5;
+    opacity: 0.4;
   }
   50% { 
     transform: translate(-50%, -50%) scale(1.15); 
+    opacity: 0.75;
+  }
+}
+
+/* ===== STARBURST RAY ===== */
+/* The light rays emanating from reflector sources */
+
+@keyframes starburst-ray {
+  0%, 100% { 
+    opacity: 0.3;
+    transform: translate(-50%, -50%) scaleX(1);
+  }
+  50% { 
+    opacity: 0.7;
+    transform: translate(-50%, -50%) scaleX(1.3);
+  }
+}
+
+/* ===== FLOATING LIGHT PARTICLES ===== */
+/* Small luminous particles drifting upward in the spotlight beams */
+
+@keyframes light-particle-float {
+  0% {
+    transform: translateY(0) translateX(0) scale(0.5);
+    opacity: 0;
+  }
+  15% {
     opacity: 0.8;
+    transform: translateY(-30px) translateX(5px) scale(1);
+  }
+  50% {
+    opacity: 0.5;
+    transform: translateY(-120px) translateX(-8px) scale(0.8);
+  }
+  85% {
+    opacity: 0.3;
+    transform: translateY(-200px) translateX(10px) scale(0.6);
+  }
+  100% {
+    transform: translateY(-250px) translateX(-5px) scale(0.3);
+    opacity: 0;
   }
 }
 
