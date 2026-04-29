@@ -22,6 +22,7 @@ export async function POST(request: NextRequest) {
       data: {
         text: body.text || 'TPK NUEVO',
         linkUrl: body.linkUrl || '#',
+        imageUrl: body.imageUrl || null,
         isActive: body.isActive !== undefined ? body.isActive : true,
         color: body.color || '#f97316',
         size: body.size || 120,
@@ -50,6 +51,7 @@ export async function PUT(request: NextRequest) {
       data: {
         ...(data.text !== undefined && { text: data.text }),
         ...(data.linkUrl !== undefined && { linkUrl: data.linkUrl }),
+        ...(data.imageUrl !== undefined && { imageUrl: data.imageUrl }),
         ...(data.isActive !== undefined && { isActive: data.isActive }),
         ...(data.color !== undefined && { color: data.color }),
         ...(data.size !== undefined && { size: data.size }),

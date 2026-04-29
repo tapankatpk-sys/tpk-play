@@ -130,6 +130,7 @@ model PopupConfig {
   id          String   @id @default(cuid())
   text        String   @default("TPK NUEVO")
   linkUrl     String   @default("#")
+  imageUrl    String?  @default("https://placehold.co/300x300/1a0a2e/f97316?text=TPK")
   isActive    Boolean  @default(true)
   color       String   @default("#f97316")
   size        Int      @default(120)

@@ -35,6 +35,7 @@ interface PopupConfig {
   id: string
   text: string
   linkUrl: string
+  imageUrl: string | null
   isActive: boolean
   color: string
   size: number
@@ -96,7 +97,7 @@ export default function AdminPanel() {
 
   // Popup state
   const [popups, setPopups] = useState<PopupConfig[]>([])
-  const [popupForm, setPopupForm] = useState({ text: 'TPK NUEVO', linkUrl: '#', isActive: true, color: '#f97316', size: 120, position: 'bottom-left' })
+  const [popupForm, setPopupForm] = useState({ text: 'TPK NUEVO', linkUrl: '#', imageUrl: '', isActive: true, color: '#f97316', size: 120, position: 'bottom-left' })
   const [editingPopup, setEditingPopup] = useState<PopupConfig | null>(null)
   const [savingPopup, setSavingPopup] = useState(false)
 
@@ -409,21 +410,25 @@ export default function AdminPanel() {
     if (!popupForm.text.trim()) return
     setSavingPopup(true)
     try {
+      const payload = {
+        ...popupForm,
+        imageUrl: popupForm.imageUrl || null,
+      }
       if (editingPopup) {
         await fetch('/api/popup', {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ id: editingPopup.id, ...popupForm }),
+          body: JSON.stringify({ id: editingPopup.id, ...payload }),
         })
       } else {
         await fetch('/api/popup', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(popupForm),
+          body: JSON.stringify(payload),
         })
       }
       setEditingPopup(null)
-      setPopupForm({ text: 'TPK NUEVO', linkUrl: '#', isActive: true, color: '#f97316', size: 120, position: 'bottom-left' })
+      setPopupForm({ text: 'TPK NUEVO', linkUrl: '#', imageUrl: '', isActive: true, color: '#f97316', size: 120, position: 'bottom-left' })
       fetchPopups()
     } catch (err) {
       console.error('Error saving popup:', err)
@@ -986,7 +991,7 @@ export default function AdminPanel() {
                 <button
                   onClick={() => {
                     setEditingPopup(null)
-                    setPopupForm({ text: 'TPK NUEVO', linkUrl: '#', isActive: true, color: '#f97316', size: 120, position: 'bottom-left' })
+                    setPopupForm({ text: 'TPK NUEVO', linkUrl: '#', imageUrl: '', isActive: true, color: '#f97316', size: 120, position: 'bottom-left' })
                   }}
                   className="w-full py-3 rounded-xl text-sm font-bold uppercase tracking-wider cursor-pointer transition-all"
                   style={{
@@ -1014,7 +1019,7 @@ export default function AdminPanel() {
                       <button
                         onClick={() => {
                           setEditingPopup(null)
-                          setPopupForm({ text: 'TPK NUEVO', linkUrl: '#', isActive: true, color: '#f97316', size: 120, position: 'bottom-left' })
+                          setPopupForm({ text: 'TPK NUEVO', linkUrl: '#', imageUrl: '', isActive: true, color: '#f97316', size: 120, position: 'bottom-left' })
                         }}
                         className="text-xs cursor-pointer"
                         style={{ color: 'rgba(255,255,255,0.4)' }}
@@ -1047,6 +1052,30 @@ export default function AdminPanel() {
                           style={{ background: 'rgba(0,0,0,0.5)', border: '1px solid rgba(234,179,8,0.3)' }}
                           placeholder="https://ejemplo.com"
                         />
+                      </div>
+                      {/* Image URL */}
+                      <div>
+                        <label className="block text-xs font-bold uppercase tracking-wider mb-1" style={{ color: '#fde047' }}>URL de Imagen (se muestra dentro del circulo)</label>
+                        <input
+                          type="url"
+                          value={popupForm.imageUrl}
+                          onChange={(e) => setPopupForm({ ...popupForm, imageUrl: e.target.value })}
+                          className="w-full px-3 py-2 rounded-lg text-sm text-white outline-none"
+                          style={{ background: 'rgba(0,0,0,0.5)', border: '1px solid rgba(234,179,8,0.3)' }}
+                          placeholder="https://ejemplo.com/producto.jpg"
+                        />
+                        {popupForm.imageUrl && (
+                          <div className="mt-2 flex items-center gap-2">
+                            <img
+                              src={popupForm.imageUrl}
+                              alt="Preview"
+                              className="w-8 h-8 rounded-full object-cover"
+                              style={{ border: `1px solid ${popupForm.color}` }}
+                              onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
+                            />
+                            <span className="text-[0.6rem]" style={{ color: 'rgba(255,255,255,0.3)' }}>Vista previa de imagen</span>
+                          </div>
+                        )}
                       </div>
                       {/* Color */}
                       <div>
@@ -1117,20 +1146,48 @@ export default function AdminPanel() {
 
                     {/* Mini Preview */}
                     <div className="flex justify-center py-4">
-                      <div
-                        className="rounded-full flex items-center justify-center relative overflow-hidden"
-                        style={{
-                          width: Math.min(popupForm.size, 100),
-                          height: Math.min(popupForm.size, 100),
-                          background: `radial-gradient(circle at 35% 35%, ${popupForm.color}40, ${popupForm.color}15 50%, rgba(0,0,0,0.9) 80%)`,
-                          border: `2px solid ${popupForm.color}`,
-                          boxShadow: `0 0 15px ${popupForm.color}60, 0 0 30px ${popupForm.color}30`,
-                          animation: 'pulse-glow 2s ease-in-out infinite',
-                        }}
-                      >
-                        <span className="text-xs font-black uppercase" style={{ color: popupForm.color, textShadow: `0 0 6px ${popupForm.color}80` }}>
-                          {popupForm.text.substring(0, 6)}
-                        </span>
+                      <div className="relative" style={{ width: Math.min(popupForm.size + 40, 140), height: Math.min(popupForm.size + 40, 140) }}>
+                        {/* Text ring preview */}
+                        <div
+                          className="absolute inset-0 flex items-center justify-center"
+                          style={{
+                            animation: 'pulse-glow 3s ease-in-out infinite',
+                          }}
+                        >
+                          <span className="text-[0.5rem] font-black uppercase tracking-wider absolute" style={{ color: popupForm.color, textShadow: `0 0 6px ${popupForm.color}80`, top: 2, left: '50%', transform: 'translateX(-50%)' }}>
+                            {popupForm.text}
+                          </span>
+                          <span className="text-[0.5rem] font-black uppercase tracking-wider absolute" style={{ color: popupForm.color, textShadow: `0 0 6px ${popupForm.color}80`, bottom: 2, left: '50%', transform: 'translateX(-50%)' }}>
+                            {popupForm.text}
+                          </span>
+                        </div>
+                        {/* Circle with image */}
+                        <div
+                          className="absolute rounded-full flex items-center justify-center overflow-hidden"
+                          style={{
+                            width: Math.min(popupForm.size, 100),
+                            height: Math.min(popupForm.size, 100),
+                            left: '50%',
+                            top: '50%',
+                            transform: 'translate(-50%, -50%)',
+                            background: `radial-gradient(circle at 35% 35%, ${popupForm.color}40, ${popupForm.color}15 50%, rgba(0,0,0,0.9) 80%)`,
+                            border: `2px solid ${popupForm.color}`,
+                            boxShadow: `0 0 15px ${popupForm.color}60, 0 0 30px ${popupForm.color}30`,
+                          }}
+                        >
+                          {popupForm.imageUrl ? (
+                            <img
+                              src={popupForm.imageUrl}
+                              alt="Preview"
+                              className="w-full h-full object-cover rounded-full"
+                              onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
+                            />
+                          ) : (
+                            <span className="text-xs font-black uppercase" style={{ color: popupForm.color, textShadow: `0 0 6px ${popupForm.color}80` }}>
+                              TPK
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </div>
 
@@ -1167,16 +1224,25 @@ export default function AdminPanel() {
                     >
                       {/* Mini circle preview */}
                       <div
-                        className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0"
+                        className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden"
                         style={{
                           background: `radial-gradient(circle, ${popup.color}40, ${popup.color}10)`,
                           border: `1px solid ${popup.color}`,
                           boxShadow: `0 0 8px ${popup.color}40`,
                         }}
                       >
-                        <span className="text-[0.5rem] font-black uppercase" style={{ color: popup.color }}>
-                          {popup.text.substring(0, 3)}
-                        </span>
+                        {popup.imageUrl ? (
+                          <img
+                            src={popup.imageUrl}
+                            alt={popup.text}
+                            className="w-full h-full object-cover rounded-full"
+                            onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
+                          />
+                        ) : (
+                          <span className="text-[0.5rem] font-black uppercase" style={{ color: popup.color }}>
+                            {popup.text.substring(0, 3)}
+                          </span>
+                        )}
                       </div>
 
                       {/* Info */}
@@ -1184,10 +1250,18 @@ export default function AdminPanel() {
                         <div className="font-bold text-sm" style={{ color: popup.isActive ? '#fef3c7' : 'rgba(255,255,255,0.4)' }}>
                           {popup.text}
                         </div>
-                        <div className="text-xs mt-0.5" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                        <div className="text-xs mt-0.5 truncate" style={{ color: 'rgba(255,255,255,0.4)' }}>
                           {popup.linkUrl} | {popup.size}px | {popup.position}
                         </div>
-                        <div className="flex items-center gap-2 mt-1">
+                        <div className="flex items-center gap-2 mt-1 flex-wrap">
+                          {popup.imageUrl && (
+                            <span
+                              className="px-2 py-0.5 rounded text-xs font-bold"
+                              style={{ background: 'rgba(59,130,246,0.15)', color: '#60a5fa', border: '1px solid rgba(59,130,246,0.3)' }}
+                            >
+                              Con Imagen
+                            </span>
+                          )}
                           <span
                             className="px-2 py-0.5 rounded text-xs font-bold"
                             style={{ background: `${popup.color}20`, color: popup.color, border: `1px solid ${popup.color}40` }}
@@ -1231,6 +1305,7 @@ export default function AdminPanel() {
                             setPopupForm({
                               text: popup.text,
                               linkUrl: popup.linkUrl,
+                              imageUrl: popup.imageUrl || '',
                               isActive: popup.isActive,
                               color: popup.color,
                               size: popup.size,
