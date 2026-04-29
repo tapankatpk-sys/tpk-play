@@ -74,3 +74,46 @@ model TriviaRound {
   endsAt      DateTime
   createdAt   DateTime @default(now())
 }
+
+// ============================================
+// TRIVIA RELÁMPAGO - 5 preguntas en 60 segundos
+// ============================================
+
+model LightningRound {
+  id            String   @id @default(cuid())
+  roundId       String   @unique // e.g. "L-2026-04-30-14"
+  questionIds   String   // JSON array of 5 question indices from lightning-questions bank
+  startedAt     DateTime
+  endsAt        DateTime
+  createdAt     DateTime @default(now())
+  answers       LightningAnswer[]
+}
+
+model LightningAnswer {
+  id              String   @id @default(cuid())
+  roundId         String
+  round           LightningRound @relation(fields: [roundId], references: [id], onDelete: Cascade)
+  participantCode String   // TPK code
+  questionIndex   Int      // 0-4, index within the 5-question set
+  selectedAnswer  String   // "A", "B", "C", or "D"
+  isCorrect       Boolean
+  pointsEarned    Int      @default(0)
+  speedBonus      Int      @default(0) // bonus for fast answers
+  timeToAnswer    Int      @default(0) // ms taken to answer this question
+  createdAt       DateTime @default(now())
+
+  @@unique([roundId, participantCode, questionIndex])
+}
+
+model LightningSession {
+  id              String   @id @default(cuid())
+  roundId         String
+  participantCode String
+  totalCorrect    Int      @default(0)
+  totalPoints     Int      @default(0)
+  totalBonus      Int      @default(0)
+  totalTimeMs     Int      @default(0) // total time in ms
+  completedAt     DateTime @default(now())
+
+  @@unique([roundId, participantCode])
+}

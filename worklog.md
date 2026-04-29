@@ -248,3 +248,78 @@ KEY FILES:
 - src/lib/trivia-questions.ts - 73 verified questions about Liga BetPlay
 - src/components/trivia/TriviaGame.tsx - Enhanced Las Vegas style trivia component
 - src/app/api/trivia/route.ts - Trivia API with hourly rotation
+---
+Task ID: 7
+Agent: Main
+Task: Create Trivia Relámpago game - 5 questions in 60 seconds with speed bonus
+
+Work Log:
+- Created lightning-questions.ts with 85 short, fast questions about Liga BetPlay teams
+  - Categories: ciudades, estadios, apodos, colores, fundacion, clasicos, historia, departamentos, general
+  - All questions verified from previously fact-checked data (Task 6 corrections applied)
+  - Questions designed for speed: short text, 4 concise options, direct answers
+- Updated Prisma schema with 3 new models:
+  - LightningRound: hourly round with 5 question indices (JSON)
+  - LightningAnswer: individual answers with time tracking and speed bonus
+  - LightningSession: complete game session with totals and unique constraint
+- Created /api/lightning API route:
+  - GET: Returns current round's 5 questions (deterministic shuffle from seed)
+  - POST: Submit answer per question with time tracking
+  - Speed bonus: 0-5s = +5, 5-10s = +3, 10-15s = +1
+  - Session auto-completes on 5th question, adds points to participant total
+  - One session per user per round (unique constraint)
+- Built LightningTriviaGame.tsx component with electric Las Vegas style:
+  - Gold/yellow + purple color scheme (distinct from regular trivia's orange/purple)
+  - Countdown animation (3-2-1-⚡) before game starts
+  - 60-second timer with urgent flashing when <10s
+  - 2x2 answer grid for faster selection
+  - Question progress bar with color-coded results
+  - Speed bonus display per question
+  - Session result screen with total correct, points, bonus, and time
+  - Already-played state with previous results review
+  - Confetti animation on correct answers
+  - Electric light borders with faster animation than regular trivia
+- Added CSS animations: lightning-pulse, electric-flash, bolt-flicker, speed-streak, timer-urgent
+- Integrated LightningTriviaGame into main page below Trivia Futbolera
+  - Added game separator with ⚡ icons and "Más juegos" label
+  - Both games now in same section under "JUEGOS TPK PLAY"
+- Build verified successfully
+
+Stage Summary:
+- 85 lightning questions verified (short, fast format) ✓
+- 5 questions per round, 60-second timer ✓
+- Speed bonus system: +5/+3/+1 based on response time ✓
+- One session per user per hourly round ✓
+- Points + bonus accumulated to total participant score ✓
+- Electric Las Vegas style with gold/purple theme ✓
+- Countdown animation before game start ✓
+- Integrated below Trivia Futbolera on main page ✓
+- Build verified successful ✓
+
+===
+PROJECT STATE SUMMARY (as of 2026-04-30, Task 7 complete)
+===
+
+COMPLETED:
+✅ Hero section (neon title, spotlights, tiger mascot, animated subtitle)
+✅ Admin panel with authentication (tapankatpk@gmail.com / todobien2)
+✅ Registration system (3 steps, TPK code, social media, privacy notice)
+✅ Liga BetPlay teams research and verification (20 teams in Liga 2026)
+✅ Official shield for Internacional de Bogotá from interbogota.com
+✅ Project data saved in PROJECT_DATA.json (v1.1.0)
+✅ Trivia Futbolera: 73 verified questions, hourly rotation, Las Vegas style
+✅ Trivia Relámpago: 85 fast questions, 5 per round, 60s timer, speed bonus
+✅ Fact-checking completed - 9 errors corrected
+
+GAMES:
+1. Trivia Futbolera - 1 pregunta por hora, +10 pts por acierto
+2. Trivia Relámpago - 5 preguntas en 60s, +10 pts + bonus velocidad
+
+KEY FILES (all games):
+- src/lib/trivia-questions.ts - 73 verified questions
+- src/lib/lightning-questions.ts - 85 verified fast questions
+- src/components/trivia/TriviaGame.tsx - Regular trivia component
+- src/components/lightning/LightningTriviaGame.tsx - Lightning trivia component
+- src/app/api/trivia/route.ts - Regular trivia API
+- src/app/api/lightning/route.ts - Lightning trivia API
+- prisma/schema.prisma - Full DB schema with all game models

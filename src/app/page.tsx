@@ -1,6 +1,7 @@
 import HeroSection from '@/components/hero/HeroSection'
 import RegistrationSection from '@/components/registration/RegistrationSection'
 import TriviaGame from '@/components/trivia/TriviaGame'
+import LightningTriviaGame from '@/components/lightning/LightningTriviaGame'
 import AdminPanel from '@/components/admin/AdminPanel'
 
 export default function Home() {
@@ -8,7 +9,7 @@ export default function Home() {
     <main className="min-h-screen bg-black">
       <HeroSection />
       
-      {/* Trivia Futbolera Section */}
+      {/* Games Section */}
       <section className="relative py-12">
         {/* Section divider */}
         <div className="absolute top-0 left-0 right-0 h-px" style={{
@@ -41,8 +42,31 @@ export default function Home() {
           </div>
         </div>
 
-        <div className="relative z-10">
+        {/* Trivia Futbolera */}
+        <div className="relative z-10 mb-10">
           <TriviaGame />
+        </div>
+
+        {/* Separator between games */}
+        <div className="flex items-center justify-center gap-3 py-6">
+          <div className="h-px flex-1 max-w-32" style={{
+            background: 'linear-gradient(to right, transparent, rgba(234,179,8,0.4))',
+          }} />
+          <div className="flex items-center gap-2">
+            <span style={{ color: '#eab308', textShadow: '0 0 8px rgba(234,179,8,0.6)', fontSize: '0.75rem' }}>⚡</span>
+            <span className="text-[0.6rem] uppercase tracking-[0.3em] font-bold" style={{ color: 'rgba(234,179,8,0.5)' }}>
+              Más juegos
+            </span>
+            <span style={{ color: '#eab308', textShadow: '0 0 8px rgba(234,179,8,0.6)', fontSize: '0.75rem' }}>⚡</span>
+          </div>
+          <div className="h-px flex-1 max-w-32" style={{
+            background: 'linear-gradient(to left, transparent, rgba(234,179,8,0.4))',
+          }} />
+        </div>
+
+        {/* Trivia Relámpago */}
+        <div className="relative z-10">
+          <LightningTriviaGame />
         </div>
       </section>
       

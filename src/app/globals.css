@@ -257,3 +257,56 @@
   60% { transform: translateX(-3px); }
   80% { transform: translateX(3px); }
 }
+
+/* ============================================ */
+/* TPK PLAY - Lightning Trivia Animations       */
+/* ============================================ */
+
+/* Electric pulse for lightning countdown */
+@keyframes lightning-pulse {
+  0%, 100% {
+    box-shadow: 0 0 40px rgba(234,179,8,0.3), 0 0 80px rgba(234,179,8,0.1);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 0 0 60px rgba(234,179,8,0.5), 0 0 120px rgba(234,179,8,0.2);
+    transform: scale(1.05);
+  }
+}
+
+/* Electric arc flash */
+@keyframes electric-flash {
+  0%, 100% { opacity: 0; }
+  5% { opacity: 1; }
+  10% { opacity: 0; }
+  15% { opacity: 0.8; }
+  20% { opacity: 0; }
+}
+
+/* Lightning bolt flicker */
+@keyframes bolt-flicker {
+  0%, 100% { opacity: 1; filter: brightness(1); }
+  10% { opacity: 0.6; filter: brightness(0.6); }
+  20% { opacity: 1; filter: brightness(1.5); }
+  30% { opacity: 0.8; filter: brightness(0.8); }
+  40% { opacity: 1; filter: brightness(1); }
+}
+
+/* Speed streak animation for fast answers */
+@keyframes speed-streak {
+  0% { transform: translateX(-100%); opacity: 0; }
+  50% { opacity: 1; }
+  100% { transform: translateX(100%); opacity: 0; }
+}
+
+/* Timer urgent pulse for lightning game */
+@keyframes timer-urgent {
+  0%, 100% {
+    transform: scale(1);
+    text-shadow: 0 0 10px rgba(239,68,68,0.5);
+  }
+  50% {
+    transform: scale(1.1);
+    text-shadow: 0 0 20px rgba(239,68,68,0.8), 0 0 40px rgba(239,68,68,0.4);
+  }
+}
