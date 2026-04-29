@@ -40,6 +40,7 @@ export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url)
     const participantCode = searchParams.get('code')
+    const isPreview = searchParams.get('preview') === 'true'
 
     const roundId = getCurrentRoundId()
 
@@ -82,24 +83,34 @@ export async function GET(request: Request) {
         optionD: q.optionD,
         category: q.category,
         teamSlug: q.teamSlug || null,
+        // Include correct answer for admin preview
+        ...(isPreview ? { correctAnswer: q.correctAnswer } : {}),
       }
     })
 
+    // For admin preview mode, return simplified response without user data
+    if (isPreview) {
+      return NextResponse.json({
+        preview: true,
+        round: {
+          roundId: round.roundId,
+          startedAt: round.startedAt,
+          endsAt: round.endsAt,
+        },
+        questions,
+        totalQuestions: lightningQuestions.length,
+      })
+    }
+
     // Check if user already played this round
     let alreadyPlayed = false
-    let sessionResult = null
+    let sessionResult: Record<string, unknown> | null = null
     if (participantCode) {
       const session = await db.lightningSession.findUnique({
         where: { roundId_participantCode: { roundId, participantCode } },
       })
       if (session) {
         alreadyPlayed = true
-        sessionResult = {
-          totalCorrect: session.totalCorrect,
-          totalPoints: session.totalPoints,
-          totalBonus: session.totalBonus,
-          totalTimeMs: session.totalTimeMs,
-        }
 
         // Get the answers for this user
         const userAnswers = await db.lightningAnswer.findMany({
@@ -108,7 +119,10 @@ export async function GET(request: Request) {
         })
 
         sessionResult = {
-          ...sessionResult,
+          totalCorrect: session.totalCorrect,
+          totalPoints: session.totalPoints,
+          totalBonus: session.totalBonus,
+          totalTimeMs: session.totalTimeMs,
           answers: userAnswers.map(a => ({
             questionIndex: a.questionIndex,
             selectedAnswer: a.selectedAnswer,

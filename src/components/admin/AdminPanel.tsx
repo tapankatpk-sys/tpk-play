@@ -1,13 +1,17 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import GamePreviewModal from './GamePreviewModal'
 
 interface Game {
   id: string
   name: string
   description: string | null
   imageUrl: string | null
+  type: string
+  config: string | null
   isActive: boolean
+  order: number
   createdAt: string
   _count?: { participants: number }
 }
@@ -18,26 +22,65 @@ interface Participant {
   email: string
   phone: string
   code: string
+  gameId: string | null
+  game: Game | null
   followedFb: boolean
   followedIg: boolean
   followedWa: boolean
-  gameId: string | null
-  game: Game | null
+  totalPoints: number
   createdAt: string
 }
 
-type Tab = 'games' | 'participants'
+type Tab = 'games' | 'participants' | 'stats'
 
 const SESSION_KEY = 'tpk_admin_token'
+
+const GAME_TYPES: Record<string, { label: string; icon: string; color: string; description: string }> = {
+  'trivia-futbolera': { label: 'Trivia Futbolera', icon: '⚽', color: '#a855f7', description: 'Pregunta por hora sobre la Liga BetPlay' },
+  'trivia-relampago': { label: 'Trivia Relámpago', icon: '⚡', color: '#eab308', description: '5 preguntas en 60 segundos' },
+  'prediccion': { label: 'Predicción', icon: '🎯', color: '#f97316', description: 'Predice resultados de partidos' },
+  'encuesta': { label: 'Encuesta', icon: '📊', color: '#3b82f6', description: 'Vota en encuestas futboleras' },
+  'personalizado': { label: 'Personalizado', icon: '🎮', color: '#22c55e', description: 'Juego personalizado' },
+}
+
+const GAME_TYPE_OPTIONS = Object.entries(GAME_TYPES).map(([value, { label }]) => ({ value, label }))
+
+interface GameFormData {
+  name: string
+  description: string
+  imageUrl: string
+  type: string
+  config: string
+  order: number
+  isActive: boolean
+}
+
+const emptyGameForm: GameFormData = {
+  name: '',
+  description: '',
+  imageUrl: '',
+  type: 'personalizado',
+  config: '',
+  order: 0,
+  isActive: true,
+}
 
 export default function AdminPanel() {
   const [activeTab, setActiveTab] = useState<Tab>('games')
   const [games, setGames] = useState<Game[]>([])
   const [participants, setParticipants] = useState<Participant[]>([])
   const [loading, setLoading] = useState(true)
-  const [showAddGame, setShowAddGame] = useState(false)
-  const [newGame, setNewGame] = useState({ name: '', description: '' })
   const [showPanel, setShowPanel] = useState(false)
+
+  // Game form state
+  const [showGameForm, setShowGameForm] = useState(false)
+  const [editingGame, setEditingGame] = useState<Game | null>(null)
+  const [gameForm, setGameForm] = useState<GameFormData>(emptyGameForm)
+  const [savingGame, setSavingGame] = useState(false)
+  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
+
+  // Preview state
+  const [previewGame, setPreviewGame] = useState<Game | null>(null)
 
   // Auth state
   const [isAuthenticated, setIsAuthenticated] = useState(false)
@@ -156,19 +199,70 @@ export default function AdminPanel() {
     }
   }, [isAuthenticated, showPanel, fetchGames, fetchParticipants])
 
-  const handleAddGame = async () => {
-    if (!newGame.name.trim()) return
+  // Game CRUD
+  const handleOpenAddGame = () => {
+    setEditingGame(null)
+    setGameForm({ ...emptyGameForm, order: games.length })
+    setShowGameForm(true)
+  }
+
+  const handleOpenEditGame = (game: Game) => {
+    setEditingGame(game)
+    setGameForm({
+      name: game.name,
+      description: game.description || '',
+      imageUrl: game.imageUrl || '',
+      type: game.type || 'personalizado',
+      config: game.config || '',
+      order: game.order,
+      isActive: game.isActive,
+    })
+    setShowGameForm(true)
+  }
+
+  const handleSaveGame = async () => {
+    if (!gameForm.name.trim()) return
+    setSavingGame(true)
     try {
-      await fetch('/api/games', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newGame),
-      })
-      setNewGame({ name: '', description: '' })
-      setShowAddGame(false)
+      if (editingGame) {
+        // Update
+        await fetch('/api/games', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            id: editingGame.id,
+            name: gameForm.name,
+            description: gameForm.description || null,
+            imageUrl: gameForm.imageUrl || null,
+            type: gameForm.type,
+            config: gameForm.config || null,
+            order: gameForm.order,
+            isActive: gameForm.isActive,
+          }),
+        })
+      } else {
+        // Create
+        await fetch('/api/games', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: gameForm.name,
+            description: gameForm.description || null,
+            imageUrl: gameForm.imageUrl || null,
+            type: gameForm.type,
+            config: gameForm.config || null,
+            order: gameForm.order,
+            isActive: gameForm.isActive,
+          }),
+        })
+      }
+      setShowGameForm(false)
+      setEditingGame(null)
       fetchGames()
     } catch (err) {
-      console.error('Error adding game:', err)
+      console.error('Error saving game:', err)
+    } finally {
+      setSavingGame(false)
     }
   }
 
@@ -186,13 +280,41 @@ export default function AdminPanel() {
   }
 
   const handleDeleteGame = async (id: string) => {
-    if (!confirm('¿Eliminar este juego y todos sus participantes?')) return
     try {
       await fetch(`/api/games?id=${id}`, { method: 'DELETE' })
+      setDeleteConfirm(null)
       fetchGames()
       fetchParticipants()
     } catch (err) {
       console.error('Error deleting game:', err)
+    }
+  }
+
+  const handleMoveGame = async (game: Game, direction: 'up' | 'down') => {
+    const sortedGames = [...games].sort((a, b) => a.order - b.order)
+    const currentIndex = sortedGames.findIndex(g => g.id === game.id)
+    if (direction === 'up' && currentIndex === 0) return
+    if (direction === 'down' && currentIndex === sortedGames.length - 1) return
+
+    const swapIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1
+    const swapGame = sortedGames[swapIndex]
+
+    try {
+      await Promise.all([
+        fetch('/api/games', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: game.id, order: swapGame.order }),
+        }),
+        fetch('/api/games', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: swapGame.id, order: game.order }),
+        }),
+      ])
+      fetchGames()
+    } catch (err) {
+      console.error('Error reordering game:', err)
     }
   }
 
@@ -231,6 +353,12 @@ export default function AdminPanel() {
     )
     window.open(`https://wa.me/573112632365?text=${message}`, '_blank')
   }
+
+  // Stats calculations
+  const totalParticipants = participants.length
+  const totalPoints = participants.reduce((sum, p) => sum + p.totalPoints, 0)
+  const activeGames = games.filter(g => g.isActive).length
+  const totalGames = games.length
 
   // Floating admin button
   if (!showPanel) {
@@ -386,268 +514,723 @@ export default function AdminPanel() {
 
   // Admin panel (authenticated)
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: 'rgba(0,0,0,0.85)' }}>
-      <div
-        className="w-full max-w-5xl max-h-[90vh] rounded-2xl overflow-hidden flex flex-col"
-        style={{
-          background: 'linear-gradient(135deg, #0a0a0a 0%, #1a0a2e 50%, #0a0a0a 100%)',
-          border: '1px solid rgba(168, 85, 247, 0.3)',
-          boxShadow: '0 0 30px rgba(168, 85, 247, 0.2), 0 0 60px rgba(249, 115, 22, 0.1)',
-        }}
-      >
-        {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b" style={{ borderColor: 'rgba(168, 85, 247, 0.2)' }}>
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #a855f7, #f97316)' }}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+    <>
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: 'rgba(0,0,0,0.85)' }}>
+        <div
+          className="w-full max-w-5xl max-h-[90vh] rounded-2xl overflow-hidden flex flex-col"
+          style={{
+            background: 'linear-gradient(135deg, #0a0a0a 0%, #1a0a2e 50%, #0a0a0a 100%)',
+            border: '1px solid rgba(168, 85, 247, 0.3)',
+            boxShadow: '0 0 30px rgba(168, 85, 247, 0.2), 0 0 60px rgba(249, 115, 22, 0.1)',
+          }}
+        >
+          {/* Header */}
+          <div className="flex items-center justify-between p-4 border-b" style={{ borderColor: 'rgba(168, 85, 247, 0.2)' }}>
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #a855f7, #f97316)' }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+              </div>
+              <div>
+                <h2 className="text-lg font-bold" style={{ color: '#d8b4fe', textShadow: '0 0 10px rgba(168, 85, 247, 0.5)' }}>
+                  TPK PLAY Admin
+                </h2>
+                <p className="text-xs" style={{ color: 'rgba(255,255,255,0.3)' }}>{adminEmail}</p>
+              </div>
             </div>
-            <div>
-              <h2 className="text-lg font-bold" style={{ color: '#d8b4fe', textShadow: '0 0 10px rgba(168, 85, 247, 0.5)' }}>
-                TPK PLAY Admin
-              </h2>
-              <p className="text-xs" style={{ color: 'rgba(255,255,255,0.3)' }}>{adminEmail}</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={handleLogout}
-              className="px-3 py-1.5 rounded-lg text-xs font-bold cursor-pointer transition-all"
-              style={{
-                background: 'rgba(239, 68, 68, 0.1)',
-                color: '#ef4444',
-                border: '1px solid rgba(239, 68, 68, 0.2)',
-              }}
-            >
-              Cerrar Sesión
-            </button>
-            <button
-              onClick={() => setShowPanel(false)}
-              className="w-8 h-8 rounded-full flex items-center justify-center cursor-pointer transition-colors"
-              style={{ backgroundColor: 'rgba(255,255,255,0.1)' }}
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
-            </button>
-          </div>
-        </div>
-
-        {/* Tabs */}
-        <div className="flex border-b" style={{ borderColor: 'rgba(168, 85, 247, 0.2)' }}>
-          <button
-            onClick={() => setActiveTab('games')}
-            className="flex-1 py-3 text-sm font-bold uppercase tracking-wider cursor-pointer transition-all"
-            style={{
-              color: activeTab === 'games' ? '#a855f7' : 'rgba(255,255,255,0.4)',
-              borderBottom: activeTab === 'games' ? '2px solid #a855f7' : '2px solid transparent',
-              textShadow: activeTab === 'games' ? '0 0 10px rgba(168, 85, 247, 0.5)' : 'none',
-            }}
-          >
-            Juegos ({games.length})
-          </button>
-          <button
-            onClick={() => setActiveTab('participants')}
-            className="flex-1 py-3 text-sm font-bold uppercase tracking-wider cursor-pointer transition-all"
-            style={{
-              color: activeTab === 'participants' ? '#f97316' : 'rgba(255,255,255,0.4)',
-              borderBottom: activeTab === 'participants' ? '2px solid #f97316' : '2px solid transparent',
-              textShadow: activeTab === 'participants' ? '0 0 10px rgba(249, 115, 22, 0.5)' : 'none',
-            }}
-          >
-            Participantes ({participants.length})
-          </button>
-        </div>
-
-        {/* Content */}
-        <div className="flex-1 overflow-y-auto p-4" style={{ scrollbarColor: 'rgba(168,85,247,0.3) transparent' }}>
-          {loading ? (
-            <div className="flex items-center justify-center py-12">
-              <div className="w-8 h-8 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: '#a855f7', borderTopColor: 'transparent' }} />
-            </div>
-          ) : activeTab === 'games' ? (
-            <div className="space-y-3">
-              {/* Add game button */}
+            <div className="flex items-center gap-2">
               <button
-                onClick={() => setShowAddGame(!showAddGame)}
-                className="w-full py-3 rounded-xl text-sm font-bold uppercase tracking-wider cursor-pointer transition-all"
+                onClick={handleLogout}
+                className="px-3 py-1.5 rounded-lg text-xs font-bold cursor-pointer transition-all"
                 style={{
-                  border: '1px dashed rgba(168, 85, 247, 0.4)',
-                  color: '#d8b4fe',
-                  background: 'rgba(168, 85, 247, 0.05)',
+                  background: 'rgba(239, 68, 68, 0.1)',
+                  color: '#ef4444',
+                  border: '1px solid rgba(239, 68, 68, 0.2)',
                 }}
               >
-                + Agregar Juego
+                Cerrar Sesión
               </button>
-
-              {showAddGame && (
-                <div className="p-4 rounded-xl space-y-3" style={{ background: 'rgba(168, 85, 247, 0.08)', border: '1px solid rgba(168, 85, 247, 0.2)' }}>
-                  <input
-                    type="text"
-                    placeholder="Nombre del juego"
-                    value={newGame.name}
-                    onChange={(e) => setNewGame({ ...newGame, name: e.target.value })}
-                    className="w-full px-4 py-2 rounded-lg text-sm text-white placeholder-gray-500 outline-none"
-                    style={{ background: 'rgba(0,0,0,0.5)', border: '1px solid rgba(168, 85, 247, 0.3)' }}
-                  />
-                  <input
-                    type="text"
-                    placeholder="Descripción (opcional)"
-                    value={newGame.description}
-                    onChange={(e) => setNewGame({ ...newGame, description: e.target.value })}
-                    className="w-full px-4 py-2 rounded-lg text-sm text-white placeholder-gray-500 outline-none"
-                    style={{ background: 'rgba(0,0,0,0.5)', border: '1px solid rgba(168, 85, 247, 0.3)' }}
-                  />
-                  <div className="flex gap-2">
-                    <button
-                      onClick={handleAddGame}
-                      className="flex-1 py-2 rounded-lg text-sm font-bold cursor-pointer"
-                      style={{ background: 'linear-gradient(135deg, #a855f7, #7c3aed)', color: 'white' }}
-                    >
-                      Crear
-                    </button>
-                    <button
-                      onClick={() => setShowAddGame(false)}
-                      className="px-4 py-2 rounded-lg text-sm cursor-pointer"
-                      style={{ background: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.6)' }}
-                    >
-                      Cancelar
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {games.length === 0 ? (
-                <div className="text-center py-8" style={{ color: 'rgba(255,255,255,0.3)' }}>
-                  No hay juegos registrados. Agrega el primero.
-                </div>
-              ) : (
-                games.map((game) => (
-                  <div
-                    key={game.id}
-                    className="p-4 rounded-xl flex items-center justify-between transition-all"
-                    style={{
-                      background: 'rgba(255,255,255,0.03)',
-                      border: `1px solid ${game.isActive ? 'rgba(34, 197, 94, 0.3)' : 'rgba(255,255,255,0.1)'}`,
-                    }}
-                  >
-                    <div className="flex-1">
-                      <div className="font-bold text-sm" style={{ color: game.isActive ? '#4ade80' : 'rgba(255,255,255,0.4)' }}>
-                        {game.name}
-                      </div>
-                      {game.description && (
-                        <div className="text-xs mt-1" style={{ color: 'rgba(255,255,255,0.4)' }}>{game.description}</div>
-                      )}
-                      <div className="text-xs mt-1" style={{ color: 'rgba(168, 85, 247, 0.6)' }}>
-                        {game._count?.participants || 0} participantes
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => handleToggleGame(game)}
-                        className="px-3 py-1 rounded-lg text-xs font-bold cursor-pointer"
-                        style={{
-                          background: game.isActive ? 'rgba(34, 197, 94, 0.15)' : 'rgba(249, 115, 22, 0.15)',
-                          color: game.isActive ? '#4ade80' : '#f97316',
-                          border: `1px solid ${game.isActive ? 'rgba(34, 197, 94, 0.3)' : 'rgba(249, 115, 22, 0.3)'}`,
-                        }}
-                      >
-                        {game.isActive ? 'Activo' : 'Inactivo'}
-                      </button>
-                      <button
-                        onClick={() => handleDeleteGame(game.id)}
-                        className="px-2 py-1 rounded-lg text-xs cursor-pointer"
-                        style={{ background: 'rgba(239, 68, 68, 0.15)', color: '#ef4444', border: '1px solid rgba(239, 68, 68, 0.3)' }}
-                      >
-                        Eliminar
-                      </button>
-                    </div>
-                  </div>
-                ))
-              )}
+              <button
+                onClick={() => setShowPanel(false)}
+                className="w-8 h-8 rounded-full flex items-center justify-center cursor-pointer transition-colors"
+                style={{ backgroundColor: 'rgba(255,255,255,0.1)' }}
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+              </button>
             </div>
-          ) : (
-            <div className="space-y-3">
-              {/* Send all to WhatsApp */}
-              {participants.length > 0 && (
+          </div>
+
+          {/* Tabs */}
+          <div className="flex border-b" style={{ borderColor: 'rgba(168, 85, 247, 0.2)' }}>
+            {[
+              { key: 'games' as Tab, label: 'Juegos', count: games.length, color: '#a855f7' },
+              { key: 'participants' as Tab, label: 'Participantes', count: participants.length, color: '#f97316' },
+              { key: 'stats' as Tab, label: 'Estadísticas', count: null, color: '#22c55e' },
+            ].map((tab) => (
+              <button
+                key={tab.key}
+                onClick={() => setActiveTab(tab.key)}
+                className="flex-1 py-3 text-sm font-bold uppercase tracking-wider cursor-pointer transition-all"
+                style={{
+                  color: activeTab === tab.key ? tab.color : 'rgba(255,255,255,0.4)',
+                  borderBottom: activeTab === tab.key ? `2px solid ${tab.color}` : '2px solid transparent',
+                  textShadow: activeTab === tab.key ? `0 0 10px ${tab.color}80` : 'none',
+                }}
+              >
+                {tab.label} {tab.count !== null ? `(${tab.count})` : ''}
+              </button>
+            ))}
+          </div>
+
+          {/* Content */}
+          <div className="flex-1 overflow-y-auto p-4" style={{ scrollbarColor: 'rgba(168,85,247,0.3) transparent' }}>
+            {loading ? (
+              <div className="flex items-center justify-center py-12">
+                <div className="w-8 h-8 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: '#a855f7', borderTopColor: 'transparent' }} />
+              </div>
+            ) : activeTab === 'games' ? (
+              /* ========== GAMES TAB ========== */
+              <div className="space-y-3">
+                {/* Add game button */}
                 <button
-                  onClick={sendAllToWhatsApp}
-                  className="w-full py-3 rounded-xl text-sm font-bold uppercase tracking-wider cursor-pointer transition-all flex items-center justify-center gap-2"
+                  onClick={handleOpenAddGame}
+                  className="w-full py-3 rounded-xl text-sm font-bold uppercase tracking-wider cursor-pointer transition-all"
                   style={{
-                    background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
-                    color: 'white',
-                    boxShadow: '0 0 15px rgba(34, 197, 94, 0.3)',
+                    border: '1px dashed rgba(168, 85, 247, 0.4)',
+                    color: '#d8b4fe',
+                    background: 'rgba(168, 85, 247, 0.05)',
                   }}
                 >
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.625.846 5.059 2.284 7.034L.789 23.492a.5.5 0 00.612.638l4.694-1.358A11.946 11.946 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-2.136 0-4.144-.62-5.845-1.688l-.414-.258-2.965.858.87-2.89-.276-.438A9.955 9.955 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
-                  Enviar Todo a WhatsApp TPK
+                  + Agregar Juego
                 </button>
-              )}
 
-              {participants.length === 0 ? (
-                <div className="text-center py-8" style={{ color: 'rgba(255,255,255,0.3)' }}>
-                  No hay participantes registrados aún.
-                </div>
-              ) : (
-                participants.map((p) => (
-                  <div
-                    key={p.id}
-                    className="p-4 rounded-xl transition-all"
+                {games.length === 0 ? (
+                  <div className="text-center py-8" style={{ color: 'rgba(255,255,255,0.3)' }}>
+                    No hay juegos registrados. Agrega el primero.
+                  </div>
+                ) : (
+                  games
+                    .sort((a, b) => a.order - b.order)
+                    .map((game) => {
+                      const gameType = GAME_TYPES[game.type] || GAME_TYPES['personalizado']
+                      return (
+                        <div
+                          key={game.id}
+                          className="rounded-xl transition-all"
+                          style={{
+                            background: 'rgba(255,255,255,0.03)',
+                            border: `1px solid ${game.isActive ? `${gameType.color}30` : 'rgba(255,255,255,0.08)'}`,
+                            boxShadow: game.isActive ? `0 0 10px ${gameType.color}08` : 'none',
+                          }}
+                        >
+                          {/* Game card top row */}
+                          <div className="p-4 flex items-start gap-3">
+                            {/* Drag handle + order */}
+                            <div className="flex flex-col items-center gap-0.5 pt-1">
+                              <button
+                                onClick={() => handleMoveGame(game, 'up')}
+                                className="w-6 h-6 rounded flex items-center justify-center cursor-pointer transition-colors"
+                                style={{ color: 'rgba(255,255,255,0.3)', background: 'rgba(255,255,255,0.05)' }}
+                                title="Mover arriba"
+                              >
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 15l-6-6-6 6"/></svg>
+                              </button>
+                              <span className="text-[0.6rem] font-bold" style={{ color: 'rgba(255,255,255,0.2)' }}>#{game.order}</span>
+                              <button
+                                onClick={() => handleMoveGame(game, 'down')}
+                                className="w-6 h-6 rounded flex items-center justify-center cursor-pointer transition-colors"
+                                style={{ color: 'rgba(255,255,255,0.3)', background: 'rgba(255,255,255,0.05)' }}
+                                title="Mover abajo"
+                              >
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M6 9l6 6 6-6"/></svg>
+                              </button>
+                            </div>
+
+                            {/* Game info */}
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 mb-1 flex-wrap">
+                                {/* Type badge */}
+                                <span
+                                  className="px-2 py-0.5 rounded text-xs font-bold flex items-center gap-1"
+                                  style={{ background: `${gameType.color}20`, color: gameType.color, border: `1px solid ${gameType.color}40` }}
+                                >
+                                  <span>{gameType.icon}</span>
+                                  {gameType.label}
+                                </span>
+                                {/* Active/Inactive badge */}
+                                <span
+                                  className="px-2 py-0.5 rounded text-xs font-bold"
+                                  style={{
+                                    background: game.isActive ? 'rgba(34, 197, 94, 0.15)' : 'rgba(239, 68, 68, 0.15)',
+                                    color: game.isActive ? '#4ade80' : '#ef4444',
+                                    border: `1px solid ${game.isActive ? 'rgba(34, 197, 94, 0.3)' : 'rgba(239, 68, 68, 0.3)'}`,
+                                  }}
+                                >
+                                  {game.isActive ? '● Activo' : '○ Inactivo'}
+                                </span>
+                              </div>
+                              <div className="font-bold text-sm" style={{ color: game.isActive ? '#e9d5ff' : 'rgba(255,255,255,0.4)' }}>
+                                {game.name}
+                              </div>
+                              {game.description && (
+                                <div className="text-xs mt-1 line-clamp-2" style={{ color: 'rgba(255,255,255,0.4)' }}>{game.description}</div>
+                              )}
+                              <div className="flex items-center gap-3 mt-2">
+                                <span className="text-xs" style={{ color: `${gameType.color}80` }}>
+                                  👥 {game._count?.participants || 0} participantes
+                                </span>
+                                {game.type && (
+                                  <span className="text-xs" style={{ color: 'rgba(255,255,255,0.2)' }}>
+                                    {gameType.description}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+
+                            {/* Action buttons */}
+                            <div className="flex items-center gap-1.5">
+                              {/* Preview */}
+                              <button
+                                onClick={() => setPreviewGame(game)}
+                                className="w-8 h-8 rounded-lg flex items-center justify-center cursor-pointer transition-all"
+                                style={{
+                                  background: 'rgba(168, 85, 247, 0.1)',
+                                  color: '#d8b4fe',
+                                  border: '1px solid rgba(168, 85, 247, 0.2)',
+                                }}
+                                title="Vista Previa"
+                              >
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                              </button>
+                              {/* Edit */}
+                              <button
+                                onClick={() => handleOpenEditGame(game)}
+                                className="w-8 h-8 rounded-lg flex items-center justify-center cursor-pointer transition-all"
+                                style={{
+                                  background: 'rgba(249, 115, 22, 0.1)',
+                                  color: '#fdba74',
+                                  border: '1px solid rgba(249, 115, 22, 0.2)',
+                                }}
+                                title="Editar"
+                              >
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                              </button>
+                              {/* Toggle active */}
+                              <button
+                                onClick={() => handleToggleGame(game)}
+                                className="w-8 h-8 rounded-lg flex items-center justify-center cursor-pointer transition-all"
+                                style={{
+                                  background: game.isActive ? 'rgba(34, 197, 94, 0.1)' : 'rgba(239, 68, 68, 0.1)',
+                                  color: game.isActive ? '#4ade80' : '#ef4444',
+                                  border: `1px solid ${game.isActive ? 'rgba(34, 197, 94, 0.2)' : 'rgba(239, 68, 68, 0.2)'}`,
+                                }}
+                                title={game.isActive ? 'Desactivar' : 'Activar'}
+                              >
+                                {game.isActive ? (
+                                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18.36 6.64a9 9 0 1 1-12.73 0"/><line x1="12" y1="2" x2="12" y2="12"/></svg>
+                                ) : (
+                                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+                                )}
+                              </button>
+                              {/* Delete */}
+                              {deleteConfirm === game.id ? (
+                                <div className="flex items-center gap-1">
+                                  <button
+                                    onClick={() => handleDeleteGame(game.id)}
+                                    className="px-2 py-1 rounded-lg text-xs font-bold cursor-pointer"
+                                    style={{ background: 'rgba(239, 68, 68, 0.3)', color: '#ef4444', border: '1px solid rgba(239, 68, 68, 0.5)' }}
+                                  >
+                                    Sí
+                                  </button>
+                                  <button
+                                    onClick={() => setDeleteConfirm(null)}
+                                    className="px-2 py-1 rounded-lg text-xs cursor-pointer"
+                                    style={{ background: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.5)', border: '1px solid rgba(255,255,255,0.1)' }}
+                                  >
+                                    No
+                                  </button>
+                                </div>
+                              ) : (
+                                <button
+                                  onClick={() => setDeleteConfirm(game.id)}
+                                  className="w-8 h-8 rounded-lg flex items-center justify-center cursor-pointer transition-all"
+                                  style={{
+                                    background: 'rgba(239, 68, 68, 0.1)',
+                                    color: '#ef4444',
+                                    border: '1px solid rgba(239, 68, 68, 0.2)',
+                                  }}
+                                  title="Eliminar"
+                                >
+                                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      )
+                    })
+                )}
+              </div>
+            ) : activeTab === 'participants' ? (
+              /* ========== PARTICIPANTS TAB ========== */
+              <div className="space-y-3">
+                {/* Send all to WhatsApp */}
+                {participants.length > 0 && (
+                  <button
+                    onClick={sendAllToWhatsApp}
+                    className="w-full py-3 rounded-xl text-sm font-bold uppercase tracking-wider cursor-pointer transition-all flex items-center justify-center gap-2"
                     style={{
-                      background: 'rgba(255,255,255,0.03)',
-                      border: '1px solid rgba(249, 115, 22, 0.2)',
+                      background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
+                      color: 'white',
+                      boxShadow: '0 0 15px rgba(34, 197, 94, 0.3)',
                     }}
                   >
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <div className="font-bold text-sm" style={{ color: '#fed7aa' }}>{p.name}</div>
-                        <div className="text-xs mt-1" style={{ color: 'rgba(255,255,255,0.5)' }}>{p.email}</div>
-                        <div className="text-xs" style={{ color: 'rgba(255,255,255,0.5)' }}>{p.phone}</div>
-                        <div className="flex items-center gap-2 mt-2">
-                          <span
-                            className="px-2 py-0.5 rounded text-xs font-bold"
-                            style={{ background: 'rgba(168, 85, 247, 0.2)', color: '#d8b4fe', border: '1px solid rgba(168, 85, 247, 0.3)' }}
-                          >
-                            {p.code}
-                          </span>
-                          {p.game && (
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.625.846 5.059 2.284 7.034L.789 23.492a.5.5 0 00.612.638l4.694-1.358A11.946 11.946 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-2.136 0-4.144-.62-5.845-1.688l-.414-.258-2.965.858.87-2.89-.276-.438A9.955 9.955 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
+                    Enviar Todo a WhatsApp TPK
+                  </button>
+                )}
+
+                {participants.length === 0 ? (
+                  <div className="text-center py-8" style={{ color: 'rgba(255,255,255,0.3)' }}>
+                    No hay participantes registrados aún.
+                  </div>
+                ) : (
+                  participants.map((p) => (
+                    <div
+                      key={p.id}
+                      className="p-4 rounded-xl transition-all"
+                      style={{
+                        background: 'rgba(255,255,255,0.03)',
+                        border: '1px solid rgba(249, 115, 22, 0.2)',
+                      }}
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="font-bold text-sm" style={{ color: '#fed7aa' }}>{p.name}</div>
+                          <div className="text-xs mt-1" style={{ color: 'rgba(255,255,255,0.5)' }}>{p.email}</div>
+                          <div className="text-xs" style={{ color: 'rgba(255,255,255,0.5)' }}>{p.phone}</div>
+                          <div className="flex items-center gap-2 mt-2">
                             <span
-                              className="px-2 py-0.5 rounded text-xs"
-                              style={{ background: 'rgba(249, 115, 22, 0.15)', color: '#fdba74', border: '1px solid rgba(249, 115, 22, 0.3)' }}
+                              className="px-2 py-0.5 rounded text-xs font-bold"
+                              style={{ background: 'rgba(168, 85, 247, 0.2)', color: '#d8b4fe', border: '1px solid rgba(168, 85, 247, 0.3)' }}
                             >
-                              {p.game.name}
+                              {p.code}
                             </span>
-                          )}
+                            {p.game && (
+                              <span
+                                className="px-2 py-0.5 rounded text-xs"
+                                style={{ background: 'rgba(249, 115, 22, 0.15)', color: '#fdba74', border: '1px solid rgba(249, 115, 22, 0.3)' }}
+                              >
+                                {p.game.name}
+                              </span>
+                            )}
+                            <span
+                              className="px-2 py-0.5 rounded text-xs font-bold"
+                              style={{ background: 'rgba(234, 179, 8, 0.15)', color: '#fde047', border: '1px solid rgba(234, 179, 8, 0.3)' }}
+                            >
+                              ⭐ {p.totalPoints} pts
+                            </span>
+                          </div>
+                          <div className="flex gap-1 mt-2">
+                            <span className="text-xs" style={{ color: p.followedFb ? '#4ade80' : 'rgba(255,255,255,0.2)' }}>FB</span>
+                            <span className="text-xs" style={{ color: 'rgba(255,255,255,0.15)' }}>·</span>
+                            <span className="text-xs" style={{ color: p.followedIg ? '#4ade80' : 'rgba(255,255,255,0.2)' }}>IG</span>
+                            <span className="text-xs" style={{ color: 'rgba(255,255,255,0.15)' }}>·</span>
+                            <span className="text-xs" style={{ color: p.followedWa ? '#4ade80' : 'rgba(255,255,255,0.2)' }}>WA</span>
+                          </div>
                         </div>
-                        <div className="flex gap-1 mt-2">
-                          <span className="text-xs" style={{ color: p.followedFb ? '#4ade80' : 'rgba(255,255,255,0.2)' }}>FB</span>
-                          <span className="text-xs" style={{ color: 'rgba(255,255,255,0.15)' }}>·</span>
-                          <span className="text-xs" style={{ color: p.followedIg ? '#4ade80' : 'rgba(255,255,255,0.2)' }}>IG</span>
-                          <span className="text-xs" style={{ color: 'rgba(255,255,255,0.15)' }}>·</span>
-                          <span className="text-xs" style={{ color: p.followedWa ? '#4ade80' : 'rgba(255,255,255,0.2)' }}>WA</span>
+                        <div className="flex flex-col gap-1">
+                          <button
+                            onClick={() => sendToWhatsApp(p)}
+                            className="px-3 py-1 rounded-lg text-xs font-bold cursor-pointer"
+                            style={{ background: 'rgba(34, 197, 94, 0.15)', color: '#4ade80', border: '1px solid rgba(34, 197, 94, 0.3)' }}
+                          >
+                            WhatsApp
+                          </button>
+                          <button
+                            onClick={() => handleDeleteParticipant(p.id)}
+                            className="px-3 py-1 rounded-lg text-xs cursor-pointer"
+                            style={{ background: 'rgba(239, 68, 68, 0.15)', color: '#ef4444', border: '1px solid rgba(239, 68, 68, 0.3)' }}
+                          >
+                            Eliminar
+                          </button>
                         </div>
-                      </div>
-                      <div className="flex flex-col gap-1">
-                        <button
-                          onClick={() => sendToWhatsApp(p)}
-                          className="px-3 py-1 rounded-lg text-xs font-bold cursor-pointer"
-                          style={{ background: 'rgba(34, 197, 94, 0.15)', color: '#4ade80', border: '1px solid rgba(34, 197, 94, 0.3)' }}
-                        >
-                          WhatsApp
-                        </button>
-                        <button
-                          onClick={() => handleDeleteParticipant(p.id)}
-                          className="px-3 py-1 rounded-lg text-xs cursor-pointer"
-                          style={{ background: 'rgba(239, 68, 68, 0.15)', color: '#ef4444', border: '1px solid rgba(239, 68, 68, 0.3)' }}
-                        >
-                          Eliminar
-                        </button>
                       </div>
                     </div>
+                  ))
+                )}
+              </div>
+            ) : (
+              /* ========== STATS TAB ========== */
+              <div className="space-y-4">
+                {/* Stats cards */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  <div
+                    className="p-4 rounded-xl text-center"
+                    style={{ background: 'rgba(168, 85, 247, 0.08)', border: '1px solid rgba(168, 85, 247, 0.2)' }}
+                  >
+                    <div className="text-2xl font-black" style={{ color: '#d8b4fe', textShadow: '0 0 10px rgba(168, 85, 247, 0.4)' }}>
+                      {totalParticipants}
+                    </div>
+                    <div className="text-xs uppercase tracking-wider mt-1" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                      Participantes
+                    </div>
                   </div>
-                ))
-              )}
-            </div>
-          )}
+                  <div
+                    className="p-4 rounded-xl text-center"
+                    style={{ background: 'rgba(234, 179, 8, 0.08)', border: '1px solid rgba(234, 179, 8, 0.2)' }}
+                  >
+                    <div className="text-2xl font-black" style={{ color: '#fde047', textShadow: '0 0 10px rgba(234, 179, 8, 0.4)' }}>
+                      {totalPoints.toLocaleString()}
+                    </div>
+                    <div className="text-xs uppercase tracking-wider mt-1" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                      Puntos Totales
+                    </div>
+                  </div>
+                  <div
+                    className="p-4 rounded-xl text-center"
+                    style={{ background: 'rgba(34, 197, 94, 0.08)', border: '1px solid rgba(34, 197, 94, 0.2)' }}
+                  >
+                    <div className="text-2xl font-black" style={{ color: '#4ade80', textShadow: '0 0 10px rgba(34, 197, 94, 0.4)' }}>
+                      {activeGames}/{totalGames}
+                    </div>
+                    <div className="text-xs uppercase tracking-wider mt-1" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                      Juegos Activos
+                    </div>
+                  </div>
+                  <div
+                    className="p-4 rounded-xl text-center"
+                    style={{ background: 'rgba(249, 115, 22, 0.08)', border: '1px solid rgba(249, 115, 22, 0.2)' }}
+                  >
+                    <div className="text-2xl font-black" style={{ color: '#fdba74', textShadow: '0 0 10px rgba(249, 115, 22, 0.4)' }}>
+                      {totalParticipants > 0 ? Math.round(totalPoints / totalParticipants) : 0}
+                    </div>
+                    <div className="text-xs uppercase tracking-wider mt-1" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                      Prom. Puntos
+                    </div>
+                  </div>
+                </div>
+
+                {/* Games breakdown */}
+                <div>
+                  <h3 className="text-sm font-bold uppercase tracking-wider mb-3" style={{ color: '#d8b4fe' }}>
+                    Juegos por Tipo
+                  </h3>
+                  <div className="space-y-2">
+                    {Object.entries(GAME_TYPES).map(([typeKey, typeInfo]) => {
+                      const typeGames = games.filter(g => g.type === typeKey)
+                      const typeParticipants = typeGames.reduce((sum, g) => sum + (g._count?.participants || 0), 0)
+                      return (
+                        <div
+                          key={typeKey}
+                          className="p-3 rounded-xl flex items-center justify-between"
+                          style={{ background: 'rgba(255,255,255,0.03)', border: `1px solid ${typeInfo.color}20` }}
+                        >
+                          <div className="flex items-center gap-2">
+                            <span className="text-lg">{typeInfo.icon}</span>
+                            <div>
+                              <span className="text-sm font-bold" style={{ color: typeInfo.color }}>{typeInfo.label}</span>
+                              <span className="text-xs ml-2" style={{ color: 'rgba(255,255,255,0.3)' }}>{typeInfo.description}</span>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <span className="text-xs" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                              {typeGames.length} juego{typeGames.length !== 1 ? 's' : ''}
+                            </span>
+                            <span className="text-xs" style={{ color: `${typeInfo.color}80` }}>
+                              👥 {typeParticipants}
+                            </span>
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+
+                {/* Top participants */}
+                {participants.length > 0 && (
+                  <div>
+                    <h3 className="text-sm font-bold uppercase tracking-wider mb-3" style={{ color: '#fde047' }}>
+                      Top 5 Participantes
+                    </h3>
+                    <div className="space-y-2">
+                      {[...participants]
+                        .sort((a, b) => b.totalPoints - a.totalPoints)
+                        .slice(0, 5)
+                        .map((p, i) => (
+                          <div
+                            key={p.id}
+                            className="p-3 rounded-xl flex items-center justify-between"
+                            style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(234, 179, 8, 0.15)' }}
+                          >
+                            <div className="flex items-center gap-3">
+                              <span
+                                className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-black"
+                                style={{
+                                  background: i === 0 ? 'rgba(234, 179, 8, 0.3)' : i === 1 ? 'rgba(192, 192, 192, 0.2)' : i === 2 ? 'rgba(205, 127, 50, 0.2)' : 'rgba(255,255,255,0.05)',
+                                  color: i === 0 ? '#fde047' : i === 1 ? '#d1d5db' : i === 2 ? '#cd7f32' : 'rgba(255,255,255,0.4)',
+                                  border: `1px solid ${i === 0 ? 'rgba(234, 179, 8, 0.4)' : i === 1 ? 'rgba(192, 192, 192, 0.3)' : i === 2 ? 'rgba(205, 127, 50, 0.3)' : 'rgba(255,255,255,0.1)'}`,
+                                }}
+                              >
+                                {i + 1}
+                              </span>
+                              <div>
+                                <span className="text-sm font-bold" style={{ color: '#fed7aa' }}>{p.name}</span>
+                                <span className="text-xs ml-2" style={{ color: 'rgba(255,255,255,0.3)' }}>{p.code}</span>
+                              </div>
+                            </div>
+                            <span className="text-sm font-bold" style={{ color: '#fde047' }}>
+                              ⭐ {p.totalPoints} pts
+                            </span>
+                          </div>
+                        ))
+                      }
+                    </div>
+                  </div>
+                )}
+
+                {/* Social follow stats */}
+                {participants.length > 0 && (
+                  <div>
+                    <h3 className="text-sm font-bold uppercase tracking-wider mb-3" style={{ color: '#4ade80' }}>
+                      Seguimiento Redes Sociales
+                    </h3>
+                    <div className="grid grid-cols-3 gap-3">
+                      {[
+                        { label: 'Facebook', key: 'followedFb' as const, color: '#3b82f6' },
+                        { label: 'Instagram', key: 'followedIg' as const, color: '#ec4899' },
+                        { label: 'WhatsApp', key: 'followedWa' as const, color: '#22c55e' },
+                      ].map((social) => {
+                        const count = participants.filter(p => p[social.key]).length
+                        const pct = Math.round((count / totalParticipants) * 100)
+                        return (
+                          <div
+                            key={social.key}
+                            className="p-3 rounded-xl text-center"
+                            style={{ background: `${social.color}08`, border: `1px solid ${social.color}20` }}
+                          >
+                            <div className="text-lg font-black" style={{ color: social.color }}>
+                              {count}
+                            </div>
+                            <div className="text-xs" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                              {social.label}
+                            </div>
+                            <div className="mt-1.5 w-full rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.05)', height: '4px' }}>
+                              <div
+                                className="h-full rounded-full transition-all"
+                                style={{ width: `${pct}%`, background: social.color, boxShadow: `0 0 6px ${social.color}60` }}
+                              />
+                            </div>
+                            <div className="text-xs mt-1" style={{ color: 'rgba(255,255,255,0.3)' }}>{pct}%</div>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
         </div>
       </div>
-    </div>
+
+      {/* Game Form Modal */}
+      {showGameForm && (
+        <div
+          className="fixed inset-0 z-[55] flex items-center justify-center p-4"
+          style={{ backgroundColor: 'rgba(0,0,0,0.85)' }}
+          onClick={(e) => { if (e.target === e.currentTarget) { setShowGameForm(false); setEditingGame(null) } }}
+        >
+          <div
+            className="w-full max-w-lg max-h-[85vh] rounded-2xl overflow-hidden flex flex-col"
+            style={{
+              background: 'linear-gradient(135deg, #0a0a0a 0%, #1a0a2e 50%, #0a0a0a 100%)',
+              border: '1px solid rgba(168, 85, 247, 0.3)',
+              boxShadow: '0 0 30px rgba(168, 85, 247, 0.2)',
+            }}
+          >
+            {/* Form Header */}
+            <div className="flex items-center justify-between p-4 border-b" style={{ borderColor: 'rgba(168, 85, 247, 0.2)' }}>
+              <h3 className="text-sm font-bold" style={{ color: '#d8b4fe' }}>
+                {editingGame ? 'Editar Juego' : 'Nuevo Juego'}
+              </h3>
+              <button
+                onClick={() => { setShowGameForm(false); setEditingGame(null) }}
+                className="w-7 h-7 rounded-full flex items-center justify-center cursor-pointer"
+                style={{ backgroundColor: 'rgba(255,255,255,0.1)' }}
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+              </button>
+            </div>
+
+            {/* Form Content */}
+            <div className="flex-1 overflow-y-auto p-4 space-y-3" style={{ scrollbarColor: 'rgba(168,85,247,0.3) transparent' }}>
+              {/* Name */}
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider mb-1.5" style={{ color: '#d8b4fe' }}>
+                  Nombre *
+                </label>
+                <input
+                  type="text"
+                  value={gameForm.name}
+                  onChange={(e) => setGameForm({ ...gameForm, name: e.target.value })}
+                  placeholder="Nombre del juego"
+                  className="w-full px-3 py-2 rounded-lg text-sm text-white placeholder-gray-500 outline-none"
+                  style={{ background: 'rgba(0,0,0,0.5)', border: '1px solid rgba(168, 85, 247, 0.3)' }}
+                />
+              </div>
+
+              {/* Type */}
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider mb-1.5" style={{ color: '#fdba74' }}>
+                  Tipo de Juego
+                </label>
+                <select
+                  value={gameForm.type}
+                  onChange={(e) => setGameForm({ ...gameForm, type: e.target.value })}
+                  className="w-full px-3 py-2 rounded-lg text-sm text-white outline-none cursor-pointer"
+                  style={{ background: 'rgba(0,0,0,0.5)', border: '1px solid rgba(249, 115, 22, 0.3)' }}
+                >
+                  {GAME_TYPE_OPTIONS.map((opt) => (
+                    <option key={opt.value} value={opt.value} style={{ background: '#1a0a2e' }}>
+                      {GAME_TYPES[opt.value].icon} {opt.label}
+                    </option>
+                  ))}
+                </select>
+                {gameForm.type && GAME_TYPES[gameForm.type] && (
+                  <p className="text-xs mt-1" style={{ color: `${GAME_TYPES[gameForm.type].color}80` }}>
+                    {GAME_TYPES[gameForm.type].description}
+                  </p>
+                )}
+              </div>
+
+              {/* Description */}
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider mb-1.5" style={{ color: '#4ade80' }}>
+                  Descripción
+                </label>
+                <textarea
+                  value={gameForm.description}
+                  onChange={(e) => setGameForm({ ...gameForm, description: e.target.value })}
+                  placeholder="Descripción del juego (opcional)"
+                  rows={2}
+                  className="w-full px-3 py-2 rounded-lg text-sm text-white placeholder-gray-500 outline-none resize-none"
+                  style={{ background: 'rgba(0,0,0,0.5)', border: '1px solid rgba(34, 197, 94, 0.3)' }}
+                />
+              </div>
+
+              {/* Image URL */}
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider mb-1.5" style={{ color: '#d8b4fe' }}>
+                  URL de Imagen
+                </label>
+                <input
+                  type="text"
+                  value={gameForm.imageUrl}
+                  onChange={(e) => setGameForm({ ...gameForm, imageUrl: e.target.value })}
+                  placeholder="https://ejemplo.com/imagen.jpg"
+                  className="w-full px-3 py-2 rounded-lg text-sm text-white placeholder-gray-500 outline-none"
+                  style={{ background: 'rgba(0,0,0,0.5)', border: '1px solid rgba(168, 85, 247, 0.3)' }}
+                />
+              </div>
+
+              {/* Order + Active */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-wider mb-1.5" style={{ color: '#fde047' }}>
+                    Orden
+                  </label>
+                  <input
+                    type="number"
+                    value={gameForm.order}
+                    onChange={(e) => setGameForm({ ...gameForm, order: parseInt(e.target.value) || 0 })}
+                    min={0}
+                    className="w-full px-3 py-2 rounded-lg text-sm text-white outline-none"
+                    style={{ background: 'rgba(0,0,0,0.5)', border: '1px solid rgba(234, 179, 8, 0.3)' }}
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-wider mb-1.5" style={{ color: gameForm.isActive ? '#4ade80' : '#ef4444' }}>
+                    Estado
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => setGameForm({ ...gameForm, isActive: !gameForm.isActive })}
+                    className="w-full px-3 py-2 rounded-lg text-sm font-bold cursor-pointer transition-all"
+                    style={{
+                      background: gameForm.isActive ? 'rgba(34, 197, 94, 0.15)' : 'rgba(239, 68, 68, 0.15)',
+                      color: gameForm.isActive ? '#4ade80' : '#ef4444',
+                      border: `1px solid ${gameForm.isActive ? 'rgba(34, 197, 94, 0.3)' : 'rgba(239, 68, 68, 0.3)'}`,
+                    }}
+                  >
+                    {gameForm.isActive ? '● Activo' : '○ Inactivo'}
+                  </button>
+                </div>
+              </div>
+
+              {/* Config JSON */}
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider mb-1.5" style={{ color: '#fdba74' }}>
+                  Configuración (JSON)
+                </label>
+                <textarea
+                  value={gameForm.config}
+                  onChange={(e) => setGameForm({ ...gameForm, config: e.target.value })}
+                  placeholder='{"key": "value"}'
+                  rows={3}
+                  className="w-full px-3 py-2 rounded-lg text-xs font-mono text-white placeholder-gray-500 outline-none resize-none"
+                  style={{ background: 'rgba(0,0,0,0.5)', border: '1px solid rgba(249, 115, 22, 0.3)' }}
+                />
+                {gameForm.config && (() => {
+                  try {
+                    JSON.parse(gameForm.config)
+                    return <p className="text-xs mt-1" style={{ color: '#4ade80' }}>✓ JSON válido</p>
+                  } catch {
+                    return <p className="text-xs mt-1" style={{ color: '#ef4444' }}>✗ JSON inválido</p>
+                  }
+                })()}
+              </div>
+            </div>
+
+            {/* Form Footer */}
+            <div className="p-4 flex gap-2 border-t" style={{ borderColor: 'rgba(168, 85, 247, 0.2)' }}>
+              <button
+                onClick={handleSaveGame}
+                disabled={savingGame || !gameForm.name.trim()}
+                className="flex-1 py-2 rounded-lg text-sm font-bold cursor-pointer transition-all disabled:opacity-50"
+                style={{
+                  background: 'linear-gradient(135deg, #a855f7, #7c3aed)',
+                  color: 'white',
+                  boxShadow: '0 0 10px rgba(168, 85, 247, 0.3)',
+                }}
+              >
+                {savingGame ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <div className="w-4 h-4 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: 'white', borderTopColor: 'transparent' }} />
+                    Guardando...
+                  </span>
+                ) : (
+                  editingGame ? 'Guardar Cambios' : 'Crear Juego'
+                )}
+              </button>
+              <button
+                onClick={() => { setShowGameForm(false); setEditingGame(null) }}
+                className="px-4 py-2 rounded-lg text-sm cursor-pointer"
+                style={{ background: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.6)' }}
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Game Preview Modal */}
+      {previewGame && (
+        <GamePreviewModal
+          game={previewGame}
+          onClose={() => setPreviewGame(null)}
+        />
+      )}
+    </>
   )
 }

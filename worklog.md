@@ -364,3 +364,24 @@ Stage Summary:
 - More marquee lights (40+40+20+20) ✓
 - All new CSS animations added ✓
 - Build verified successful ✓
+---
+Task ID: 9
+Agent: full-stack-developer
+Task: Enhance admin panel with game management and preview
+
+Work Log:
+- Read all existing files: AdminPanel.tsx, games API, trivia API, lightning API, participants API, auth API, Prisma schema, page.tsx
+- Updated /api/games/route.ts: Added type, config, order fields to POST and PUT handlers, auto-order calculation, GET orders by order field
+- Updated /api/trivia/route.ts: Added ?preview=true support returning correctAnswer for admin viewing
+- Updated /api/lightning/route.ts: Added ?preview=true support returning correctAnswer per question, fixed TS type error
+- Created /components/admin/GamePreviewModal.tsx: Modal with TriviaFutboleraPreview, TriviaRelampagoPreview, GenericGamePreview sub-components, admin banner, no TPK code required
+- Rewrote /components/admin/AdminPanel.tsx: Three tabs (Juegos/Participantes/Estadísticas), enhanced game cards with type badges, preview/edit/toggle/delete buttons, reorder up/down, full game form with all fields, stats dashboard, consistent Las Vegas neon styling
+- Verified TypeScript compilation and Next.js build successful
+
+Stage Summary:
+- Full CRUD game management with type, config, order, imageUrl, isActive fields ✓
+- Admin preview mode for trivia and lightning games (no TPK code needed) ✓
+- Enhanced game cards with type badges, action buttons, reorder controls ✓
+- Stats tab with participants, points, top 5, social follow tracking ✓
+- All styling consistent with Las Vegas neon theme ✓
+- Build verified successful ✓

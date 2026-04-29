@@ -13,7 +13,10 @@ model Game {
   name        String
   description String?
   imageUrl    String?
+  type        String   @default("trivia") // "trivia", "lightning", "prediction", "poll", etc.
+  config      String?  // JSON string with game-specific config
   isActive    Boolean  @default(true)
+  order       Int      @default(0) // display order
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   participants Participant[]

@@ -25,8 +25,11 @@ function getNextRoundTime(): Date {
 }
 
 // GET current trivia question
-export async function GET() {
+export async function GET(request: Request) {
   try {
+    const { searchParams } = new URL(request.url)
+    const isPreview = searchParams.get('preview') === 'true'
+
     const roundId = getCurrentRoundId()
 
     let round = await db.triviaRound.findUnique({
@@ -70,6 +73,23 @@ export async function GET() {
           endsAt: nextHour,
         },
         include: { question: true }
+      })
+    }
+
+    // For admin preview mode, include the correct answer
+    if (isPreview) {
+      return NextResponse.json({
+        preview: true,
+        round: {
+          roundId: round.roundId,
+          startedAt: round.startedAt,
+          endsAt: round.endsAt,
+        },
+        question: {
+          ...round.question,
+          correctAnswer: round.question.correctAnswer,
+        },
+        totalQuestions: triviaQuestions.length,
       })
     }
 
