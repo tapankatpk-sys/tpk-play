@@ -51,16 +51,104 @@ export default function HeroSection() {
         </div>
 
         {/* Subtitle above title */}
-        <div className="mb-4 text-center">
-          <span
-            className="uppercase tracking-[0.4em] text-sm md:text-base font-semibold"
+        <div className="mb-4 text-center relative">
+          {/* Glow backdrop */}
+          <div
+            className="absolute inset-0 -top-4 -bottom-4 left-1/2 -translate-x-1/2 w-[120%]"
             style={{
-              color: 'rgba(255, 255, 255, 0.6)',
-              textShadow: '0 0 10px rgba(255, 255, 255, 0.3)',
+              background: 'radial-gradient(ellipse at center, rgba(168, 85, 247, 0.15) 0%, rgba(249, 115, 22, 0.08) 30%, transparent 70%)',
+              filter: 'blur(20px)',
             }}
-          >
-            Juegos Ludicos Deportivos
-          </span>
+          />
+          <div className="relative">
+            {/* Linea decorativa superior */}
+            <div className="flex items-center justify-center gap-3 mb-2">
+              <div
+                className="h-[1px] w-8 md:w-16"
+                style={{
+                  background: 'linear-gradient(to right, transparent, #a855f7, transparent)',
+                  boxShadow: '0 0 6px #a855f7',
+                }}
+              />
+              <span
+                style={{
+                  color: '#f97316',
+                  fontSize: '0.6rem',
+                  textShadow: '0 0 8px rgba(249, 115, 22, 0.8)',
+                }}
+              >
+                ★
+              </span>
+              <div
+                className="h-[1px] w-8 md:w-16"
+                style={{
+                  background: 'linear-gradient(to right, transparent, #22c55e, transparent)',
+                  boxShadow: '0 0 6px #22c55e',
+                }}
+              />
+            </div>
+
+            {/* Texto principal del subtítulo */}
+            <h2
+              className="font-black uppercase tracking-[0.15em] md:tracking-[0.25em]"
+              style={{
+                fontSize: 'clamp(0.75rem, 2.5vw, 1.35rem)',
+                lineHeight: '1.6',
+                background: 'linear-gradient(90deg, #d8b4fe 0%, #a855f7 15%, #f97316 35%, #fbbf24 50%, #22c55e 65%, #4ade80 80%, #d8b4fe 100%)',
+                backgroundSize: '200% auto',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text',
+                animation: 'gradient-shift 4s linear infinite',
+                filter: 'drop-shadow(0 0 8px rgba(168, 85, 247, 0.4)) drop-shadow(0 0 16px rgba(249, 115, 22, 0.3))',
+              }}
+            >
+              EL LUGAR PARA
+            </h2>
+            <h2
+              className="font-black uppercase tracking-[0.15em] md:tracking-[0.25em]"
+              style={{
+                fontSize: 'clamp(0.85rem, 3vw, 1.6rem)',
+                lineHeight: '1.4',
+                background: 'linear-gradient(90deg, #f97316 0%, #fbbf24 20%, #a855f7 40%, #ec4899 55%, #22c55e 75%, #f97316 100%)',
+                backgroundSize: '200% auto',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text',
+                animation: 'gradient-shift 3s linear infinite reverse',
+                filter: 'drop-shadow(0 0 10px rgba(249, 115, 22, 0.5)) drop-shadow(0 0 20px rgba(168, 85, 247, 0.3)) drop-shadow(0 0 30px rgba(34, 197, 94, 0.2))',
+              }}
+            >
+              HINCHAS Y FANÁTICOS
+            </h2>
+
+            {/* Línea decorativa inferior */}
+            <div className="flex items-center justify-center gap-3 mt-2">
+              <div
+                className="h-[1px] w-8 md:w-16"
+                style={{
+                  background: 'linear-gradient(to right, transparent, #f97316, transparent)',
+                  boxShadow: '0 0 6px #f97316',
+                }}
+              />
+              <span
+                style={{
+                  color: '#a855f7',
+                  fontSize: '0.6rem',
+                  textShadow: '0 0 8px rgba(168, 85, 247, 0.8)',
+                }}
+              >
+                ★
+              </span>
+              <div
+                className="h-[1px] w-8 md:w-16"
+                style={{
+                  background: 'linear-gradient(to right, transparent, #a855f7, transparent)',
+                  boxShadow: '0 0 6px #a855f7',
+                }}
+              />
+            </div>
+          </div>
         </div>
 
         {/* TPK PLAY Neon Letters */}
