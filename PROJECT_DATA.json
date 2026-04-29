@@ -1,0 +1,392 @@
+{
+  "projectName": "TPK PLAY",
+  "description": "Sitio de juegos lúdicos deportivos basados en la Liga BetPlay de Colombia",
+  "lastUpdated": "2026-04-30",
+  "version": "1.0.0",
+
+  "brand": {
+    "name": "TPK PLAY",
+    "subtitle": "EL LUGAR PARA HINCHAS Y FANÁTICOS",
+    "tagline": "Diversión · Competencia · Acción",
+    "mascot": "Tigre",
+    "company": "TAPANKA TPK",
+    "companyBusiness": "Zapatillas, prendas y complementos deportivos personalizados",
+    "companyWebsite": "https://www.tapankatpk.com.co/"
+  },
+
+  "auth": {
+    "adminEmail": "tapankatpk@gmail.com",
+    "adminPassword": "todobien2",
+    "sessionDuration": "24h",
+    "sessionKey": "tpk_admin_token"
+  },
+
+  "socialLinks": {
+    "facebook": "https://www.facebook.com/tapankatpk/",
+    "instagram": "https://www.instagram.com/tapankatpk?igsh=YnQ4dnJ2czE0YzJz",
+    "whatsappChannel": "https://whatsapp.com/channel/YnQ4dnJ2czE0YzJz",
+    "whatsappGroup": "https://wa.me/573112632365",
+    "whatsappNumber": "+57 3112632365"
+  },
+
+  "registration": {
+    "codePrefix": "TPK",
+    "codeLength": 9,
+    "codeFormat": "TPK + 6 caracteres alfanuméricos",
+    "steps": ["rules", "social", "form", "success"],
+    "requiredFields": ["name", "email", "phone"],
+    "socialRequirements": ["facebook", "instagram", "whatsapp"],
+    "privacyNotice": "Los datos personales serán usados exclusivamente para fines de marketing de TAPANKA TPK (zapatillas, prendas y complementos deportivos personalizados). No se comparte con terceros."
+  },
+
+  "ligaBetPlay": {
+    "league": "Categoría Primera A - Liga BetPlay",
+    "country": "Colombia",
+    "season": "2025-2026",
+    "totalTeams": 22,
+    "teams": [
+      {
+        "id": 1,
+        "name": "Águilas Doradas",
+        "slug": "aguilas-doradas",
+        "city": "Rionegro",
+        "department": "Antioquia",
+        "stadium": "Estadio Alberto Grisales",
+        "shield": "/images/teams/aguilas-doradas.svg",
+        "colors": ["Amarillo", "Oro"],
+        "founded": 2008,
+        "notes": "Anteriormente conocido como Águilas Doradas de Rionegro"
+      },
+      {
+        "id": 2,
+        "name": "Alianza FC",
+        "slug": "alianza-fc",
+        "city": "Valledupar",
+        "department": "Cesar",
+        "stadium": "Estadio Armando Maestre Pavajeau",
+        "shield": "/images/teams/alianza-fc.svg",
+        "colors": ["Negro", "Blanco", "Rojo"],
+        "founded": 2024,
+        "notes": "Club nuevo en la liga, anteriormente Alianza Petrolera"
+      },
+      {
+        "id": 3,
+        "name": "América de Cali",
+        "slug": "america-de-cali",
+        "city": "Cali",
+        "department": "Valle del Cauca",
+        "stadium": "Estadio Pascual Guerrero",
+        "shield": "/images/teams/america-de-cali.svg",
+        "colors": ["Rojo", "Blanco"],
+        "founded": 1927,
+        "notes": "Los Diablos Rojos. Uno de los equipos más populares de Colombia"
+      },
+      {
+        "id": 4,
+        "name": "Internacional de Bogotá",
+        "slug": "internacional-de-bogota",
+        "city": "Bogotá",
+        "department": "Cundinamarca",
+        "stadium": "Estadio Metropolitano de Techo",
+        "shield": "/images/teams/internacional-de-bogota.png",
+        "colors": ["Blanco", "Negro", "Dorado"],
+        "founded": 2025,
+        "notes": "Primer club NewGen de Colombia. Reemplazó a La Equidad en Liga BetPlay 2026. Escudo oficial descargado de interbogota.com. Incorpora cóndor andino y cerros orientales de Bogotá. Sitio web: interbogota.com",
+        "officialWebsite": "https://interbogota.com",
+        "shieldSource": "https://interbogota.com/wp-content/uploads/2026/04/cropped-escudo-oficial-internacional-de-bogota.png"
+      },
+      {
+        "id": 5,
+        "name": "Atlético Nacional",
+        "slug": "atletico-nacional",
+        "city": "Medellín",
+        "department": "Antioquia",
+        "stadium": "Estadio Atanasio Girardot",
+        "shield": "/images/teams/atletico-nacional.svg",
+        "colors": ["Verde", "Blanco"],
+        "founded": 1947,
+        "notes": "El Rey de Copas. Equipo con más títulos de Colombia"
+      },
+      {
+        "id": 6,
+        "name": "Atlético Bucaramanga",
+        "slug": "atletico-bucaramanga",
+        "city": "Bucaramanga",
+        "department": "Santander",
+        "stadium": "Estadio Alfonso López",
+        "shield": "/images/teams/atletico-bucaramanga.svg",
+        "colors": ["Amarillo", "Blanco"],
+        "founded": 1949,
+        "notes": "Los Leopardos"
+      },
+      {
+        "id": 7,
+        "name": "Boyacá Chicó",
+        "slug": "boyaca-chico",
+        "city": "Tunja",
+        "department": "Boyacá",
+        "stadium": "Estadio La Independencia",
+        "shield": "/images/teams/boyaca-chico.svg",
+        "colors": ["Blanco", "Negro", "Rojo"],
+        "founded": 2002,
+        "notes": "Los Ajedrezados"
+      },
+      {
+        "id": 8,
+        "name": "Deportes Tolima",
+        "slug": "deportes-tolima",
+        "city": "Ibagué",
+        "department": "Tolima",
+        "stadium": "Estadio Manuel Murillo Toro",
+        "shield": "/images/teams/deportes-tolima.svg",
+        "colors": ["Amarillo", "Rojo", "Blanco"],
+        "founded": 1954,
+        "notes": "El Vinotinto y Oro"
+      },
+      {
+        "id": 9,
+        "name": "Deportivo Cali",
+        "slug": "deportivo-cali",
+        "city": "Cali",
+        "department": "Valle del Cauca",
+        "stadium": "Estadio Deportivo Cali",
+        "shield": "/images/teams/deportivo-cali.png",
+        "colors": ["Verde", "Blanco"],
+        "founded": 1912,
+        "notes": "Los Azucareros. Uno de los equipos más tradicionales"
+      },
+      {
+        "id": 10,
+        "name": "Deportivo Pasto",
+        "slug": "deportivo-pasto",
+        "city": "Pasto",
+        "department": "Nariño",
+        "stadium": "Estadio Libertad",
+        "shield": "/images/teams/deportivo-pasto.svg",
+        "colors": ["Rojo", "Blanco", "Azul"],
+        "founded": 1949,
+        "notes": "Los Volcanes"
+      },
+      {
+        "id": 11,
+        "name": "Deportivo Pereira",
+        "slug": "deportivo-pereira",
+        "city": "Pereira",
+        "department": "Risaralda",
+        "stadium": "Estadio Hernán Ramírez Villegas",
+        "shield": "/images/teams/deportivo-pereira.svg",
+        "colors": ["Rojo", "Blanco", "Azul"],
+        "founded": 1944,
+        "notes": "Los Matecaña"
+      },
+      {
+        "id": 12,
+        "name": "Envigado FC",
+        "slug": "envigado",
+        "city": "Envigado",
+        "department": "Antioquia",
+        "stadium": "Estadio Polideportivo Sur",
+        "shield": "/images/teams/envigado.svg",
+        "colors": ["Naranja", "Negro"],
+        "founded": 1989,
+        "notes": "Los Cafeteros del sur del Valle de Aburrá"
+      },
+      {
+        "id": 13,
+        "name": "Fortaleza CEIF",
+        "slug": "fortaleza-ceif",
+        "city": "Bogotá",
+        "department": "Cundinamarca",
+        "stadium": "Estadio Metropolitano de Techo",
+        "shield": "/images/teams/fortaleza-ceif.svg",
+        "colors": ["Verde", "Blanco"],
+        "founded": 2000,
+        "notes": "Cantera de jugadores importante en Bogotá"
+      },
+      {
+        "id": 14,
+        "name": "Independiente Medellín",
+        "slug": "independiente-medellin",
+        "city": "Medellín",
+        "department": "Antioquia",
+        "stadium": "Estadio Atanasio Girardot",
+        "shield": "/images/teams/independiente-medellin.svg",
+        "colors": ["Rojo", "Azul"],
+        "founded": 1913,
+        "notes": "El Poderoso. Rival histórico de Atlético Nacional"
+      },
+      {
+        "id": 15,
+        "name": "Independiente Santa Fe",
+        "slug": "independiente-santa-fe",
+        "city": "Bogotá",
+        "department": "Cundinamarca",
+        "stadium": "Estadio Nemesio Camacho El Campín",
+        "shield": "/images/teams/independiente-santa-fe.svg",
+        "colors": ["Rojo", "Blanco"],
+        "founded": 1941,
+        "notes": "Los Cardenales. Primer campeón del fútbol colombiano"
+      },
+      {
+        "id": 16,
+        "name": "Jaguares de Córdoba",
+        "slug": "jaguares-de-cordoba",
+        "city": "Montería",
+        "department": "Córdoba",
+        "stadium": "Estadio Jaraguay",
+        "shield": "/images/teams/jaguares-de-cordoba.png",
+        "colors": ["Naranja", "Negro", "Blanco"],
+        "founded": 2014,
+        "notes": "Los Jaguares"
+      },
+      {
+        "id": 17,
+        "name": "Junior FC",
+        "slug": "junior-fc",
+        "city": "Barranquilla",
+        "department": "Atlántico",
+        "stadium": "Estadio Metropolitano Roberto Meléndez",
+        "shield": "/images/teams/junior-fc.svg",
+        "colors": ["Rojo", "Blanco", "Azul"],
+        "founded": 1924,
+        "notes": "Los Tiburones. Uno de los equipos más populares de la Costa Atlántica"
+      },
+      {
+        "id": 18,
+        "name": "La Equidad",
+        "slug": "la-equidad",
+        "city": "Bogotá",
+        "department": "Cundinamarca",
+        "stadium": "Estadio Metropolitano de Techo",
+        "shield": "/images/teams/la-equidad.svg",
+        "colors": ["Verde", "Blanco"],
+        "founded": 1947,
+        "notes": "Los Aseguradores. NOTA: Fue reemplazado por Internacional de Bogotá para la temporada 2026, pero el escudo aún se conserva en los archivos del proyecto."
+      },
+      {
+        "id": 19,
+        "name": "Millonarios FC",
+        "slug": "millonarios",
+        "city": "Bogotá",
+        "department": "Cundinamarca",
+        "stadium": "Estadio Nemesio Camacho El Campín",
+        "shield": "/images/teams/millonarios.svg",
+        "colors": ["Azul", "Blanco"],
+        "founded": 1946,
+        "notes": "Los Embajadores. Equipo con gran historia, Ballet Azul"
+      },
+      {
+        "id": 20,
+        "name": "Once Caldas",
+        "slug": "once-caldas",
+        "city": "Manizales",
+        "department": "Caldas",
+        "stadium": "Estadio Palogrande",
+        "shield": "/images/teams/once-caldas.svg",
+        "colors": ["Blanco", "Negro"],
+        "founded": 1949,
+        "notes": "Los Blancos. Campeón de la Copa Libertadores 2004"
+      },
+      {
+        "id": 21,
+        "name": "Patriotas FC",
+        "slug": "patriotas",
+        "city": "Tunja",
+        "department": "Boyacá",
+        "stadium": "Estadio La Independencia",
+        "shield": "/images/teams/patriotas.png",
+        "colors": ["Rojo", "Blanco", "Azul"],
+        "founded": 2013,
+        "notes": "Equipo boyacense"
+      },
+      {
+        "id": 22,
+        "name": "Internacional de Palmira",
+        "slug": "internacional-palmira",
+        "city": "Palmira",
+        "department": "Valle del Cauca",
+        "stadium": "Estadio Francisco Rivera Escobar",
+        "shield": "/images/teams/internacional-palmira.png",
+        "colors": ["Rojo", "Negro", "Blanco"],
+        "founded": 2024,
+        "notes": "Anteriormente Cortuluá. Nuevo en la liga"
+      }
+    ]
+  },
+
+  "techStack": {
+    "framework": "Next.js (App Router)",
+    "language": "TypeScript",
+    "styling": "Tailwind CSS",
+    "database": "SQLite (Prisma ORM)",
+    "auth": "bcrypt + crypto tokens",
+    "animations": "CSS Keyframes + React State"
+  },
+
+  "fileStructure": {
+    "components": {
+      "hero": [
+        "src/components/hero/HeroSection.tsx - Hero principal con título neón, logo, mascota tigre, subtítulo animado",
+        "src/components/hero/NeonLetter.tsx - Componente de letra individual con efecto neón on/off aleatorio",
+        "src/components/hero/SpotlightBackground.tsx - Fondo con reflectores animados (púrpura, naranja, verde)"
+      ],
+      "admin": [
+        "src/components/admin/AdminPanel.tsx - Panel admin con login, gestión de juegos y participantes, integración WhatsApp"
+      ],
+      "registration": [
+        "src/components/registration/RegistrationSection.tsx - Registro 3 pasos: reglas, redes sociales, formulario con código TPK"
+      ]
+    },
+    "api": [
+      "src/app/api/auth/route.ts - Autenticación (login, verify, logout) con bcrypt y tokens",
+      "src/app/api/games/route.ts - CRUD de juegos",
+      "src/app/api/participants/route.ts - CRUD de participantes + generación código TPK"
+    ],
+    "database": [
+      "src/lib/db.ts - Configuración Prisma + SQLite",
+      "prisma/schema.prisma - Modelos Game y Participant"
+    ],
+    "pages": [
+      "src/app/page.tsx - Página principal (Hero + Registration + AdminPanel)",
+      "src/app/layout.tsx - Layout raíz con fondo negro y fuente Montserrat"
+    ],
+    "assets": {
+      "images": [
+        "public/images/logo.png - Logo TPK PLAY",
+        "public/images/tiger.png - Mascota tigre"
+      ],
+      "teams": "public/images/teams/ - 22 escudos oficiales de equipos Liga BetPlay"
+    }
+  },
+
+  "designSpecs": {
+    "backgroundColor": "#000000",
+    "neonColors": {
+      "purple": "#a855f7",
+      "orange": "#f97316",
+      "green": "#22c55e"
+    },
+    "tpkLetters": "Púrpura neón con parpadeo aleatorio (1-2 segundos)",
+    "playLetters": "Alternando naranja y verde neón con parpadeo aleatorio",
+    "spotlights": "3 reflectores animados en púrpura, naranja y verde",
+    "subtitle": "Texto con gradiente animado en colores luminosos",
+    "fontFamily": "Montserrat"
+  },
+
+  "developmentProgress": {
+    "completedSteps": [
+      "1. Hero section con título neón TPK PLAY, reflectores, mascota tigre",
+      "2. Subtítulo 'EL LUGAR PARA HINCHAS Y FANÁTICOS' con colores luminosos",
+      "3. Panel de administración con autenticación (tapankatpk@gmail.com / todobien2)",
+      "4. Sistema de registro de participantes (3 pasos, código TPK, redes sociales)",
+      "5. Investigación de equipos Liga BetPlay y descarga de escudos oficiales",
+      "6. Descarga del escudo oficial de Internacional de Bogotá desde interbogota.com"
+    ],
+    "currentStep": "Crear los juegos basados en Liga BetPlay",
+    "nextSteps": [
+      "Diseñar y crear los juegos lúdicos deportivos",
+      "Integrar los escudos de equipos en la interfaz de juegos",
+      "Conectar juegos con sistema de participantes y códigos TPK"
+    ]
+  }
+}
