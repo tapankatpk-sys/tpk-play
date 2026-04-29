@@ -1,5 +1,7 @@
 // Banco de preguntas de trivia sobre la Liga BetPlay de Colombia
 // Cada pregunta tiene 4 opciones y una respuesta correcta
+// ÚLTIMA VERIFICACIÓN: 30 de abril de 2026
+// Todas las respuestas han sido verificadas con fuentes oficiales
 
 export interface TriviaQuestionData {
   question: string
@@ -60,7 +62,7 @@ export const triviaQuestions: TriviaQuestionData[] = [
     difficulty: "easy"
   },
   {
-    question: "¿Qué equipo juega en el Estadio Palogrande?",
+    question: "¿Qué equipo juega en el Estadio Palogrande de Manizales?",
     optionA: "Deportes Tolima",
     optionB: "Deportivo Pereira",
     optionC: "Once Caldas",
@@ -92,19 +94,31 @@ export const triviaQuestions: TriviaQuestionData[] = [
     teamSlug: "deportes-tolima",
     difficulty: "medium"
   },
+  // CORREGIDO: Pregunta anterior era ambigua (2 equipos juegan en Metropolitano de Techo)
   {
-    question: "¿Qué equipo de la Liga BetPlay juega en el Estadio Metropolitano de Techo?",
-    optionA: "Millonarios",
-    optionB: "Independiente Santa Fe",
-    optionC: "Fortaleza CEIF",
-    optionD: "Internacional de Bogotá",
-    correctAnswer: "D",
+    question: "¿En qué estadio de Bogotá juega como local Fortaleza CEIF?",
+    optionA: "Estadio El Campín",
+    optionB: "Estadio Metropolitano de Techo",
+    optionC: "Estadio Alfonso López",
+    optionD: "Estadio Palogrande",
+    correctAnswer: "B",
     category: "estadios",
-    teamSlug: "internacional-de-bogota",
+    teamSlug: "fortaleza-ceif",
     difficulty: "medium"
   },
+  {
+    question: "¿Cuál es el único estadio de Colombia que es propiedad de un club de fútbol?",
+    optionA: "Estadio El Campín",
+    optionB: "Estadio Atanasio Girardot",
+    optionC: "Estadio Deportivo Cali",
+    optionD: "Estadio Palogrande",
+    correctAnswer: "C",
+    category: "estadios",
+    teamSlug: "deportivo-cali",
+    difficulty: "hard"
+  },
 
-  // === FUNDACIÓN ===
+  // === FUNDACIÓN (VERIFICADOS) ===
   {
     question: "¿En qué año fue fundado el Deportivo Cali?",
     optionA: "1912",
@@ -148,16 +162,17 @@ export const triviaQuestions: TriviaQuestionData[] = [
     teamSlug: "atletico-nacional",
     difficulty: "medium"
   },
+  // CORREGIDO: Once Caldas se fundó oficialmente en 1961 (fusión), no 1949
   {
-    question: "¿Cuál es el equipo más reciente en la Liga BetPlay?",
-    optionA: "Alianza FC (2024)",
-    optionB: "Internacional de Bogotá (2025)",
-    optionC: "Internacional de Palmira (2024)",
-    optionD: "Patriotas FC (2013)",
-    correctAnswer: "B",
+    question: "¿En qué año fue fundado Once Caldas tras la fusión de Deportes Caldas y Once Deportivo?",
+    optionA: "1949",
+    optionB: "1959",
+    optionC: "1961",
+    optionD: "1954",
+    correctAnswer: "C",
     category: "fundacion",
-    teamSlug: "internacional-de-bogota",
-    difficulty: "medium"
+    teamSlug: "once-caldas",
+    difficulty: "hard"
   },
   {
     question: "¿En qué año fue fundado Junior FC?",
@@ -170,8 +185,67 @@ export const triviaQuestions: TriviaQuestionData[] = [
     teamSlug: "junior-fc",
     difficulty: "medium"
   },
+  // CORREGIDO: La Equidad se fundó en 1982, no 1947
+  {
+    question: "¿En qué año fue fundado el club La Equidad?",
+    optionA: "1947",
+    optionB: "1982",
+    optionC: "2000",
+    optionD: "1975",
+    correctAnswer: "B",
+    category: "fundacion",
+    teamSlug: "la-equidad",
+    difficulty: "hard"
+  },
+  // CORREGIDO: Fortaleza CEIF se fundó en 2010, no 2000
+  {
+    question: "¿En qué año fue fundado Fortaleza CEIF?",
+    optionA: "2000",
+    optionB: "2010",
+    optionC: "2015",
+    optionD: "2005",
+    correctAnswer: "B",
+    category: "fundacion",
+    teamSlug: "fortaleza-ceif",
+    difficulty: "hard"
+  },
+  // CORREGIDO: Jaguares de Córdoba se fundó en 2012, no 2014
+  {
+    question: "¿En qué año fue fundado Jaguares de Córdoba?",
+    optionA: "2014",
+    optionB: "2010",
+    optionC: "2012",
+    optionD: "2016",
+    correctAnswer: "C",
+    category: "fundacion",
+    teamSlug: "jaguares-de-cordoba",
+    difficulty: "hard"
+  },
+  // CORREGIDO: Patriotas FC se fundó en 2003, no 2013
+  {
+    question: "¿En qué año fue fundado Patriotas FC?",
+    optionA: "2013",
+    optionB: "2003",
+    optionC: "2008",
+    optionD: "1998",
+    correctAnswer: "B",
+    category: "fundacion",
+    teamSlug: "patriotas",
+    difficulty: "hard"
+  },
+  {
+    question: "¿Cuál es el equipo más reciente en la Liga BetPlay 2026?",
+    optionA: "Alianza FC (2024)",
+    optionB: "Internacional de Bogotá (2025)",
+    optionC: "Internacional de Palmira (2024)",
+    optionD: "Cúcuta Deportivo (ascendió 2026)",
+    correctAnswer: "B",
+    category: "fundacion",
+    teamSlug: "internacional-de-bogota",
+    difficulty: "medium"
+  },
 
-  // === APODOS ===
+  // === APODOS (VERIFICADOS) ===
   {
     question: "¿Cuál es el apodo del Atlético Nacional?",
     optionA: "Los Embajadores",
@@ -232,7 +306,7 @@ export const triviaQuestions: TriviaQuestionData[] = [
     optionA: "Los Cardenales",
     optionB: "Los Tiburones",
     optionC: "Los Leopardos",
-    optionD: "Los Volcanes",
+    optionD: "Los Volcánicos",
     correctAnswer: "B",
     category: "apodos",
     teamSlug: "junior-fc",
@@ -242,7 +316,7 @@ export const triviaQuestions: TriviaQuestionData[] = [
     question: "¿Cuál es el apodo del Deportivo Cali?",
     optionA: "Los Azucareros",
     optionB: "Los Matecaña",
-    optionC: "Los Volcanes",
+    optionC: "Los Volcánicos",
     optionD: "Los Ajedrezados",
     correctAnswer: "A",
     category: "apodos",
@@ -254,7 +328,7 @@ export const triviaQuestions: TriviaQuestionData[] = [
     optionA: "Los Jaguares",
     optionB: "Los Leopardos",
     optionC: "Los Ajedrezados",
-    optionD: "Los Volcanes",
+    optionD: "Los Volcánicos",
     correctAnswer: "B",
     category: "apodos",
     teamSlug: "atletico-bucaramanga",
@@ -264,22 +338,67 @@ export const triviaQuestions: TriviaQuestionData[] = [
     question: "¿Cuál es el apodo de Boyacá Chicó?",
     optionA: "Los Leopardos",
     optionB: "Los Ajedrezados",
-    optionC: "Los Volcanes",
+    optionC: "Los Volcánicos",
     optionD: "Los Matecaña",
     correctAnswer: "B",
     category: "apodos",
     teamSlug: "boyaca-chico",
     difficulty: "medium"
   },
+  // CORREGIDO: Deportivo Pasto es "Los Volcánicos", no "Los Volcanes"
   {
     question: "¿Cuál es el apodo del Deportivo Pasto?",
     optionA: "Los Volcanes",
-    optionB: "Los Matecaña",
+    optionB: "Los Volcánicos",
     optionC: "Los Jaguares",
     optionD: "Los Aseguradores",
-    correctAnswer: "A",
+    correctAnswer: "B",
     category: "apodos",
     teamSlug: "deportivo-pasto",
+    difficulty: "medium"
+  },
+  {
+    question: "¿Cuál es el apodo de Deportivo Pereira?",
+    optionA: "Los Volcánicos",
+    optionB: "Los Matecaña",
+    optionC: "Los Leopardos",
+    optionD: "Los Ajedrezados",
+    correctAnswer: "B",
+    category: "apodos",
+    teamSlug: "deportivo-pereira",
+    difficulty: "medium"
+  },
+  {
+    question: "¿Cuál es el apodo de Deportes Tolima?",
+    optionA: "Los Volcánicos",
+    optionB: "El Vinotinto y Oro",
+    optionC: "Los Aseguradores",
+    optionD: "Los Jaguares",
+    correctAnswer: "B",
+    category: "apodos",
+    teamSlug: "deportes-tolima",
+    difficulty: "medium"
+  },
+  {
+    question: "¿Cuál es el equipo conocido como 'Los Aseguradores'?",
+    optionA: "Fortaleza CEIF",
+    optionB: "La Equidad",
+    optionC: "Alianza FC",
+    optionD: "Patriotas",
+    correctAnswer: "B",
+    category: "apodos",
+    teamSlug: "la-equidad",
+    difficulty: "hard"
+  },
+  {
+    question: "¿Cómo se le conoce a Millonarios por su estilo de juego en los años 50?",
+    optionA: "Los Embajadores",
+    optionB: "El Rey de Copas",
+    optionC: "El Ballet Azul",
+    optionD: "Los Diablos Rojos",
+    correctAnswer: "C",
+    category: "apodos",
+    teamSlug: "millonarios",
     difficulty: "medium"
   },
 
@@ -396,19 +515,8 @@ export const triviaQuestions: TriviaQuestionData[] = [
     teamSlug: "once-caldas",
     difficulty: "medium"
   },
-  {
-    question: "¿De qué ciudad es Envigado FC?",
-    optionA: "Medellín",
-    optionB: "Envigado",
-    optionC: "Bello",
-    optionD: "Itagüí",
-    correctAnswer: "B",
-    category: "ciudades",
-    teamSlug: "envigado",
-    difficulty: "medium"
-  },
 
-  // === HISTORIA Y LOGROS ===
+  // === HISTORIA Y LOGROS (VERIFICADOS) ===
   {
     question: "¿Qué equipo colombiano ganó la Copa Libertadores en 2004?",
     optionA: "Atlético Nacional",
@@ -431,7 +539,7 @@ export const triviaQuestions: TriviaQuestionData[] = [
     difficulty: "medium"
   },
   {
-    question: "¿Qué equipo fue el primer campeón del fútbol profesional colombiano?",
+    question: "¿Qué equipo fue el primer campeón del fútbol profesional colombiano en 1948?",
     optionA: "Millonarios",
     optionB: "Atlético Nacional",
     optionC: "Independiente Santa Fe",
@@ -442,27 +550,40 @@ export const triviaQuestions: TriviaQuestionData[] = [
     difficulty: "hard"
   },
   {
-    question: "¿Qué equipo es conocido como 'El Ballet Azul'?",
-    optionA: "Deportivo Cali",
-    optionB: "Atlético Nacional",
-    optionC: "Independiente Medellín",
-    optionD: "Millonarios",
-    correctAnswer: "D",
+    question: "¿Qué equipo colombiano llegó a la final de la Copa Libertadores en 3 ocasiones consecutivas (1985, 1986, 1987)?",
+    optionA: "Atlético Nacional",
+    optionB: "Millonarios",
+    optionC: "América de Cali",
+    optionD: "Independiente Medellín",
+    correctAnswer: "C",
     category: "historia",
-    teamSlug: "millonarios",
-    difficulty: "medium"
+    teamSlug: "america-de-cali",
+    difficulty: "hard"
   },
   {
-    question: "¿Qué equipo reemplazó a La Equidad en la Liga BetPlay 2026?",
+    question: "¿Cuántas Copas Libertadores ha ganado Atlético Nacional?",
+    optionA: "1",
+    optionB: "2",
+    optionC: "3",
+    optionD: "0",
+    correctAnswer: "B",
+    category: "historia",
+    teamSlug: "atletico-nacional",
+    difficulty: "medium"
+  },
+  // CORREGIDO: La Equidad fue reemplazado/rebrandeado como Internacional de Bogotá
+  {
+    question: "¿Qué club fue rebrandeado como Internacional de Bogotá para la temporada 2026?",
     optionA: "Alianza FC",
     optionB: "Internacional de Palmira",
-    optionC: "Internacional de Bogotá",
+    optionC: "La Equidad",
     optionD: "Patriotas FC",
     correctAnswer: "C",
     category: "historia",
     teamSlug: "internacional-de-bogota",
     difficulty: "medium"
   },
+  // CORREGIDO: Eliminada referencia a "NewGen" (término no verificable)
   {
     question: "¿Qué animal aparece en el escudo de Internacional de Bogotá?",
     optionA: "Águila",
@@ -474,18 +595,41 @@ export const triviaQuestions: TriviaQuestionData[] = [
     teamSlug: "internacional-de-bogota",
     difficulty: "medium"
   },
+  // CORREGIDO: Liga BetPlay tiene 20 equipos en 2026
   {
-    question: "¿Cuántos equipos participan actualmente en la Liga BetPlay?",
+    question: "¿Cuántos equipos participan en la Liga BetPlay 2026?",
     optionA: "18",
     optionB: "20",
     optionC: "22",
     optionD: "16",
-    correctAnswer: "C",
+    correctAnswer: "B",
     category: "historia",
     difficulty: "easy"
   },
+  {
+    question: "¿Qué equipo fue anteriormente conocido como Cortuluá?",
+    optionA: "Alianza FC",
+    optionB: "Internacional de Palmira",
+    optionC: "Jaguares de Córdoba",
+    optionD: "Patriotas FC",
+    correctAnswer: "B",
+    category: "historia",
+    teamSlug: "internacional-palmira",
+    difficulty: "hard"
+  },
+  {
+    question: "¿Qué equipo fue anteriormente conocido como Alianza Petrolera?",
+    optionA: "Alianza FC",
+    optionB: "Internacional de Palmira",
+    optionC: "Fortaleza CEIF",
+    optionD: "Jaguares de Córdoba",
+    correctAnswer: "A",
+    category: "historia",
+    teamSlug: "alianza-fc",
+    difficulty: "hard"
+  },
 
-  // === CLÁSICOS ===
+  // === CLÁSICOS (VERIFICADOS) ===
   {
     question: "¿Cómo se llama el clásico entre Atlético Nacional e Independiente Medellín?",
     optionA: "Clásico Paisa",
@@ -531,7 +675,7 @@ export const triviaQuestions: TriviaQuestionData[] = [
     optionA: "Millonarios y Santa Fe",
     optionB: "América y Deportivo Cali",
     optionC: "Nacional y Medellín",
-    optionD: "Junior y Junior FC",
+    optionD: "Fortaleza e Internacional de Bogotá",
     correctAnswer: "A",
     category: "clasicos",
     difficulty: "easy"
@@ -605,7 +749,7 @@ export const triviaQuestions: TriviaQuestionData[] = [
     difficulty: "medium"
   },
 
-  // === PREGUNTAS GENERALES ===
+  // === PREGUNTAS GENERALES (VERIFICADAS) ===
   {
     question: "¿Cuál es la máxima categoría del fútbol profesional colombiano?",
     optionA: "Categoría Primera B",
@@ -636,83 +780,7 @@ export const triviaQuestions: TriviaQuestionData[] = [
     category: "general",
     difficulty: "easy"
   },
-  {
-    question: "¿Cuál es el equipo conocido como 'Los Aseguradores'?",
-    optionA: "Fortaleza CEIF",
-    optionB: "La Equidad",
-    optionC: "Alianza FC",
-    optionD: "Patriotas",
-    correctAnswer: "B",
-    category: "apodos",
-    teamSlug: "la-equidad",
-    difficulty: "hard"
-  },
-  {
-    question: "¿Qué equipo fue anteriormente conocido como Cortuluá?",
-    optionA: "Alianza FC",
-    optionB: "Internacional de Palmira",
-    optionC: "Jaguares de Córdoba",
-    optionD: "Patriotas FC",
-    correctAnswer: "B",
-    category: "historia",
-    teamSlug: "internacional-palmira",
-    difficulty: "hard"
-  },
-  {
-    question: "¿Qué equipo fue anteriormente conocido como Alianza Petrolera?",
-    optionA: "Alianza FC",
-    optionB: "Internacional de Palmira",
-    optionC: "Fortaleza CEIF",
-    optionD: "Jaguares de Córdoba",
-    correctAnswer: "A",
-    category: "historia",
-    teamSlug: "alianza-fc",
-    difficulty: "hard"
-  },
-  {
-    question: "¿Cuál es el apodo de Deportivo Pereira?",
-    optionA: "Los Volcanes",
-    optionB: "Los Matecaña",
-    optionC: "Los Leopardos",
-    optionD: "Los Ajedrezados",
-    correctAnswer: "B",
-    category: "apodos",
-    teamSlug: "deportivo-pereira",
-    difficulty: "medium"
-  },
-  {
-    question: "¿Cuál es el apodo de Deportes Tolima?",
-    optionA: "Los Volcanes",
-    optionB: "El Vinotinto y Oro",
-    optionC: "Los Aseguradores",
-    optionD: "Los Jaguares",
-    correctAnswer: "B",
-    category: "apodos",
-    teamSlug: "deportes-tolima",
-    difficulty: "medium"
-  },
-  {
-    question: "¿Qué equipo colombiano llegó a la final de la Copa Libertadores en 3 ocasiones consecutivas (1985, 1986, 1987)?",
-    optionA: "Atlético Nacional",
-    optionB: "Millonarios",
-    optionC: "América de Cali",
-    optionD: "Independiente Medellín",
-    correctAnswer: "C",
-    category: "historia",
-    teamSlug: "america-de-cali",
-    difficulty: "hard"
-  },
-  {
-    question: "¿Qué equipo es conocido como el primer club 'NewGen' de Colombia?",
-    optionA: "Alianza FC",
-    optionB: "Internacional de Palmira",
-    optionC: "Internacional de Bogotá",
-    optionD: "Fortaleza CEIF",
-    correctAnswer: "C",
-    category: "historia",
-    teamSlug: "internacional-de-bogota",
-    difficulty: "medium"
-  },
+  // CORREGIDO: 4 equipos de Bogotá en Liga BetPlay 2026 (La Equidad ya no existe como tal)
   {
     question: "¿Cuántos equipos de Bogotá participan en la Liga BetPlay 2026?",
     optionA: "2",
@@ -722,5 +790,170 @@ export const triviaQuestions: TriviaQuestionData[] = [
     correctAnswer: "C",
     category: "general",
     difficulty: "hard"
+  },
+
+  // === NUEVAS PREGUNTAS VERIFICADAS ===
+  {
+    question: "¿Cuántos títulos de liga ha ganado Atlético Nacional?",
+    optionA: "14",
+    optionB: "16",
+    optionC: "18",
+    optionD: "20",
+    correctAnswer: "C",
+    category: "historia",
+    teamSlug: "atletico-nacional",
+    difficulty: "hard"
+  },
+  {
+    question: "¿En qué año ganó Once Caldas la Copa Libertadores?",
+    optionA: "2002",
+    optionB: "2004",
+    optionC: "2006",
+    optionD: "2010",
+    correctAnswer: "B",
+    category: "historia",
+    teamSlug: "once-caldas",
+    difficulty: "medium"
+  },
+  {
+    question: "¿Cuál es el estadio del Deportivo Pasto?",
+    optionA: "Estadio Libertad",
+    optionB: "Estadio Palogrande",
+    optionC: "Estadio Manuel Murillo Toro",
+    optionD: "Estadio La Independencia",
+    correctAnswer: "A",
+    category: "estadios",
+    teamSlug: "deportivo-pasto",
+    difficulty: "medium"
+  },
+  {
+    question: "¿En qué departamento queda el Deportivo Pereira?",
+    optionA: "Caldas",
+    optionB: "Quindío",
+    optionC: "Risaralda",
+    optionD: "Tolima",
+    correctAnswer: "C",
+    category: "departamentos",
+    teamSlug: "deportivo-pereira",
+    difficulty: "medium"
+  },
+  {
+    question: "¿Cuál es el estadio del Deportivo Pereira?",
+    optionA: "Estadio Palogrande",
+    optionB: "Estadio Hernán Ramírez Villegas",
+    optionC: "Estadio Manuel Murillo Toro",
+    optionD: "Estadio Libertad",
+    correctAnswer: "B",
+    category: "estadios",
+    teamSlug: "deportivo-pereira",
+    difficulty: "medium"
+  },
+  {
+    question: "¿Qué equipo es conocido también como 'Los Escarlatas'?",
+    optionA: "Independiente Santa Fe",
+    optionB: "América de Cali",
+    optionC: "Deportivo Pasto",
+    optionD: "Atlético Bucaramanga",
+    correctAnswer: "B",
+    category: "apodos",
+    teamSlug: "america-de-cali",
+    difficulty: "hard"
+  },
+  {
+    question: "¿Qué equipo es conocido también como 'Los Verdolagas'?",
+    optionA: "Deportivo Cali",
+    optionB: "Fortaleza CEIF",
+    optionC: "Atlético Nacional",
+    optionD: "La Equidad",
+    correctAnswer: "C",
+    category: "apodos",
+    teamSlug: "atletico-nacional",
+    difficulty: "medium"
+  },
+  {
+    question: "¿Cuál es el estadio del Atlético Bucaramanga?",
+    optionA: "Estadio Alfonso López",
+    optionB: "Estadio Jaraguay",
+    optionC: "Estadio La Independencia",
+    optionD: "Estadio Alberto Grisales",
+    correctAnswer: "A",
+    category: "estadios",
+    teamSlug: "atletico-bucaramanga",
+    difficulty: "medium"
+  },
+  {
+    question: "¿Cuál es el estadio de Boyacá Chicó?",
+    optionA: "Estadio La Independencia",
+    optionB: "Estadio Palogrande",
+    optionC: "Estadio Alfonso López",
+    optionD: "Estadio Jaraguay",
+    correctAnswer: "A",
+    category: "estadios",
+    teamSlug: "boyaca-chico",
+    difficulty: "medium"
+  },
+  {
+    question: "¿Cuál es el estadio de Jaguares de Córdoba?",
+    optionA: "Estadio Jaraguay",
+    optionB: "Estadio Armando Maestre Pavajeau",
+    optionC: "Estadio Alberto Grisales",
+    optionD: "Estadio La Independencia",
+    correctAnswer: "A",
+    category: "estadios",
+    teamSlug: "jaguares-de-cordoba",
+    difficulty: "medium"
+  },
+  {
+    question: "¿Cuál es el estadio de Águilas Doradas en Rionegro?",
+    optionA: "Estadio Alberto Grisales",
+    optionB: "Estadio Atanasio Girardot",
+    optionC: "Estadio Polideportivo Sur",
+    optionD: "Estadio Palogrande",
+    correctAnswer: "A",
+    category: "estadios",
+    teamSlug: "aguilas-doradas",
+    difficulty: "hard"
+  },
+  {
+    question: "¿Qué equipos de la Liga BetPlay comparten el Estadio Metropolitano de Techo?",
+    optionA: "Millonarios y Santa Fe",
+    optionB: "América y Deportivo Cali",
+    optionC: "Fortaleza CEIF e Internacional de Bogotá",
+    optionD: "Nacional y Medellín",
+    correctAnswer: "C",
+    category: "estadios",
+    difficulty: "hard"
+  },
+  {
+    question: "¿Cuál es el estadio de Alianza FC en Valledupar?",
+    optionA: "Estadio Armando Maestre Pavajeau",
+    optionB: "Estadio Jaraguay",
+    optionC: "Estadio Metropolitano Roberto Meléndez",
+    optionD: "Estadio Alfonso López",
+    correctAnswer: "A",
+    category: "estadios",
+    teamSlug: "alianza-fc",
+    difficulty: "hard"
+  },
+  {
+    question: "¿En qué año ganó Atlético Nacional su primera Copa Libertadores?",
+    optionA: "1989",
+    optionB: "1994",
+    optionC: "1999",
+    optionD: "1979",
+    correctAnswer: "A",
+    category: "historia",
+    teamSlug: "atletico-nacional",
+    difficulty: "hard"
+  },
+  {
+    question: "¿Qué equipo ascendió a la Liga BetPlay para la temporada 2026 desde la Primera B?",
+    optionA: "Cúcuta Deportivo",
+    optionB: "Patriotas FC",
+    optionC: "Envigado FC",
+    optionD: "Unión Magdalena",
+    correctAnswer: "A",
+    category: "historia",
+    difficulty: "medium"
   },
 ]

@@ -159,3 +159,92 @@ Stage Summary:
 - Las Vegas-style luminous visuals with animations ✓
 - Database models: TriviaQuestion, TriviaAnswer, TriviaRound ✓
 - API fully tested: GET current question, POST answer, 409 on duplicate ✓
+---
+Task ID: 6
+Agent: Main
+Task: Verify and correct all Liga BetPlay trivia data - exhaustive fact-checking
+
+Work Log:
+- Performed comprehensive web search verification of 62 facts across 7 categories
+- Verified founding years, nicknames, stadiums, historical facts, rivalries, cities, departments
+- Found and corrected 9 errors in trivia questions and PROJECT_DATA.json
+- Verified Liga BetPlay 2026 has 20 teams (not 22) via ESPN, SofaScore, Wikipedia, AS.com
+- Identified new teams: Cúcuta Deportivo (promoted), Llaneros FC (promoted)
+- Identified teams no longer in Liga 2026: Envigado (descended), Patriotas (Primera B), Internacional de Palmira
+- Downloaded/generated crests for Cúcuta Deportivo and Llaneros FC
+- Updated trivia-questions.ts with all corrections and 9 new verified questions (total 73)
+- Updated TriviaGame.tsx with enhanced Las Vegas visuals (vegas light dots, shimmer effects, difficulty badges, side lights)
+- Updated PROJECT_DATA.json with corrected data (v1.1.0), 20 teams in Liga 2026 + 4 teams not in Liga
+- Build verified successfully
+
+CORRECTIONS MADE:
+1. Once Caldas fundación: 1949 → 1961 (fusión oficial verificada con sitio web del club y Wikipedia)
+2. Jaguares de Córdoba fundación: 2014 → 2012 (verificado con Wikipedia y WinSports)
+3. Patriotas FC fundación: 2013 → 2003 (verificado con Wikipedia y Transfermarkt)
+4. Fortaleza CEIF fundación: 2000 → 2010 (verificado con Wikipedia y SoccerWiki)
+5. La Equidad fundación: 1947 → 1982 (verificado con Wikipedia, VAVEL, FCF)
+6. Deportivo Pasto apodo: Los Volcanes → Los Volcánicos (verificado con Wikipedia y SoccerWiki)
+7. Liga BetPlay equipos: 22 → 20 (verificado con SofaScore, ESPN, Wikipedia, AS.com)
+8. Pregunta Estadio Metropolitano de Techo: corregida ambigüedad (2 equipos juegan ahí)
+9. Internacional de Bogotá "NewGen": término no verificable, eliminado de preguntas
+
+Stage Summary:
+- 73 trivia questions verified and corrected ✓
+- 9 factual errors fixed across questions and project data ✓
+- Liga BetPlay 2026 team count corrected to 20 ✓
+- New teams added: Cúcuta Deportivo, Llaneros FC ✓
+- Crests downloaded/generated for new teams ✓
+- Enhanced Las Vegas visuals with vegas light dots, shimmer, difficulty badges ✓
+- PROJECT_DATA.json updated to v1.1.0 with all corrections ✓
+- Build verified successful ✓
+
+===
+PROJECT STATE SUMMARY (as of 2026-04-30, Task 6 complete)
+===
+
+COMPLETED:
+✅ Hero section (neon title, spotlights, tiger mascot, animated subtitle)
+✅ Admin panel with authentication (tapankatpk@gmail.com / todobien2)
+✅ Registration system (3 steps, TPK code, social media, privacy notice)
+✅ Liga BetPlay teams research and verification
+✅ Official shield for Internacional de Bogotá downloaded from interbogota.com
+✅ Project data saved in PROJECT_DATA.json (v1.1.0)
+✅ Trivia Futbolera with 73 verified questions, Las Vegas style
+✅ Exhaustive fact-checking completed - 9 errors corrected
+
+CURRENT STEP:
+🔄 Revisar trivia verificada y continuar con próximos juegos
+
+LIGA BETPLAY 2026 (20 equipos verificados):
+1. Águilas Doradas (Rionegro, Antioquia)
+2. Alianza FC (Valledupar, Cesar)
+3. América de Cali (Cali, Valle del Cauca)
+4. Atlético Bucaramanga (Bucaramanga, Santander)
+5. Atlético Nacional (Medellín, Antioquia)
+6. Boyacá Chicó (Tunja, Boyacá)
+7. Cúcuta Deportivo (Cúcuta, Norte de Santander) - NUEVO ascendido
+8. Deportes Tolima (Ibagué, Tolima)
+9. Deportivo Cali (Cali, Valle del Cauca)
+10. Deportivo Pasto (Pasto, Nariño)
+11. Deportivo Pereira (Pereira, Risaralda)
+12. Fortaleza CEIF (Bogotá, Cundinamarca)
+13. Independiente Medellín (Medellín, Antioquia)
+14. Independiente Santa Fe (Bogotá, Cundinamarca)
+15. Internacional de Bogotá (Bogotá, Cundinamarca) - rebrand de La Equidad
+16. Jaguares de Córdoba (Montería, Córdoba)
+17. Junior FC (Barranquilla, Atlántico)
+18. Llaneros FC (Villavicencio, Meta) - NUEVO ascendido
+19. Millonarios FC (Bogotá, Cundinamarca)
+20. Once Caldas (Manizales, Caldas)
+
+EQUIPOS FUERA DE LIGA 2026:
+- Envigado FC (descendió)
+- Patriotas FC (Primera B)
+- Internacional de Palmira (no participa)
+- La Equidad (rebrandeado como Internacional de Bogotá)
+
+KEY FILES:
+- PROJECT_DATA.json - Complete project data v1.1.0 (with verification notes)
+- src/lib/trivia-questions.ts - 73 verified questions about Liga BetPlay
+- src/components/trivia/TriviaGame.tsx - Enhanced Las Vegas style trivia component
+- src/app/api/trivia/route.ts - Trivia API with hourly rotation

@@ -2,7 +2,7 @@
   "projectName": "TPK PLAY",
   "description": "Sitio de juegos lúdicos deportivos basados en la Liga BetPlay de Colombia",
   "lastUpdated": "2026-04-30",
-  "version": "1.0.0",
+  "version": "1.1.0",
 
   "brand": {
     "name": "TPK PLAY",
@@ -42,9 +42,11 @@
   "ligaBetPlay": {
     "league": "Categoría Primera A - Liga BetPlay",
     "country": "Colombia",
-    "season": "2025-2026",
-    "totalTeams": 22,
-    "teams": [
+    "season": "2026-I",
+    "totalTeams": 20,
+    "verificationDate": "2026-04-30",
+    "verificationNote": "Todos los datos verificados con fuentes oficiales (Wikipedia ES/EN, sitios web oficiales de clubes, Transfermarkt, CONMEBOL, DIMAYOR, ESPN, SofaScore)",
+    "teamsInLiga2026": [
       {
         "id": 1,
         "name": "Águilas Doradas",
@@ -55,7 +57,8 @@
         "shield": "/images/teams/aguilas-doradas.svg",
         "colors": ["Amarillo", "Oro"],
         "founded": 2008,
-        "notes": "Anteriormente conocido como Águilas Doradas de Rionegro"
+        "nickname": "Los Dorados",
+        "inLiga2026": true
       },
       {
         "id": 2,
@@ -67,7 +70,9 @@
         "shield": "/images/teams/alianza-fc.svg",
         "colors": ["Negro", "Blanco", "Rojo"],
         "founded": 2024,
-        "notes": "Club nuevo en la liga, anteriormente Alianza Petrolera"
+        "nickname": "Los Petroleros",
+        "inLiga2026": true,
+        "notes": "Entidad legal actual fundada 2024, anteriormente Alianza Petrolera (fundada 1990)"
       },
       {
         "id": 3,
@@ -79,21 +84,21 @@
         "shield": "/images/teams/america-de-cali.svg",
         "colors": ["Rojo", "Blanco"],
         "founded": 1927,
-        "notes": "Los Diablos Rojos. Uno de los equipos más populares de Colombia"
+        "nickname": "Los Diablos Rojos / Los Escarlatas",
+        "inLiga2026": true
       },
       {
         "id": 4,
-        "name": "Internacional de Bogotá",
-        "slug": "internacional-de-bogota",
-        "city": "Bogotá",
-        "department": "Cundinamarca",
-        "stadium": "Estadio Metropolitano de Techo",
-        "shield": "/images/teams/internacional-de-bogota.png",
-        "colors": ["Blanco", "Negro", "Dorado"],
-        "founded": 2025,
-        "notes": "Primer club NewGen de Colombia. Reemplazó a La Equidad en Liga BetPlay 2026. Escudo oficial descargado de interbogota.com. Incorpora cóndor andino y cerros orientales de Bogotá. Sitio web: interbogota.com",
-        "officialWebsite": "https://interbogota.com",
-        "shieldSource": "https://interbogota.com/wp-content/uploads/2026/04/cropped-escudo-oficial-internacional-de-bogota.png"
+        "name": "Atlético Bucaramanga",
+        "slug": "atletico-bucaramanga",
+        "city": "Bucaramanga",
+        "department": "Santander",
+        "stadium": "Estadio Alfonso López",
+        "shield": "/images/teams/atletico-bucaramanga.svg",
+        "colors": ["Amarillo", "Blanco"],
+        "founded": 1949,
+        "nickname": "Los Leopardos",
+        "inLiga2026": true
       },
       {
         "id": 5,
@@ -105,22 +110,12 @@
         "shield": "/images/teams/atletico-nacional.svg",
         "colors": ["Verde", "Blanco"],
         "founded": 1947,
-        "notes": "El Rey de Copas. Equipo con más títulos de Colombia"
+        "nickname": "El Rey de Copas / Los Verdolagas",
+        "inLiga2026": true,
+        "notes": "Equipo con más títulos de Colombia (18 ligas, 2 Copas Libertadores)"
       },
       {
         "id": 6,
-        "name": "Atlético Bucaramanga",
-        "slug": "atletico-bucaramanga",
-        "city": "Bucaramanga",
-        "department": "Santander",
-        "stadium": "Estadio Alfonso López",
-        "shield": "/images/teams/atletico-bucaramanga.svg",
-        "colors": ["Amarillo", "Blanco"],
-        "founded": 1949,
-        "notes": "Los Leopardos"
-      },
-      {
-        "id": 7,
         "name": "Boyacá Chicó",
         "slug": "boyaca-chico",
         "city": "Tunja",
@@ -129,7 +124,22 @@
         "shield": "/images/teams/boyaca-chico.svg",
         "colors": ["Blanco", "Negro", "Rojo"],
         "founded": 2002,
-        "notes": "Los Ajedrezados"
+        "nickname": "Los Ajedrezados",
+        "inLiga2026": true
+      },
+      {
+        "id": 7,
+        "name": "Cúcuta Deportivo",
+        "slug": "cucuta-deportivo",
+        "city": "Cúcuta",
+        "department": "Norte de Santander",
+        "stadium": "Estadio General Santander",
+        "shield": "/images/teams/cucuta-deportivo.svg",
+        "colors": ["Rojo", "Negro", "Blanco"],
+        "founded": 1924,
+        "nickname": "Los Motilones",
+        "inLiga2026": true,
+        "notes": "Ascendió a Liga BetPlay 2026. Escudo pendiente de descarga."
       },
       {
         "id": 8,
@@ -141,7 +151,8 @@
         "shield": "/images/teams/deportes-tolima.svg",
         "colors": ["Amarillo", "Rojo", "Blanco"],
         "founded": 1954,
-        "notes": "El Vinotinto y Oro"
+        "nickname": "El Vinotinto y Oro / Los Pijaos",
+        "inLiga2026": true
       },
       {
         "id": 9,
@@ -153,7 +164,9 @@
         "shield": "/images/teams/deportivo-cali.png",
         "colors": ["Verde", "Blanco"],
         "founded": 1912,
-        "notes": "Los Azucareros. Uno de los equipos más tradicionales"
+        "nickname": "Los Azucareros / La Amenaza Verde",
+        "inLiga2026": true,
+        "notes": "Equipo más antiguo de la Liga BetPlay. Único estadio propiedad de un club en Colombia."
       },
       {
         "id": 10,
@@ -165,7 +178,8 @@
         "shield": "/images/teams/deportivo-pasto.svg",
         "colors": ["Rojo", "Blanco", "Azul"],
         "founded": 1949,
-        "notes": "Los Volcanes"
+        "nickname": "Los Volcánicos",
+        "inLiga2026": true
       },
       {
         "id": 11,
@@ -177,22 +191,11 @@
         "shield": "/images/teams/deportivo-pereira.svg",
         "colors": ["Rojo", "Blanco", "Azul"],
         "founded": 1944,
-        "notes": "Los Matecaña"
+        "nickname": "Los Matecaña",
+        "inLiga2026": true
       },
       {
         "id": 12,
-        "name": "Envigado FC",
-        "slug": "envigado",
-        "city": "Envigado",
-        "department": "Antioquia",
-        "stadium": "Estadio Polideportivo Sur",
-        "shield": "/images/teams/envigado.svg",
-        "colors": ["Naranja", "Negro"],
-        "founded": 1989,
-        "notes": "Los Cafeteros del sur del Valle de Aburrá"
-      },
-      {
-        "id": 13,
         "name": "Fortaleza CEIF",
         "slug": "fortaleza-ceif",
         "city": "Bogotá",
@@ -200,11 +203,13 @@
         "stadium": "Estadio Metropolitano de Techo",
         "shield": "/images/teams/fortaleza-ceif.svg",
         "colors": ["Verde", "Blanco"],
-        "founded": 2000,
-        "notes": "Cantera de jugadores importante en Bogotá"
+        "founded": 2010,
+        "nickname": "Los Amix",
+        "inLiga2026": true,
+        "notes": "Fundado como Fortaleza FC en 2010, fusionado con CEIF en 2015"
       },
       {
-        "id": 14,
+        "id": 13,
         "name": "Independiente Medellín",
         "slug": "independiente-medellin",
         "city": "Medellín",
@@ -213,10 +218,11 @@
         "shield": "/images/teams/independiente-medellin.svg",
         "colors": ["Rojo", "Azul"],
         "founded": 1913,
-        "notes": "El Poderoso. Rival histórico de Atlético Nacional"
+        "nickname": "El Poderoso de la Montaña",
+        "inLiga2026": true
       },
       {
-        "id": 15,
+        "id": 14,
         "name": "Independiente Santa Fe",
         "slug": "independiente-santa-fe",
         "city": "Bogotá",
@@ -225,7 +231,25 @@
         "shield": "/images/teams/independiente-santa-fe.svg",
         "colors": ["Rojo", "Blanco"],
         "founded": 1941,
-        "notes": "Los Cardenales. Primer campeón del fútbol colombiano"
+        "nickname": "Los Cardenales / El Expreso Rojo",
+        "inLiga2026": true,
+        "notes": "Primer campeón del fútbol profesional colombiano (1948)"
+      },
+      {
+        "id": 15,
+        "name": "Internacional de Bogotá",
+        "slug": "internacional-de-bogota",
+        "city": "Bogotá",
+        "department": "Cundinamarca",
+        "stadium": "Estadio Metropolitano de Techo",
+        "shield": "/images/teams/internacional-de-bogota.png",
+        "colors": ["Blanco", "Negro", "Dorado"],
+        "founded": 2025,
+        "nickname": "Los Capitalinos",
+        "inLiga2026": true,
+        "notes": "Rebrandeado de La Equidad (fundado 1982) en diciembre 2025. Escudo con cóndor andino y cerros orientales. Sitio web: interbogota.com",
+        "officialWebsite": "https://interbogota.com",
+        "shieldSource": "https://interbogota.com/wp-content/uploads/2026/04/cropped-escudo-oficial-internacional-de-bogota.png"
       },
       {
         "id": 16,
@@ -236,8 +260,9 @@
         "stadium": "Estadio Jaraguay",
         "shield": "/images/teams/jaguares-de-cordoba.png",
         "colors": ["Naranja", "Negro", "Blanco"],
-        "founded": 2014,
-        "notes": "Los Jaguares"
+        "founded": 2012,
+        "nickname": "Los Jaguares",
+        "inLiga2026": true
       },
       {
         "id": 17,
@@ -249,19 +274,22 @@
         "shield": "/images/teams/junior-fc.svg",
         "colors": ["Rojo", "Blanco", "Azul"],
         "founded": 1924,
-        "notes": "Los Tiburones. Uno de los equipos más populares de la Costa Atlántica"
+        "nickname": "Los Tiburones",
+        "inLiga2026": true
       },
       {
         "id": 18,
-        "name": "La Equidad",
-        "slug": "la-equidad",
-        "city": "Bogotá",
-        "department": "Cundinamarca",
-        "stadium": "Estadio Metropolitano de Techo",
-        "shield": "/images/teams/la-equidad.svg",
-        "colors": ["Verde", "Blanco"],
-        "founded": 1947,
-        "notes": "Los Aseguradores. NOTA: Fue reemplazado por Internacional de Bogotá para la temporada 2026, pero el escudo aún se conserva en los archivos del proyecto."
+        "name": "Llaneros FC",
+        "slug": "llaneros-fc",
+        "city": "Villavicencio",
+        "department": "Meta",
+        "stadium": "Estadio Manuel Calvo Lombana",
+        "shield": "/images/teams/llaneros-fc.svg",
+        "colors": ["Amarillo", "Verde", "Blanco"],
+        "founded": 2023,
+        "nickname": "Los Llaneros",
+        "inLiga2026": true,
+        "notes": "Ascendió a Liga BetPlay 2026. Escudo pendiente de descarga."
       },
       {
         "id": 19,
@@ -273,7 +301,8 @@
         "shield": "/images/teams/millonarios.svg",
         "colors": ["Azul", "Blanco"],
         "founded": 1946,
-        "notes": "Los Embajadores. Equipo con gran historia, Ballet Azul"
+        "nickname": "Los Embajadores / El Ballet Azul",
+        "inLiga2026": true
       },
       {
         "id": 20,
@@ -284,11 +313,29 @@
         "stadium": "Estadio Palogrande",
         "shield": "/images/teams/once-caldas.svg",
         "colors": ["Blanco", "Negro"],
-        "founded": 1949,
-        "notes": "Los Blancos. Campeón de la Copa Libertadores 2004"
+        "founded": 1961,
+        "nickname": "Los Blancos / El Blanco Blanco",
+        "inLiga2026": true,
+        "notes": "Fundado oficialmente el 16 de enero de 1961 tras la fusión de Deportes Caldas (1947) y Once Deportivo. Campeón Copa Libertadores 2004."
+      }
+    ],
+    "teamsNotInLiga2026": [
+      {
+        "id": 101,
+        "name": "Envigado FC",
+        "slug": "envigado",
+        "city": "Envigado",
+        "department": "Antioquia",
+        "stadium": "Estadio Polideportivo Sur",
+        "shield": "/images/teams/envigado.svg",
+        "colors": ["Naranja", "Negro"],
+        "founded": 1989,
+        "nickname": "Los Cafeteros del sur del Valle de Aburrá",
+        "inLiga2026": false,
+        "reason": "Descendió a Primera B para 2026"
       },
       {
-        "id": 21,
+        "id": 102,
         "name": "Patriotas FC",
         "slug": "patriotas",
         "city": "Tunja",
@@ -296,11 +343,13 @@
         "stadium": "Estadio La Independencia",
         "shield": "/images/teams/patriotas.png",
         "colors": ["Rojo", "Blanco", "Azul"],
-        "founded": 2013,
-        "notes": "Equipo boyacense"
+        "founded": 2003,
+        "nickname": "Los Patriotas",
+        "inLiga2026": false,
+        "reason": "En Primera B desde 2025"
       },
       {
-        "id": 22,
+        "id": 103,
         "name": "Internacional de Palmira",
         "slug": "internacional-palmira",
         "city": "Palmira",
@@ -309,7 +358,23 @@
         "shield": "/images/teams/internacional-palmira.png",
         "colors": ["Rojo", "Negro", "Blanco"],
         "founded": 2024,
-        "notes": "Anteriormente Cortuluá. Nuevo en la liga"
+        "nickname": "Los Palmiranos",
+        "inLiga2026": false,
+        "reason": "No participa en Liga BetPlay 2026"
+      },
+      {
+        "id": 104,
+        "name": "La Equidad",
+        "slug": "la-equidad",
+        "city": "Bogotá",
+        "department": "Cundinamarca",
+        "stadium": "Estadio Metropolitano de Techo",
+        "shield": "/images/teams/la-equidad.svg",
+        "colors": ["Verde", "Blanco"],
+        "founded": 1982,
+        "nickname": "Los Aseguradores",
+        "inLiga2026": false,
+        "reason": "Rebrandeado como Internacional de Bogotá en diciembre 2025"
       }
     ]
   },
@@ -349,10 +414,10 @@
     "database": [
       "src/lib/db.ts - Configuración Prisma + SQLite",
       "prisma/schema.prisma - Modelos Game, Participant, TriviaQuestion, TriviaAnswer, TriviaRound",
-      "src/lib/trivia-questions.ts - Banco de 64 preguntas sobre Liga BetPlay"
+      "src/lib/trivia-questions.ts - Banco de 73 preguntas verificadas sobre Liga BetPlay"
     ],
     "pages": [
-      "src/app/page.tsx - Página principal (Hero + Registration + AdminPanel)",
+      "src/app/page.tsx - Página principal (Hero + Trivia + Registration + AdminPanel)",
       "src/app/layout.tsx - Layout raíz con fondo negro y fuente Montserrat"
     ],
     "assets": {
@@ -360,7 +425,7 @@
         "public/images/logo.png - Logo TPK PLAY",
         "public/images/tiger.png - Mascota tigre"
       ],
-      "teams": "public/images/teams/ - 22 escudos oficiales de equipos Liga BetPlay"
+      "teams": "public/images/teams/ - Escudos oficiales de equipos Liga BetPlay (20 en liga + 4 fuera)"
     }
   },
 
@@ -375,6 +440,7 @@
     "playLetters": "Alternando naranja y verde neón con parpadeo aleatorio",
     "spotlights": "3 reflectores animados en púrpura, naranja y verde",
     "subtitle": "Texto con gradiente animado en colores luminosos",
+    "gameStyle": "Las Vegas - luminoso, animado, atractivo, con neón y confeti",
     "fontFamily": "Montserrat"
   },
 
@@ -386,10 +452,25 @@
       "4. Sistema de registro de participantes (3 pasos, código TPK, redes sociales)",
       "5. Investigación de equipos Liga BetPlay y descarga de escudos oficiales",
       "6. Descarga del escudo oficial de Internacional de Bogotá desde interbogota.com",
-      "7. Trivia Futbolera: 64 preguntas, rotación horaria, 1 intento/ronda, +10 pts/acierto, estilo Las Vegas"
+      "7. Trivia Futbolera: preguntas, rotación horaria, 1 intento/ronda, +10 pts/acierto, estilo Las Vegas",
+      "8. Verificación exhaustiva de datos de trivia (30 abril 2026) - Corregidos 9 errores",
+      "9. Actualización lista equipos: 20 equipos en Liga BetPlay 2026 (Cúcuta y Llaneros ascendidos)"
     ],
-    "currentStep": "Revisar trivia y continuar con próximos juegos",
+    "correctionsMade": [
+      "Once Caldas fundación: 1949 → 1961 (fusión oficial verificada con sitio web del club y Wikipedia)",
+      "Jaguares de Córdoba fundación: 2014 → 2012 (verificado con Wikipedia y WinSports)",
+      "Patriotas FC fundación: 2013 → 2003 (verificado con Wikipedia y Transfermarkt)",
+      "Fortaleza CEIF fundación: 2000 → 2010 (verificado con Wikipedia y SoccerWiki)",
+      "La Equidad fundación: 1947 → 1982 (verificado con Wikipedia, VAVEL, FCF)",
+      "Deportivo Pasto apodo: Los Volcanes → Los Volcánicos (verificado con Wikipedia y SoccerWiki)",
+      "Liga BetPlay equipos: 22 → 20 (verificado con SofaScore, ESPN, Wikipedia, AS.com)",
+      "Pregunta Estadio Metropolitano de Techo: corregida ambigüedad (2 equipos juegan ahí)",
+      "Internacional de Bogotá 'NewGen': término no verificable, eliminado de preguntas",
+      "La Equidad: rebrandeado como Internacional de Bogotá (no reemplazado), fundado 1982 no 1947"
+    ],
+    "currentStep": "Trivia verificada y corregida - lista para revisión",
     "nextSteps": [
+      "Descargar escudos de Cúcuta Deportivo y Llaneros FC",
       "Crear más juegos lúdicos deportivos (predicciones, memoria, etc.)",
       "Agregar tabla de posiciones/puntajes",
       "Mejorar integración visual de escudos en juegos"
