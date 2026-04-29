@@ -39,7 +39,7 @@ export async function POST(request: Request) {
     }
 
     // Check for duplicate email
-    const existing = await db.participant.findUnique({ where: { email } })
+    const existing = await db.participant.findFirst({ where: { email } })
     if (existing) {
       return NextResponse.json(
         { error: 'Este correo electrónico ya está registrado' },

@@ -125,3 +125,37 @@ TEAM SHIELDS (22 teams in /public/images/teams/):
 20. once-caldas.svg
 21. patriotas.png
 22. internacional-palmira.png
+---
+Task ID: 5
+Agent: Main
+Task: Create Trivia Futbolera game with Las Vegas style visuals
+
+Work Log:
+- Updated Prisma schema with TriviaQuestion, TriviaAnswer, TriviaRound models
+- Added totalPoints field to Participant model
+- Created 64 trivia questions about Liga BetPlay teams (categories: estadios, fundacion, apodos, colores, ciudades, historia, clasicos, departamentos, general)
+- Created /api/trivia API route with GET (current question) and POST (submit answer)
+- Implemented hourly round rotation using deterministic seed based on roundId
+- Implemented one-answer-per-round-per-user restriction with unique constraint
+- Fixed participant API (findUnique → findFirst for email check)
+- Built TriviaGame component with Las Vegas-style visuals:
+  - Neon title "TRIVIA FUTBOLERA" with animated gradient
+  - Team shield display for team-specific questions
+  - Category badges with color coding
+  - Countdown timer for each round
+  - 4-option answer buttons with neon hover effects
+  - Correct/incorrect feedback with confetti animation
+  - Already-played state for duplicate attempts
+  - Points tracking (+10 per correct answer)
+- Added CSS animations: confetti, vegas-lights, score-pop, pulse-glow, celebrate, shake
+- Integrated trivia into main page between Hero and Registration sections
+- All API endpoints tested and verified
+
+Stage Summary:
+- 64 trivia questions covering all 22 Liga BetPlay teams ✓
+- Hourly question rotation ✓
+- One attempt per user per round ✓
+- 10 points per correct answer ✓
+- Las Vegas-style luminous visuals with animations ✓
+- Database models: TriviaQuestion, TriviaAnswer, TriviaRound ✓
+- API fully tested: GET current question, POST answer, 409 on duplicate ✓

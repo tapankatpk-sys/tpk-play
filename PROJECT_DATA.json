@@ -335,16 +335,21 @@
       ],
       "registration": [
         "src/components/registration/RegistrationSection.tsx - Registro 3 pasos: reglas, redes sociales, formulario con código TPK"
+      ],
+      "trivia": [
+        "src/components/trivia/TriviaGame.tsx - Componente principal trivia estilo Las Vegas con neón, confeti, timer"
       ]
     },
     "api": [
       "src/app/api/auth/route.ts - Autenticación (login, verify, logout) con bcrypt y tokens",
       "src/app/api/games/route.ts - CRUD de juegos",
-      "src/app/api/participants/route.ts - CRUD de participantes + generación código TPK"
+      "src/app/api/participants/route.ts - CRUD de participantes + generación código TPK",
+      "src/app/api/trivia/route.ts - API trivia (GET pregunta actual, POST respuesta)"
     ],
     "database": [
       "src/lib/db.ts - Configuración Prisma + SQLite",
-      "prisma/schema.prisma - Modelos Game y Participant"
+      "prisma/schema.prisma - Modelos Game, Participant, TriviaQuestion, TriviaAnswer, TriviaRound",
+      "src/lib/trivia-questions.ts - Banco de 64 preguntas sobre Liga BetPlay"
     ],
     "pages": [
       "src/app/page.tsx - Página principal (Hero + Registration + AdminPanel)",
@@ -380,13 +385,14 @@
       "3. Panel de administración con autenticación (tapankatpk@gmail.com / todobien2)",
       "4. Sistema de registro de participantes (3 pasos, código TPK, redes sociales)",
       "5. Investigación de equipos Liga BetPlay y descarga de escudos oficiales",
-      "6. Descarga del escudo oficial de Internacional de Bogotá desde interbogota.com"
+      "6. Descarga del escudo oficial de Internacional de Bogotá desde interbogota.com",
+      "7. Trivia Futbolera: 64 preguntas, rotación horaria, 1 intento/ronda, +10 pts/acierto, estilo Las Vegas"
     ],
-    "currentStep": "Crear los juegos basados en Liga BetPlay",
+    "currentStep": "Revisar trivia y continuar con próximos juegos",
     "nextSteps": [
-      "Diseñar y crear los juegos lúdicos deportivos",
-      "Integrar los escudos de equipos en la interfaz de juegos",
-      "Conectar juegos con sistema de participantes y códigos TPK"
+      "Crear más juegos lúdicos deportivos (predicciones, memoria, etc.)",
+      "Agregar tabla de posiciones/puntajes",
+      "Mejorar integración visual de escudos en juegos"
     ]
   }
 }
