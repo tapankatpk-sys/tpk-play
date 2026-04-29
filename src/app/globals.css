@@ -91,47 +91,101 @@
 /* TPK PLAY - Spotlight & Neon Effects         */
 /* ============================================ */
 
-/* Spotlight beams */
+/* Vegas Spotlight beams - sweep from bottom up */
 @keyframes spotlight-sway-1 {
-  0%, 100% { transform: rotate(-25deg) translateX(-20%); }
-  50% { transform: rotate(25deg) translateX(20%); }
+  0%, 100% { transform: rotate(-20deg); }
+  50% { transform: rotate(20deg); }
 }
 
 @keyframes spotlight-sway-2 {
-  0%, 100% { transform: rotate(30deg) translateX(15%); }
-  50% { transform: rotate(-20deg) translateX(-25%); }
+  0%, 100% { transform: rotate(18deg); }
+  50% { transform: rotate(-22deg); }
 }
 
 @keyframes spotlight-sway-3 {
-  0%, 100% { transform: rotate(-15deg) translateX(10%); }
-  50% { transform: rotate(35deg) translateX(-10%); }
+  0%, 100% { transform: rotate(-12deg); }
+  50% { transform: rotate(28deg); }
+}
+
+@keyframes spotlight-sway-4 {
+  0%, 100% { transform: rotate(15deg); }
+  50% { transform: rotate(-18deg); }
+}
+
+@keyframes spotlight-sway-5 {
+  0%, 100% { transform: rotate(-8deg); }
+  50% { transform: rotate(8deg); }
+}
+
+@keyframes spotlight-sway-6 {
+  0%, 100% { transform: rotate(-25deg); }
+  50% { transform: rotate(15deg); }
 }
 
 @keyframes spotlight-pulse {
-  0%, 100% { opacity: 0.15; }
-  50% { opacity: 0.3; }
+  0%, 100% { opacity: 0.7; }
+  50% { opacity: 1; }
 }
 
 @keyframes spotlight-pulse-2 {
-  0%, 100% { opacity: 0.1; }
-  50% { opacity: 0.25; }
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 0.95; }
 }
 
 @keyframes spotlight-pulse-3 {
-  0%, 100% { opacity: 0.12; }
-  50% { opacity: 0.22; }
+  0%, 100% { opacity: 0.65; }
+  50% { opacity: 0.9; }
+}
+
+@keyframes spotlight-pulse-4 {
+  0%, 100% { opacity: 0.55; }
+  50% { opacity: 0.85; }
+}
+
+@keyframes spotlight-pulse-5 {
+  0%, 100% { opacity: 0.75; }
+  50% { opacity: 1; }
+}
+
+@keyframes spotlight-pulse-6 {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 0.8; }
+}
+
+/* Spotlight source glow pulse */
+@keyframes spotlight-source-pulse {
+  0%, 100% { 
+    transform: scale(1); 
+    opacity: 0.8;
+  }
+  50% { 
+    transform: scale(1.3); 
+    opacity: 1;
+  }
 }
 
 .spotlight-beam-1 {
-  animation: spotlight-sway-1 8s ease-in-out infinite, spotlight-pulse 4s ease-in-out infinite;
+  animation: spotlight-sway-1 6s ease-in-out infinite, spotlight-pulse 3s ease-in-out infinite;
 }
 
 .spotlight-beam-2 {
-  animation: spotlight-sway-2 10s ease-in-out infinite, spotlight-pulse-2 5s ease-in-out infinite;
+  animation: spotlight-sway-2 8s ease-in-out infinite, spotlight-pulse-2 4s ease-in-out infinite;
 }
 
 .spotlight-beam-3 {
   animation: spotlight-sway-3 7s ease-in-out infinite, spotlight-pulse-3 3.5s ease-in-out infinite;
+}
+
+.spotlight-beam-4 {
+  animation: spotlight-sway-4 9s ease-in-out infinite, spotlight-pulse-4 4.5s ease-in-out infinite;
+}
+
+.spotlight-beam-5 {
+  animation: spotlight-sway-5 5s ease-in-out infinite, spotlight-pulse-5 2.5s ease-in-out infinite;
+}
+
+.spotlight-beam-6 {
+  animation: spotlight-sway-6 7.5s ease-in-out infinite, spotlight-pulse-6 3.8s ease-in-out infinite;
 }
 
 /* Neon flicker - single quick flash */
