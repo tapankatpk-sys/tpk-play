@@ -268,3 +268,18 @@ model ParquesRoomPlayer {
   @@unique([roomId, participantCode])
   @@unique([roomId, playerIndex])
 }
+
+// ============================================
+// AUDIO PLAYER - Configuración del reproductor
+// ============================================
+
+model AudioConfig {
+  id          String   @id @default(cuid())
+  audioUrl    String   @default("/tpk-anthem.mp3")  // Ruta del archivo de audio
+  volume      Int      @default(60)                  // Volumen 0-100
+  autoPlay    Boolean  @default(false)               // Auto-reproducir al interactuar
+  isActive    Boolean  @default(true)                // Audio activado/desactivado
+  label       String   @default("Te Pe Ka Fans Club") // Nombre mostrado
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}

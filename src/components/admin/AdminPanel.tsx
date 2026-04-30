@@ -73,7 +73,7 @@ interface MatchPredictionData {
   updatedAt: string
 }
 
-type Tab = 'dashboard' | 'games' | 'participants' | 'stats' | 'popup' | 'banners' | 'predictions' | 'loteria' | 'ruleta' | 'circuito' | 'parques'
+type Tab = 'dashboard' | 'games' | 'participants' | 'stats' | 'popup' | 'banners' | 'predictions' | 'loteria' | 'ruleta' | 'circuito' | 'parques' | 'audio'
 
 interface SidebarSection {
   id: string
@@ -245,6 +245,11 @@ export default function AdminPanel() {
   const [parquesConfig, setParquesConfig] = useState<{ id: string; tokensPerPlayer: number; pointsCapture: number; pointsFinish: number; pointsWin: number; diceSpeed: number; isActive: boolean } | null>(null)
   const [parquesForm, setParquesForm] = useState({ tokensPerPlayer: 2, pointsCapture: 50, pointsFinish: 100, pointsWin: 500, diceSpeed: 3, isActive: true })
   const [savingParques, setSavingParques] = useState(false)
+
+  // Audio config state
+  const [audioConfig, setAudioConfig] = useState<{ id: string; audioUrl: string; volume: number; autoPlay: boolean; isActive: boolean; label: string } | null>(null)
+  const [audioForm, setAudioForm] = useState({ audioUrl: '/tpk-anthem.mp3', volume: 60, autoPlay: false, isActive: true, label: 'Te Pe Ka Fans Club' })
+  const [savingAudio, setSavingAudio] = useState(false)
 
   // Parques rooms state
   const [parquesRooms, setParquesRooms] = useState<any[]>([])
@@ -502,16 +507,36 @@ export default function AdminPanel() {
     }
   }, [])
 
+  const fetchAudioConfig = useCallback(async () => {
+    try {
+      const res = await fetch('/api/audio')
+      if (!res.ok) throw new Error(`Error ${res.status}`)
+      const data = await res.json()
+      if (data && !data.error) {
+        setAudioConfig(data)
+        setAudioForm({
+          audioUrl: data.audioUrl || '/tpk-anthem.mp3',
+          volume: data.volume ?? 60,
+          autoPlay: data.autoPlay ?? false,
+          isActive: data.isActive !== false,
+          label: data.label || 'Te Pe Ka Fans Club',
+        })
+      }
+    } catch (err) {
+      console.error('Error fetching audio config:', err)
+    }
+  }, [])
+
   useEffect(() => {
     if (isAuthenticated && showPanel) {
       const load = async () => {
         setLoading(true)
-        await Promise.all([fetchGames(), fetchParticipants(), fetchPopups(), fetchBanners(), fetchPredictions(), fetchLoteriaConfig(), fetchRuletaConfig(), fetchCircuitoConfig(), fetchParquesConfig()])
+        await Promise.all([fetchGames(), fetchParticipants(), fetchPopups(), fetchBanners(), fetchPredictions(), fetchLoteriaConfig(), fetchRuletaConfig(), fetchCircuitoConfig(), fetchParquesConfig(), fetchAudioConfig()])
         setLoading(false)
       }
       load()
     }
-  }, [isAuthenticated, showPanel, fetchGames, fetchParticipants, fetchPopups, fetchBanners, fetchPredictions, fetchLoteriaConfig, fetchRuletaConfig, fetchCircuitoConfig, fetchParquesConfig])
+  }, [isAuthenticated, showPanel, fetchGames, fetchParticipants, fetchPopups, fetchBanners, fetchPredictions, fetchLoteriaConfig, fetchRuletaConfig, fetchCircuitoConfig, fetchParquesConfig, fetchAudioConfig])
 
   // Fetch Parques Rooms
   const fetchParquesRooms = useCallback(async () => {
@@ -963,6 +988,30 @@ export default function AdminPanel() {
     }
   }
 
+  const handleSaveAudio = async () => {
+    setSavingAudio(true)
+    try {
+      if (audioConfig) {
+        await fetch('/api/audio', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: audioConfig.id, ...audioForm }),
+        })
+      } else {
+        await fetch('/api/audio', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(audioForm),
+        })
+      }
+      fetchAudioConfig()
+    } catch (err) {
+      console.error('Error saving audio config:', err)
+    } finally {
+      setSavingAudio(false)
+    }
+  }
+
   // Delete parques room
   const handleDeleteParquesRoom = async (roomId: string) => {
     try {
@@ -993,6 +1042,7 @@ export default function AdminPanel() {
         { id: 'ruleta', label: 'Ruleta', icon: '🎰', color: '#ffc800' },
         { id: 'circuito', label: 'Circuito', icon: '🎮', color: '#00ff80' },
         { id: 'parques', label: 'Parqués', icon: '🎲', color: '#facc15' },
+        { id: 'audio', label: 'Audio', icon: '🎵', color: '#a855f7' },
         { id: 'predictions', label: 'Predicciones', icon: '⚽', color: '#00ff80', count: predictions.length },
         { id: 'popup', label: 'Popup', icon: '💬', color: '#eab308', count: popups.length },
       ],
@@ -1419,6 +1469,7 @@ export default function AdminPanel() {
                         : activeTab === 'ruleta' ? '#ffc800'
                         : activeTab === 'circuito' ? '#00ff80'
                         : activeTab === 'parques' ? '#facc15'
+                        : activeTab === 'audio' ? '#a855f7'
                         : activeTab === 'predictions' ? '#00ff80'
                         : activeTab === 'banners' ? '#00ffff'
                         : activeTab === 'popup' ? '#eab308'
@@ -1432,6 +1483,7 @@ export default function AdminPanel() {
                       : activeTab === 'ruleta' ? 'Ruleta de Equipos'
                       : activeTab === 'circuito' ? 'Circuito Futbolero'
                       : activeTab === 'parques' ? 'Parqués Futbolero'
+                      : activeTab === 'audio' ? 'Reproductor de Audio'
                       : activeTab === 'predictions' ? 'Predicciones'
                       : activeTab === 'banners' ? 'Banners'
                       : activeTab === 'popup' ? 'Popup'
@@ -3795,6 +3847,190 @@ export default function AdminPanel() {
                           {['#facc15','#3b82f6','#ef4444','#22c55e'].map((c, ci) => (
                             <div key={ci} className="w-3 h-3 rounded-full" style={{ backgroundColor: c, boxShadow: `0 0 4px ${c}60` }} />
                           ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ) : activeTab === 'audio' ? (
+                /* ========== AUDIO TAB ========== */
+                <div className="space-y-4">
+                  <div className="p-3 rounded-xl" style={{ background: 'rgba(168,85,247,0.04)', border: '1px solid rgba(168,85,247,0.15)' }}>
+                    <p className="text-[0.65rem]" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                      Configura el <b style={{ color: '#d8b4fe' }}>Reproductor de Audio</b> de TPK PLAY. El audio se reproduce en loop infinito mientras el usuario navega el sitio. Ajusta volumen, nombre y activación.
+                    </p>
+                  </div>
+
+                  {audioConfig && (
+                    <div className="grid grid-cols-5 gap-2">
+                      <div className="p-2 rounded-lg text-center" style={{ background: 'rgba(168,85,247,0.06)' }}>
+                        <div className="text-[0.5rem] uppercase" style={{ color: 'rgba(168,85,247,0.5)' }}>Volumen</div>
+                        <div className="text-lg font-black" style={{ color: '#a855f7' }}>{audioConfig.volume}%</div>
+                      </div>
+                      <div className="p-2 rounded-lg text-center" style={{ background: 'rgba(249,115,22,0.06)' }}>
+                        <div className="text-[0.5rem] uppercase" style={{ color: 'rgba(249,115,22,0.5)' }}>AutoPlay</div>
+                        <div className="text-lg font-black" style={{ color: audioConfig.autoPlay ? '#4ade80' : '#ef4444' }}>
+                          {audioConfig.autoPlay ? 'Sí' : 'No'}
+                        </div>
+                      </div>
+                      <div className="p-2 rounded-lg text-center" style={{ background: audioConfig.isActive ? 'rgba(34,197,94,0.06)' : 'rgba(239,68,68,0.06)' }}>
+                        <div className="text-[0.5rem] uppercase" style={{ color: 'rgba(255,255,255,0.3)' }}>Estado</div>
+                        <div className="text-lg font-black" style={{ color: audioConfig.isActive ? '#4ade80' : '#ef4444' }}>
+                          {audioConfig.isActive ? '●' : '○'}
+                        </div>
+                      </div>
+                      <div className="p-2 rounded-lg text-center col-span-2" style={{ background: 'rgba(250,204,21,0.06)' }}>
+                        <div className="text-[0.5rem] uppercase" style={{ color: 'rgba(250,204,21,0.5)' }}>Nombre</div>
+                        <div className="text-sm font-black truncate" style={{ color: '#facc15' }}>{audioConfig.label}</div>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="space-y-3">
+                    <div>
+                      <label className="text-[0.6rem] font-bold uppercase tracking-wider block mb-1" style={{ color: 'rgba(168,85,247,0.6)' }}>
+                        Nombre del Audio
+                      </label>
+                      <input type="text"
+                        value={audioForm.label}
+                        onChange={(e) => setAudioForm({ ...audioForm, label: e.target.value })}
+                        className="w-full px-3 py-2 rounded-lg text-sm font-bold outline-none"
+                        style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(168,85,247,0.2)', color: '#d8b4fe' }}
+                        placeholder="Te Pe Ka Fans Club"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-[0.6rem] font-bold uppercase tracking-wider block mb-1" style={{ color: 'rgba(249,115,22,0.6)' }}>
+                        URL del Archivo de Audio
+                      </label>
+                      <input type="text"
+                        value={audioForm.audioUrl}
+                        onChange={(e) => setAudioForm({ ...audioForm, audioUrl: e.target.value })}
+                        className="w-full px-3 py-2 rounded-lg text-sm font-mono outline-none"
+                        style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(249,115,22,0.2)', color: '#fdba74' }}
+                        placeholder="/tpk-anthem.mp3"
+                      />
+                      <p className="text-[0.5rem] mt-1" style={{ color: 'rgba(255,255,255,0.25)' }}>
+                        Ruta relativa al archivo en /public. Ej: /tpk-anthem.mp3
+                      </p>
+                    </div>
+
+                    <div>
+                      <label className="text-[0.6rem] font-bold uppercase tracking-wider block mb-1" style={{ color: 'rgba(168,85,247,0.6)' }}>
+                        Volumen Inicial ({audioForm.volume}%)
+                      </label>
+                      <input type="range" min={0} max={100} step={5}
+                        value={audioForm.volume}
+                        onChange={(e) => setAudioForm({ ...audioForm, volume: parseInt(e.target.value) })}
+                        className="w-full"
+                      />
+                      <div className="flex justify-between mt-1">
+                        <span className="text-[0.45rem]" style={{ color: 'rgba(255,255,255,0.2)' }}>Silencio</span>
+                        <span className="text-[0.45rem] font-bold" style={{ color: '#a855f7' }}>{audioForm.volume}%</span>
+                        <span className="text-[0.45rem]" style={{ color: 'rgba(255,255,255,0.2)' }}>Máximo</span>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-[0.6rem] font-bold uppercase tracking-wider block mb-1" style={{ color: 'rgba(34,197,94,0.6)' }}>
+                          Auto-Reproducir
+                        </label>
+                        <p className="text-[0.5rem] mb-2" style={{ color: 'rgba(255,255,255,0.25)' }}>
+                          Iniciar audio automáticamente al interactuar con el sitio
+                        </p>
+                        <button
+                          onClick={() => setAudioForm({ ...audioForm, autoPlay: !audioForm.autoPlay })}
+                          className="px-4 py-2 rounded-lg text-xs font-bold cursor-pointer transition-all"
+                          style={{
+                            background: audioForm.autoPlay ? 'rgba(34,197,94,0.15)' : 'rgba(239,68,68,0.15)',
+                            color: audioForm.autoPlay ? '#4ade80' : '#ef4444',
+                            border: `1px solid ${audioForm.autoPlay ? 'rgba(34,197,94,0.3)' : 'rgba(239,68,68,0.3)'}`,
+                          }}
+                        >
+                          {audioForm.autoPlay ? '● Activado' : '○ Desactivado'}
+                        </button>
+                      </div>
+                      <div>
+                        <label className="text-[0.6rem] font-bold uppercase tracking-wider block mb-1" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                          Audio Activo
+                        </label>
+                        <p className="text-[0.5rem] mb-2" style={{ color: 'rgba(255,255,255,0.25)' }}>
+                          Desactiva para ocultar el reproductor del sitio
+                        </p>
+                        <button
+                          onClick={() => setAudioForm({ ...audioForm, isActive: !audioForm.isActive })}
+                          className="px-4 py-2 rounded-lg text-xs font-bold cursor-pointer transition-all"
+                          style={{
+                            background: audioForm.isActive ? 'rgba(34,197,94,0.15)' : 'rgba(239,68,68,0.15)',
+                            color: audioForm.isActive ? '#4ade80' : '#ef4444',
+                            border: `1px solid ${audioForm.isActive ? 'rgba(34,197,94,0.3)' : 'rgba(239,68,68,0.3)'}`,
+                          }}
+                        >
+                          {audioForm.isActive ? '● Activo' : '○ Inactivo'}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end">
+                    <button
+                      onClick={handleSaveAudio}
+                      disabled={savingAudio}
+                      className="px-6 py-2.5 rounded-xl font-bold text-sm cursor-pointer transition-all hover:scale-105 disabled:opacity-50"
+                      style={{
+                        background: 'linear-gradient(135deg, #a855f7, #f97316)',
+                        color: '#fff',
+                        boxShadow: '0 0 12px rgba(168,85,247,0.2)',
+                      }}
+                    >
+                      {savingAudio ? 'Guardando...' : 'Guardar Configuración'}
+                    </button>
+                  </div>
+
+                  {/* Audio preview */}
+                  <div>
+                    <div className="text-[0.6rem] font-bold uppercase tracking-wider mb-2" style={{ color: 'rgba(168,85,247,0.4)' }}>
+                      Vista Previa del Reproductor
+                    </div>
+                    <div className="p-4 rounded-xl" style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(168,85,247,0.1)' }}>
+                      <div className="flex items-center gap-3">
+                        <div
+                          className="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0"
+                          style={{
+                            background: 'linear-gradient(135deg, #a855f7, #f97316)',
+                            boxShadow: '0 0 15px rgba(168,85,247,0.3)',
+                          }}
+                        >
+                          <span className="text-xl">🎵</span>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="text-sm font-bold truncate" style={{ color: '#d8b4fe' }}>
+                            {audioForm.label || 'Te Pe Ka Fans Club'}
+                          </div>
+                          <div className="text-[0.55rem]" style={{ color: 'rgba(255,255,255,0.3)' }}>
+                            TPK PLAY Soundtrack
+                          </div>
+                          <div className="flex items-center gap-2 mt-1">
+                            <div className="flex items-end gap-[1px] h-3">
+                              {[0,1,2,3,4].map(i => (
+                                <div key={i} className="w-[2px] rounded-full" style={{
+                                  height: `${4 + i * 2}px`,
+                                  background: 'linear-gradient(to top, #a855f7, #f97316)',
+                                }} />
+                              ))}
+                            </div>
+                            <span className="text-[0.45rem]" style={{ color: 'rgba(168,85,247,0.5)' }}>Loop infinito</span>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-1 flex-shrink-0">
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="rgba(168,85,247,0.5)" strokeWidth="2">
+                            <polygon points="11,5 6,9 2,9 2,15 6,15 11,19" fill="rgba(168,85,247,0.3)" />
+                            <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
+                            <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
+                          </svg>
+                          <span className="text-[0.45rem] font-bold" style={{ color: 'rgba(168,85,247,0.6)' }}>{audioForm.volume}%</span>
                         </div>
                       </div>
                     </div>
