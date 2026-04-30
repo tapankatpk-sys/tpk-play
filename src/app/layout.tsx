@@ -55,6 +55,12 @@ export default function RootLayout({
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        {/* Anti-tracking: no referrer leaked to embedded sites */}
+        <meta name="referrer" content="no-referrer-when-downgrade" />
+        {/* Anti-content-sniffing protection */}
+        <meta httpEquiv="X-Content-Type-Options" content="nosniff" />
+        {/* Prevent search engines from indexing stream pages */}
+        <meta name="googlebot" content="noarchive" />
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-black text-white overflow-x-hidden`}

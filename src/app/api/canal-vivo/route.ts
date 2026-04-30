@@ -12,12 +12,17 @@ export async function GET() {
           winplayEmail: '',
           winplayPassword: '',
           winplayUrl: 'https://winplay.co',
+          winplusEmail: '',
+          winplusPassword: '',
+          winplusUrl: 'https://winsports.co/win-mas',
           youtubeChannelId: 'UCZjpA3YBPXvJv3pg4SPEjfw',
           youtubeVideoId: '',
           streamTitle: 'Liga BetPlay en Vivo',
-          streamSubtitle: 'Win Play - Señal en Vivo',
+          streamSubtitle: 'Señal en Vivo',
           altStreamUrl: '',
           altStreamLabel: 'Señal Alternativa',
+          stealthMode: true,
+          embedProtection: true,
           showChat: true,
           showSchedule: true,
           autoPlay: true,
@@ -47,12 +52,17 @@ export async function POST(request: NextRequest) {
         winplayEmail: body.winplayEmail ?? '',
         winplayPassword: body.winplayPassword ?? '',
         winplayUrl: body.winplayUrl ?? 'https://winplay.co',
+        winplusEmail: body.winplusEmail ?? '',
+        winplusPassword: body.winplusPassword ?? '',
+        winplusUrl: body.winplusUrl ?? 'https://winsports.co/win-mas',
         youtubeChannelId: body.youtubeChannelId ?? 'UCZjpA3YBPXvJv3pg4SPEjfw',
         youtubeVideoId: body.youtubeVideoId ?? '',
         streamTitle: body.streamTitle ?? 'Liga BetPlay en Vivo',
-        streamSubtitle: body.streamSubtitle ?? 'Win Play - Señal en Vivo',
+        streamSubtitle: body.streamSubtitle ?? 'Señal en Vivo',
         altStreamUrl: body.altStreamUrl ?? '',
         altStreamLabel: body.altStreamLabel ?? 'Señal Alternativa',
+        stealthMode: body.stealthMode !== false,
+        embedProtection: body.embedProtection !== false,
         showChat: body.showChat ?? true,
         showSchedule: body.showSchedule ?? true,
         autoPlay: body.autoPlay ?? true,
@@ -80,12 +90,17 @@ export async function PUT(request: NextRequest) {
     if (data.winplayEmail !== undefined) updateData.winplayEmail = data.winplayEmail
     if (data.winplayPassword !== undefined) updateData.winplayPassword = data.winplayPassword
     if (data.winplayUrl !== undefined) updateData.winplayUrl = data.winplayUrl
+    if (data.winplusEmail !== undefined) updateData.winplusEmail = data.winplusEmail
+    if (data.winplusPassword !== undefined) updateData.winplusPassword = data.winplusPassword
+    if (data.winplusUrl !== undefined) updateData.winplusUrl = data.winplusUrl
     if (data.youtubeChannelId !== undefined) updateData.youtubeChannelId = data.youtubeChannelId
     if (data.youtubeVideoId !== undefined) updateData.youtubeVideoId = data.youtubeVideoId
     if (data.streamTitle !== undefined) updateData.streamTitle = data.streamTitle
     if (data.streamSubtitle !== undefined) updateData.streamSubtitle = data.streamSubtitle
     if (data.altStreamUrl !== undefined) updateData.altStreamUrl = data.altStreamUrl
     if (data.altStreamLabel !== undefined) updateData.altStreamLabel = data.altStreamLabel
+    if (data.stealthMode !== undefined) updateData.stealthMode = data.stealthMode
+    if (data.embedProtection !== undefined) updateData.embedProtection = data.embedProtection
     if (data.showChat !== undefined) updateData.showChat = data.showChat
     if (data.showSchedule !== undefined) updateData.showSchedule = data.showSchedule
     if (data.autoPlay !== undefined) updateData.autoPlay = data.autoPlay

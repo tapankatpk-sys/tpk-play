@@ -306,8 +306,8 @@ export default function AdminPanel() {
   const [savingAudio, setSavingAudio] = useState(false)
 
   // Canal Vivo config state
-  const [canalVivoConfig, setCanalVivoConfig] = useState<{ id: string; primarySource: string; winplayEmail: string; winplayPassword: string; winplayUrl: string; youtubeChannelId: string; youtubeVideoId: string; streamTitle: string; streamSubtitle: string; altStreamUrl: string; altStreamLabel: string; showChat: boolean; showSchedule: boolean; autoPlay: boolean; alwaysActive: boolean; isActive: boolean } | null>(null)
-  const [canalVivoForm, setCanalVivoForm] = useState({ primarySource: 'winplay', winplayEmail: '', winplayPassword: '', winplayUrl: 'https://winplay.co', youtubeChannelId: 'UCZjpA3YBPXvJv3pg4SPEjfw', youtubeVideoId: '', streamTitle: 'Liga BetPlay en Vivo', streamSubtitle: 'Win Play - Señal en Vivo', altStreamUrl: '', altStreamLabel: 'Señal Alternativa', showChat: true, showSchedule: true, autoPlay: true, alwaysActive: true, isActive: true })
+  const [canalVivoConfig, setCanalVivoConfig] = useState<{ id: string; primarySource: string; winplayEmail: string; winplayPassword: string; winplayUrl: string; winplusEmail: string; winplusPassword: string; winplusUrl: string; youtubeChannelId: string; youtubeVideoId: string; streamTitle: string; streamSubtitle: string; altStreamUrl: string; altStreamLabel: string; stealthMode: boolean; embedProtection: boolean; showChat: boolean; showSchedule: boolean; autoPlay: boolean; alwaysActive: boolean; isActive: boolean } | null>(null)
+  const [canalVivoForm, setCanalVivoForm] = useState({ primarySource: 'winplay', winplayEmail: '', winplayPassword: '', winplayUrl: 'https://winplay.co', winplusEmail: '', winplusPassword: '', winplusUrl: 'https://winsports.co/win-mas', youtubeChannelId: 'UCZjpA3YBPXvJv3pg4SPEjfw', youtubeVideoId: '', streamTitle: 'Liga BetPlay en Vivo', streamSubtitle: 'Señal en Vivo', altStreamUrl: '', altStreamLabel: 'Señal Alternativa', stealthMode: true, embedProtection: true, showChat: true, showSchedule: true, autoPlay: true, alwaysActive: true, isActive: true })
   const [savingCanalVivo, setSavingCanalVivo] = useState(false)
 
   // Parques rooms state
@@ -787,12 +787,17 @@ export default function AdminPanel() {
           winplayEmail: data.winplayEmail || '',
           winplayPassword: data.winplayPassword || '',
           winplayUrl: data.winplayUrl || 'https://winplay.co',
+          winplusEmail: data.winplusEmail || '',
+          winplusPassword: data.winplusPassword || '',
+          winplusUrl: data.winplusUrl || 'https://winsports.co/win-mas',
           youtubeChannelId: data.youtubeChannelId || 'UCZjpA3YBPXvJv3pg4SPEjfw',
           youtubeVideoId: data.youtubeVideoId || '',
           streamTitle: data.streamTitle || 'Liga BetPlay en Vivo',
-          streamSubtitle: data.streamSubtitle || 'Win Play - Señal en Vivo',
+          streamSubtitle: data.streamSubtitle || 'Señal en Vivo',
           altStreamUrl: data.altStreamUrl || '',
           altStreamLabel: data.altStreamLabel || 'Señal Alternativa',
+          stealthMode: data.stealthMode !== false,
+          embedProtection: data.embedProtection !== false,
           showChat: data.showChat !== false,
           showSchedule: data.showSchedule !== false,
           autoPlay: data.autoPlay !== false,
@@ -6119,80 +6124,102 @@ export default function AdminPanel() {
                 <div className="space-y-4">
                   <div className="p-3 rounded-xl" style={{ background: 'rgba(239,68,68,0.04)', border: '1px solid rgba(239,68,68,0.15)' }}>
                     <p className="text-[0.65rem]" style={{ color: 'rgba(255,255,255,0.4)' }}>
-                      Configura el <b style={{ color: '#fca5a5' }}>Canal en Vivo</b> de TPK PLAY. Win Play es la fuente principal, con reproducción interna.
-                      YouTube es la alternativa gratuita. La señal permanece siempre activa.
+                      Configura el <b style={{ color: '#fca5a5' }}>Canal en Vivo</b> de TPK PLAY. Elige entre <b style={{ color: '#4ade80' }}>Win Play</b>, <b style={{ color: '#a78bfa' }}>WIN+</b> (canal premium por suscripción) o <b style={{ color: '#ff6666' }}>YouTube</b> (alternativa gratuita). Reproducción interna, sin redirecciones.
                     </p>
                   </div>
 
                   {canalVivoConfig && (
-                    <div className="grid grid-cols-3 md:grid-cols-6 gap-2">
+                    <div className="grid grid-cols-3 md:grid-cols-7 gap-2">
                       <div className="p-2 rounded-lg text-center" style={{ background: 'rgba(239,68,68,0.06)' }}>
                         <div className="text-[0.5rem] uppercase" style={{ color: 'rgba(239,68,68,0.5)' }}>Estado</div>
                         <div className="text-lg font-black" style={{ color: canalVivoConfig.isActive ? '#4ade80' : '#ef4444' }}>
                           {canalVivoConfig.isActive ? '●' : '○'}
                         </div>
                       </div>
-                      <div className="p-2 rounded-lg text-center" style={{ background: canalVivoConfig.primarySource === 'winplay' ? 'rgba(34,197,94,0.06)' : 'rgba(255,0,0,0.06)' }}>
+                      <div className="p-2 rounded-lg text-center" style={{ background: canalVivoConfig.primarySource === 'winplay' ? 'rgba(34,197,94,0.06)' : canalVivoConfig.primarySource === 'winplus' ? 'rgba(139,92,246,0.06)' : 'rgba(255,0,0,0.06)' }}>
                         <div className="text-[0.5rem] uppercase" style={{ color: 'rgba(255,255,255,0.3)' }}>Fuente</div>
-                        <div className="text-xs font-black" style={{ color: canalVivoConfig.primarySource === 'winplay' ? '#4ade80' : '#ff4444' }}>
-                          {canalVivoConfig.primarySource === 'winplay' ? 'Win Play' : 'YouTube'}
+                        <div className="text-xs font-black" style={{ color: canalVivoConfig.primarySource === 'winplay' ? '#4ade80' : canalVivoConfig.primarySource === 'winplus' ? '#a78bfa' : '#ff4444' }}>
+                          {canalVivoConfig.primarySource === 'winplay' ? 'Win Play' : canalVivoConfig.primarySource === 'winplus' ? 'WIN+' : 'YouTube'}
                         </div>
                       </div>
                       <div className="p-2 rounded-lg text-center" style={{ background: canalVivoConfig.winplayEmail ? 'rgba(34,197,94,0.06)' : 'rgba(239,68,68,0.06)' }}>
-                        <div className="text-[0.5rem] uppercase" style={{ color: 'rgba(255,255,255,0.3)' }}>Suscripción</div>
+                        <div className="text-[0.5rem] uppercase" style={{ color: 'rgba(255,255,255,0.3)' }}>Win Play</div>
                         <div className="text-sm font-black" style={{ color: canalVivoConfig.winplayEmail ? '#4ade80' : '#ef4444' }}>
                           {canalVivoConfig.winplayEmail ? '●' : '○'}
                         </div>
                       </div>
+                      <div className="p-2 rounded-lg text-center" style={{ background: canalVivoConfig.winplusEmail ? 'rgba(139,92,246,0.06)' : 'rgba(239,68,68,0.06)' }}>
+                        <div className="text-[0.5rem] uppercase" style={{ color: 'rgba(255,255,255,0.3)' }}>WIN+</div>
+                        <div className="text-sm font-black" style={{ color: canalVivoConfig.winplusEmail ? '#a78bfa' : '#ef4444' }}>
+                          {canalVivoConfig.winplusEmail ? '●' : '○'}
+                        </div>
+                      </div>
                       <div className="p-2 rounded-lg text-center" style={{ background: 'rgba(251,191,36,0.06)' }}>
-                        <div className="text-[0.5rem] uppercase" style={{ color: 'rgba(251,191,36,0.5)' }}>Siempre Activo</div>
+                        <div className="text-[0.5rem] uppercase" style={{ color: 'rgba(251,191,36,0.5)' }}>24/7</div>
                         <div className="text-sm font-black" style={{ color: canalVivoConfig.alwaysActive ? '#4ade80' : '#6b7280' }}>
                           {canalVivoConfig.alwaysActive ? 'Sí' : 'No'}
                         </div>
                       </div>
-                      <div className="p-2 rounded-lg text-center" style={{ background: 'rgba(168,85,247,0.06)' }}>
-                        <div className="text-[0.5rem] uppercase" style={{ color: 'rgba(168,85,247,0.5)' }}>Chat</div>
-                        <div className="text-sm font-black" style={{ color: canalVivoConfig.showChat ? '#4ade80' : '#ef4444' }}>
-                          {canalVivoConfig.showChat ? 'Sí' : 'No'}
+                      <div className="p-2 rounded-lg text-center" style={{ background: canalVivoConfig.stealthMode ? 'rgba(59,130,246,0.06)' : 'rgba(239,68,68,0.06)' }}>
+                        <div className="text-[0.5rem] uppercase" style={{ color: 'rgba(59,130,246,0.5)' }}>Sigiloso</div>
+                        <div className="text-sm font-black" style={{ color: canalVivoConfig.stealthMode ? '#60a5fa' : '#ef4444' }}>
+                          {canalVivoConfig.stealthMode ? '🛡️' : '○'}
                         </div>
                       </div>
-                      <div className="p-2 rounded-lg text-center" style={{ background: 'rgba(249,115,22,0.06)' }}>
-                        <div className="text-[0.5rem] uppercase" style={{ color: 'rgba(249,115,22,0.5)' }}>Programación</div>
-                        <div className="text-sm font-black" style={{ color: canalVivoConfig.showSchedule ? '#4ade80' : '#ef4444' }}>
-                          {canalVivoConfig.showSchedule ? 'Sí' : 'No'}
+                      <div className="p-2 rounded-lg text-center" style={{ background: canalVivoConfig.embedProtection ? 'rgba(59,130,246,0.06)' : 'rgba(239,68,68,0.06)' }}>
+                        <div className="text-[0.5rem] uppercase" style={{ color: 'rgba(59,130,246,0.5)' }}>Protec.</div>
+                        <div className="text-sm font-black" style={{ color: canalVivoConfig.embedProtection ? '#60a5fa' : '#ef4444' }}>
+                          {canalVivoConfig.embedProtection ? '🛡️' : '○'}
                         </div>
                       </div>
                     </div>
                   )}
 
                   <div className="space-y-3">
-                    {/* Source selector */}
+                    {/* Source selector - 3 options */}
                     <div>
                       <label className="text-[0.6rem] font-bold uppercase tracking-wider block mb-1" style={{ color: 'rgba(239,68,68,0.6)' }}>
-                        Fuente Principal de Streaming
+                        Canal Principal de Transmisión
                       </label>
-                      <div className="grid grid-cols-2 gap-2">
+                      <div className="grid grid-cols-3 gap-2">
                         <button
                           onClick={() => setCanalVivoForm({ ...canalVivoForm, primarySource: 'winplay' })}
-                          className="px-4 py-2.5 rounded-lg text-xs font-bold cursor-pointer transition-all"
+                          className="px-3 py-3 rounded-lg text-[0.6rem] font-bold cursor-pointer transition-all text-center"
                           style={{
                             background: canalVivoForm.primarySource === 'winplay' ? 'rgba(34,197,94,0.2)' : 'rgba(0,0,0,0.2)',
                             border: `1px solid ${canalVivoForm.primarySource === 'winplay' ? 'rgba(34,197,94,0.4)' : 'rgba(255,255,255,0.1)'}`,
                             color: canalVivoForm.primarySource === 'winplay' ? '#4ade80' : 'rgba(255,255,255,0.3)',
                           }}
                         >
-                          📺 Win Play (Reproducción interna)
+                          <div className="text-lg mb-1">📺</div>
+                          <div>Win Play</div>
+                          <div className="text-[0.4rem] mt-0.5" style={{ color: 'rgba(255,255,255,0.2)' }}>Streaming interno</div>
+                        </button>
+                        <button
+                          onClick={() => setCanalVivoForm({ ...canalVivoForm, primarySource: 'winplus' })}
+                          className="px-3 py-3 rounded-lg text-[0.6rem] font-bold cursor-pointer transition-all text-center"
+                          style={{
+                            background: canalVivoForm.primarySource === 'winplus' ? 'rgba(139,92,246,0.2)' : 'rgba(0,0,0,0.2)',
+                            border: `1px solid ${canalVivoForm.primarySource === 'winplus' ? 'rgba(139,92,246,0.4)' : 'rgba(255,255,255,0.1)'}`,
+                            color: canalVivoForm.primarySource === 'winplus' ? '#a78bfa' : 'rgba(255,255,255,0.3)',
+                          }}
+                        >
+                          <div className="text-lg mb-1">⭐</div>
+                          <div>WIN+</div>
+                          <div className="text-[0.4rem] mt-0.5" style={{ color: 'rgba(255,255,255,0.2)' }}>Canal Premium</div>
                         </button>
                         <button
                           onClick={() => setCanalVivoForm({ ...canalVivoForm, primarySource: 'youtube' })}
-                          className="px-4 py-2.5 rounded-lg text-xs font-bold cursor-pointer transition-all"
+                          className="px-3 py-3 rounded-lg text-[0.6rem] font-bold cursor-pointer transition-all text-center"
                           style={{
                             background: canalVivoForm.primarySource === 'youtube' ? 'rgba(255,0,0,0.2)' : 'rgba(0,0,0,0.2)',
                             border: `1px solid ${canalVivoForm.primarySource === 'youtube' ? 'rgba(255,0,0,0.4)' : 'rgba(255,255,255,0.1)'}`,
                             color: canalVivoForm.primarySource === 'youtube' ? '#ff4444' : 'rgba(255,255,255,0.3)',
                           }}
                         >
-                          🔴 YouTube Live (Gratis)
+                          <div className="text-lg mb-1">🔴</div>
+                          <div>YouTube</div>
+                          <div className="text-[0.4rem] mt-0.5" style={{ color: 'rgba(255,255,255,0.2)' }}>Alternativa gratuita</div>
                         </button>
                       </div>
                     </div>
@@ -6200,7 +6227,7 @@ export default function AdminPanel() {
                     {/* Win Play Credentials */}
                     <div className="p-3 rounded-xl" style={{ background: 'rgba(34,197,94,0.04)', border: '1px solid rgba(34,197,94,0.15)' }}>
                       <div className="text-[0.6rem] font-bold uppercase tracking-wider mb-2" style={{ color: 'rgba(34,197,94,0.5)' }}>
-                        Credenciales de Suscripción Win Play
+                        📺 Credenciales de Suscripción Win Play
                       </div>
                       <div className="space-y-2">
                         <div>
@@ -6226,9 +6253,6 @@ export default function AdminPanel() {
                             style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(34,197,94,0.2)', color: '#4ade80' }}
                             placeholder="Contraseña de suscripción"
                           />
-                          <p className="text-[0.45rem] mt-1" style={{ color: 'rgba(255,255,255,0.2)' }}>
-                            Las credenciales se usan para autenticar la sesión de Win Play dentro del iframe. Se almacenan en la base de datos.
-                          </p>
                         </div>
                         <div>
                           <label className="text-[0.55rem] font-bold block mb-1" style={{ color: 'rgba(34,197,94,0.5)' }}>
@@ -6240,6 +6264,54 @@ export default function AdminPanel() {
                             className="w-full px-3 py-2 rounded-lg text-sm font-mono outline-none"
                             style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(34,197,94,0.2)', color: '#4ade80' }}
                             placeholder="https://winplay.co"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* WIN+ Credentials */}
+                    <div className="p-3 rounded-xl" style={{ background: 'rgba(139,92,246,0.04)', border: '1px solid rgba(139,92,246,0.15)' }}>
+                      <div className="text-[0.6rem] font-bold uppercase tracking-wider mb-2" style={{ color: 'rgba(139,92,246,0.5)' }}>
+                        ⭐ Credenciales de Suscripción WIN+ (Canal Premium)
+                      </div>
+                      <div className="space-y-2">
+                        <div>
+                          <label className="text-[0.55rem] font-bold block mb-1" style={{ color: 'rgba(139,92,246,0.5)' }}>
+                            Email de WIN+
+                          </label>
+                          <input type="email"
+                            value={canalVivoForm.winplusEmail}
+                            onChange={(e) => setCanalVivoForm({ ...canalVivoForm, winplusEmail: e.target.value })}
+                            className="w-full px-3 py-2 rounded-lg text-sm outline-none"
+                            style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(139,92,246,0.2)', color: '#a78bfa' }}
+                            placeholder="suscripcion@email.com"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-[0.55rem] font-bold block mb-1" style={{ color: 'rgba(139,92,246,0.5)' }}>
+                            Contraseña de WIN+
+                          </label>
+                          <input type="password"
+                            value={canalVivoForm.winplusPassword}
+                            onChange={(e) => setCanalVivoForm({ ...canalVivoForm, winplusPassword: e.target.value })}
+                            className="w-full px-3 py-2 rounded-lg text-sm outline-none"
+                            style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(139,92,246,0.2)', color: '#a78bfa' }}
+                            placeholder="Contraseña de suscripción WIN+"
+                          />
+                          <p className="text-[0.45rem] mt-1" style={{ color: 'rgba(255,255,255,0.2)' }}>
+                            WIN+ es el canal premium por suscripción. Las credenciales se usan para autenticar la sesión dentro del iframe.
+                          </p>
+                        </div>
+                        <div>
+                          <label className="text-[0.55rem] font-bold block mb-1" style={{ color: 'rgba(139,92,246,0.5)' }}>
+                            URL de WIN+
+                          </label>
+                          <input type="text"
+                            value={canalVivoForm.winplusUrl}
+                            onChange={(e) => setCanalVivoForm({ ...canalVivoForm, winplusUrl: e.target.value })}
+                            className="w-full px-3 py-2 rounded-lg text-sm font-mono outline-none"
+                            style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(139,92,246,0.2)', color: '#a78bfa' }}
+                            placeholder="https://winsports.co/win-mas"
                           />
                         </div>
                       </div>
@@ -6268,14 +6340,14 @@ export default function AdminPanel() {
                         onChange={(e) => setCanalVivoForm({ ...canalVivoForm, streamSubtitle: e.target.value })}
                         className="w-full px-3 py-2 rounded-lg text-sm font-bold outline-none"
                         style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(249,115,22,0.2)', color: '#fdba74' }}
-                        placeholder="Win Play - Señal en Vivo"
+                        placeholder="Señal en Vivo"
                       />
                     </div>
 
                     {/* YouTube Config */}
                     <div className="p-3 rounded-xl" style={{ background: 'rgba(255,0,0,0.03)', border: '1px solid rgba(255,0,0,0.1)' }}>
                       <div className="text-[0.6rem] font-bold uppercase tracking-wider mb-2" style={{ color: 'rgba(255,0,0,0.4)' }}>
-                        Configuración YouTube (Alternativa)
+                        Configuración YouTube (Alternativa Gratuita)
                       </div>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                         <div>
@@ -6297,6 +6369,36 @@ export default function AdminPanel() {
                             style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(168,85,247,0.15)', color: '#d8b4fe' }}
                             placeholder="Dejar vacío para channel live"
                           />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Anti-Tracking Protection */}
+                    <div className="p-3 rounded-xl" style={{ background: 'rgba(59,130,246,0.04)', border: '1px solid rgba(59,130,246,0.15)' }}>
+                      <div className="text-[0.6rem] font-bold uppercase tracking-wider mb-2" style={{ color: 'rgba(59,130,246,0.5)' }}>
+                        🛡️ Protección Anti-Rastreo y Anti-Bloqueo
+                      </div>
+                      <p className="text-[0.45rem] mb-2" style={{ color: 'rgba(255,255,255,0.25)' }}>
+                        Activa estas opciones para proteger la transmisión contra detección de marca, inhibición y bloqueos por X-Frame-Options.
+                        El modo sigiloso oculta el referrer y aplica sandbox restrictivo. La protección de embebido permite usar un proxy
+                        para evitar bloqueos de framing de las plataformas de streaming.
+                      </p>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <label className="text-[0.55rem] font-bold uppercase block mb-1" style={{ color: 'rgba(59,130,246,0.5)' }}>Modo Sigiloso</label>
+                          <button onClick={() => setCanalVivoForm({ ...canalVivoForm, stealthMode: !canalVivoForm.stealthMode })}
+                            className="px-3 py-1.5 rounded-lg text-[0.55rem] font-bold cursor-pointer transition-all w-full"
+                            style={{ background: canalVivoForm.stealthMode ? 'rgba(59,130,246,0.15)' : 'rgba(239,68,68,0.15)', color: canalVivoForm.stealthMode ? '#60a5fa' : '#ef4444', border: `1px solid ${canalVivoForm.stealthMode ? 'rgba(59,130,246,0.3)' : 'rgba(239,68,68,0.3)'}` }}>
+                            {canalVivoForm.stealthMode ? '🛡️ Activado' : '○ Desactivado'}
+                          </button>
+                        </div>
+                        <div>
+                          <label className="text-[0.55rem] font-bold uppercase block mb-1" style={{ color: 'rgba(59,130,246,0.5)' }}>Protec. Embebido</label>
+                          <button onClick={() => setCanalVivoForm({ ...canalVivoForm, embedProtection: !canalVivoForm.embedProtection })}
+                            className="px-3 py-1.5 rounded-lg text-[0.55rem] font-bold cursor-pointer transition-all w-full"
+                            style={{ background: canalVivoForm.embedProtection ? 'rgba(59,130,246,0.15)' : 'rgba(239,68,68,0.15)', color: canalVivoForm.embedProtection ? '#60a5fa' : '#ef4444', border: `1px solid ${canalVivoForm.embedProtection ? 'rgba(59,130,246,0.3)' : 'rgba(239,68,68,0.3)'}` }}>
+                            {canalVivoForm.embedProtection ? '🛡️ Activado' : '○ Desactivado'}
+                          </button>
                         </div>
                       </div>
                     </div>
@@ -6353,6 +6455,9 @@ export default function AdminPanel() {
                       <a href="https://winplay.co" target="_blank" rel="noopener noreferrer"
                         className="px-3 py-1.5 rounded-lg text-[0.55rem] font-bold transition-all hover:scale-105"
                         style={{ background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.2)', color: '#4ade80' }}>Win Play</a>
+                      <a href="https://winsports.co/win-mas" target="_blank" rel="noopener noreferrer"
+                        className="px-3 py-1.5 rounded-lg text-[0.55rem] font-bold transition-all hover:scale-105"
+                        style={{ background: 'rgba(139,92,246,0.1)', border: '1px solid rgba(139,92,246,0.2)', color: '#a78bfa' }}>WIN+</a>
                       <a href="https://winplay.co/precios" target="_blank" rel="noopener noreferrer"
                         className="px-3 py-1.5 rounded-lg text-[0.55rem] font-bold transition-all hover:scale-105"
                         style={{ background: 'rgba(251,191,36,0.1)', border: '1px solid rgba(251,191,36,0.2)', color: '#fbbf24' }}>Planes y Precios</a>

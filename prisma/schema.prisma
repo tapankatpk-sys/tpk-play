@@ -434,19 +434,27 @@ model AudioConfig {
 
 model CanalVivoConfig {
   id                String   @id @default(cuid())
-  primarySource     String   @default("winplay")  // "winplay" o "youtube" - fuente principal
+  primarySource     String   @default("winplay")  // "winplay" | "winplus" | "youtube" - fuente principal seleccionada por admin
   // Win Play credentials
   winplayEmail      String   @default("")          // Email de suscripción Win Play
-  winplayPassword   String   @default("")          // Password de suscripción Win Play (encriptado)
+  winplayPassword   String   @default("")          // Password de suscripción Win Play
   winplayUrl        String   @default("https://winplay.co")  // URL de Win Play
+  // WIN+ credentials
+  winplusEmail      String   @default("")          // Email de suscripción WIN+
+  winplusPassword   String   @default("")          // Password de suscripción WIN+
+  winplusUrl        String   @default("https://winsports.co/win-mas")  // URL de WIN+
   // YouTube config
   youtubeChannelId  String   @default("UCZjpA3YBPXvJv3pg4SPEjfw") // Win Sports YouTube channel ID
   youtubeVideoId    String   @default("")                            // Video ID específico (opcional)
   // General config
   streamTitle       String   @default("Liga BetPlay en Vivo")        // Título mostrado
-  streamSubtitle    String   @default("Win Play - Señal en Vivo")    // Subtítulo
+  streamSubtitle    String   @default("Señal en Vivo")              // Subtítulo
   altStreamUrl      String   @default("")                            // URL alternativa de streaming
   altStreamLabel    String   @default("Señal Alternativa")           // Label para URL alternativa
+  // Protección anti-rastreo
+  stealthMode      Boolean  @default(true)    // Modo sigiloso: oculta referrer, protege contra detección de marca
+  embedProtection  Boolean  @default(true)    // Protección de embebido: sandbox restrictivo, anti-X-Frame-Options
+  // Features
   showChat          Boolean  @default(true)                          // Mostrar chat de YouTube
   showSchedule      Boolean  @default(true)                          // Mostrar programación
   autoPlay          Boolean  @default(true)                          // Auto-reproducir stream
