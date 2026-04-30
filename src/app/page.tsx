@@ -8,6 +8,7 @@ import MemoryGame from '@/components/memory/MemoryGame'
 import CrosswordGame from '@/components/crossword/CrosswordGame'
 import SlotMachineGame from '@/components/slot/SlotMachineGame'
 import LoteriaGame from '@/components/loteria/LoteriaGame'
+import RuletaEquipos from '@/components/ruleta/RuletaEquipos'
 import AdminPanel from '@/components/admin/AdminPanel'
 import CircularPopup from '@/components/popup/CircularPopup'
 
@@ -166,8 +167,30 @@ export default function Home() {
         </div>
 
         {/* Lotería de Equipos */}
-        <div className="relative z-10">
+        <div className="relative z-10 mb-10">
           <LoteriaGame />
+        </div>
+
+        {/* Separator before Ruleta */}
+        <div className="flex items-center justify-center gap-3 py-6">
+          <div className="h-px flex-1 max-w-32" style={{
+            background: 'linear-gradient(to right, transparent, rgba(255,200,0,0.4))',
+          }} />
+          <div className="flex items-center gap-2">
+            <span style={{ color: '#ffc800', textShadow: '0 0 8px rgba(255,200,0,0.6)', fontSize: '0.75rem' }}>&#x1F3B0;</span>
+            <span className="text-[0.6rem] uppercase tracking-[0.3em] font-bold" style={{ color: 'rgba(255,200,0,0.5)' }}>
+              Nuevo juego
+            </span>
+            <span style={{ color: '#ffc800', textShadow: '0 0 8px rgba(255,200,0,0.6)', fontSize: '0.75rem' }}>&#x1F3B0;</span>
+          </div>
+          <div className="h-px flex-1 max-w-32" style={{
+            background: 'linear-gradient(to left, transparent, rgba(255,200,0,0.4))',
+          }} />
+        </div>
+
+        {/* Ruleta de Equipos */}
+        <div className="relative z-10">
+          <RuletaEquipos />
         </div>
       </section>
       

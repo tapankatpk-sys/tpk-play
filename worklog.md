@@ -85,3 +85,58 @@ Stage Summary:
 - Game component reads config dynamically from API
 - Preview section shows real-time board layout
 - All changes deployed live at tpkplay.vercel.app
+
+---
+Task ID: 4
+Agent: Main Agent
+Task: Build Ruleta de Equipos game with admin panel management
+
+Work Log:
+- Added RuletaConfig model to prisma/schema.prisma (pointsExact, pointsRegion, spinDuration, isActive)
+- Created API route /api/ruleta with GET (auto-creates default config), POST (create), PUT (update)
+- Added 'ruleta' to Tab type in AdminPanel.tsx
+- Added 'ruleta-futbolera' to GAME_TYPES with 🎰 icon and #ffc800 color
+- Added ruleta state variables (ruletaConfig, ruletaForm, savingRuleta)
+- Added fetchRuletaConfig function and integrated into data loading useEffect
+- Added handleSaveRuleta handler for config CRUD
+- Added Ruleta sidebar item under Contenido section (between Lotería and Predicciones)
+- Added breadcrumb mapping for ruleta tab (🎰 icon, #ffc800 color)
+- Added "Ruleta de Equipos" quick action button on dashboard
+- Created full Ruleta admin tab with:
+  - Status info banner explaining the feature
+  - Current config display with 4 stat cards (points exact, points region, spin duration, active status)
+  - Points configuration (exact match, same region) with color-coded inputs
+  - Spin duration slider (2-8 seconds)
+  - Active/inactive toggle
+  - Save configuration button
+  - Live roulette preview with team shields in circular layout
+  - Points summary badges
+- Created RuletaEquipos.tsx component with:
+  - 22 Liga BetPlay teams with region mapping (antioquia, valle, cundinamarca, etc.)
+  - Hourly seeded random for consistent winning team per hour
+  - Game phases: intro → selecting → spinning → result
+  - Team selection grid with highlight effects
+  - Animated roulette wheel with CSS transition (cubic-bezier easing for realistic deceleration)
+  - LED chase lights around the wheel (24 LEDs, animated)
+  - Pointer/arrow at top of wheel
+  - Segmented wheel with alternating gold/magenta segments and team shields
+  - Center hub with TPK branding
+  - Segment border lines
+  - Confetti animation on exact match win
+  - Three result types: exact match (+50pts), same region (+10pts), miss (0pts)
+  - Disabled state when game is deactivated by admin
+  - Hourly play limit via localStorage
+  - Dynamic config from /api/ruleta API
+- Added RuletaEquipos to homepage after Lotería with gold separator
+- Added RULETA_TEAMS constant to AdminPanel for preview rendering
+- Built and deployed to Vercel production
+- API verified working: /api/ruleta returns default config
+- Database schema pushed successfully via Vercel build
+
+Stage Summary:
+- Ruleta de Equipos game fully implemented and deployed at tpkplay.vercel.app
+- Visually stunning casino roulette with LED lights and smooth spin animation
+- Complete game loop: intro → select team → spin → result (exact/region/miss)
+- Admin panel has dedicated Ruleta tab with full configuration management
+- Dynamic config from API: points, spin duration, active/inactive
+- Roulette preview in admin panel shows live layout

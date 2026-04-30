@@ -71,7 +71,7 @@ interface MatchPredictionData {
   updatedAt: string
 }
 
-type Tab = 'dashboard' | 'games' | 'participants' | 'stats' | 'popup' | 'banners' | 'predictions' | 'loteria'
+type Tab = 'dashboard' | 'games' | 'participants' | 'stats' | 'popup' | 'banners' | 'predictions' | 'loteria' | 'ruleta'
 
 interface SidebarSection {
   id: string
@@ -98,6 +98,7 @@ const GAME_TYPES: Record<string, { label: string; icon: string; color: string; d
   'crucigrama-futbolero': { label: 'Crucigrama Futbolero', icon: '🎯', color: '#a855f7', description: '3 niveles de crucigrama por equipo de la Liga BetPlay' },
   'tragamonedas-futbolera': { label: 'Tragamonedas Futbolera', icon: '🎰', color: '#fbbf24', description: 'Slot machine con escudos de la Liga BetPlay' },
   'loteria-futbolera': { label: 'Lotería de Equipos', icon: '🃏', color: '#ff00ff', description: 'Lotería con escudos de la Liga BetPlay' },
+  'ruleta-futbolera': { label: 'Ruleta de Equipos', icon: '🎰', color: '#ffc800', description: 'Ruleta casino con escudos de la Liga BetPlay' },
   'prediccion': { label: 'Predicción', icon: '🎯', color: '#f97316', description: 'Predice resultados de partidos' },
   'encuesta': { label: 'Encuesta', icon: '📊', color: '#3b82f6', description: 'Vota en encuestas futboleras' },
   'personalizado': { label: 'Personalizado', icon: '🎮', color: '#22c55e', description: 'Juego personalizado' },
@@ -133,6 +134,8 @@ const TEAM_NAMES_MAP: Record<string, string> = {
 const PNG_ONLY = ['internacional-de-bogota']
 
 const TEAM_OPTIONS = Object.entries(TEAM_NAMES_MAP).map(([value, label]) => ({ value, label }))
+
+const RULETA_TEAMS = Object.entries(TEAM_NAMES_MAP).map(([slug, name]) => ({ slug, name }))
 
 interface GameFormData {
   name: string
@@ -204,6 +207,11 @@ export default function AdminPanel() {
   const [loteriaConfig, setLoteriaConfig] = useState<{ id: string; boardSize: number; pointsLine: number; pointsDiag: number; pointsFull: number; drawSpeed: number; isActive: boolean } | null>(null)
   const [loteriaForm, setLoteriaForm] = useState({ boardSize: 4, pointsLine: 30, pointsDiag: 50, pointsFull: 100, drawSpeed: 5, isActive: true })
   const [savingLoteria, setSavingLoteria] = useState(false)
+
+  // Ruleta state
+  const [ruletaConfig, setRuletaConfig] = useState<{ id: string; pointsExact: number; pointsRegion: number; spinDuration: number; isActive: boolean } | null>(null)
+  const [ruletaForm, setRuletaForm] = useState({ pointsExact: 50, pointsRegion: 10, spinDuration: 4, isActive: true })
+  const [savingRuleta, setSavingRuleta] = useState(false)
 
   // Auth state
   const [isAuthenticated, setIsAuthenticated] = useState(false)
@@ -397,16 +405,35 @@ export default function AdminPanel() {
     }
   }, [])
 
+  const fetchRuletaConfig = useCallback(async () => {
+    try {
+      const res = await fetch('/api/ruleta')
+      if (!res.ok) throw new Error(`Error ${res.status}`)
+      const data = await res.json()
+      if (data && !data.error) {
+        setRuletaConfig(data)
+        setRuletaForm({
+          pointsExact: data.pointsExact,
+          pointsRegion: data.pointsRegion,
+          spinDuration: data.spinDuration,
+          isActive: data.isActive,
+        })
+      }
+    } catch (err) {
+      console.error('Error fetching ruleta config:', err)
+    }
+  }, [])
+
   useEffect(() => {
     if (isAuthenticated && showPanel) {
       const load = async () => {
         setLoading(true)
-        await Promise.all([fetchGames(), fetchParticipants(), fetchPopups(), fetchBanners(), fetchPredictions(), fetchLoteriaConfig()])
+        await Promise.all([fetchGames(), fetchParticipants(), fetchPopups(), fetchBanners(), fetchPredictions(), fetchLoteriaConfig(), fetchRuletaConfig()])
         setLoading(false)
       }
       load()
     }
-  }, [isAuthenticated, showPanel, fetchGames, fetchParticipants, fetchPopups, fetchBanners, fetchPredictions, fetchLoteriaConfig])
+  }, [isAuthenticated, showPanel, fetchGames, fetchParticipants, fetchPopups, fetchBanners, fetchPredictions, fetchLoteriaConfig, fetchRuletaConfig])
 
   // Game CRUD
   const handleOpenAddGame = () => {
@@ -758,6 +785,31 @@ export default function AdminPanel() {
     }
   }
 
+  // Ruleta save handler
+  const handleSaveRuleta = async () => {
+    setSavingRuleta(true)
+    try {
+      if (ruletaConfig) {
+        await fetch('/api/ruleta', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: ruletaConfig.id, ...ruletaForm }),
+        })
+      } else {
+        await fetch('/api/ruleta', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(ruletaForm),
+        })
+      }
+      fetchRuletaConfig()
+    } catch (err) {
+      console.error('Error saving ruleta config:', err)
+    } finally {
+      setSavingRuleta(false)
+    }
+  }
+
   // Stats calculations
   const totalParticipants = participants.length
   const totalPoints = participants.reduce((sum, p) => sum + p.totalPoints, 0)
@@ -777,6 +829,7 @@ export default function AdminPanel() {
       items: [
         { id: 'games', label: 'Juegos', icon: '⚽', color: '#a855f7', count: games.length },
         { id: 'loteria', label: 'Lotería', icon: '🃏', color: '#ff00ff' },
+        { id: 'ruleta', label: 'Ruleta', icon: '🎰', color: '#ffc800' },
         { id: 'predictions', label: 'Predicciones', icon: '⚽', color: '#00ff80', count: predictions.length },
         { id: 'popup', label: 'Popup', icon: '💬', color: '#eab308', count: popups.length },
       ],
@@ -1200,6 +1253,7 @@ export default function AdminPanel() {
                       color: activeTab === 'dashboard' ? '#fbbf24'
                         : activeTab === 'games' ? '#a855f7'
                         : activeTab === 'loteria' ? '#ff00ff'
+                        : activeTab === 'ruleta' ? '#ffc800'
                         : activeTab === 'predictions' ? '#00ff80'
                         : activeTab === 'banners' ? '#00ffff'
                         : activeTab === 'popup' ? '#eab308'
@@ -1210,6 +1264,7 @@ export default function AdminPanel() {
                     {activeTab === 'dashboard' ? 'Dashboard'
                       : activeTab === 'games' ? 'Juegos'
                       : activeTab === 'loteria' ? 'Lotería de Equipos'
+                      : activeTab === 'ruleta' ? 'Ruleta de Equipos'
                       : activeTab === 'predictions' ? 'Predicciones'
                       : activeTab === 'banners' ? 'Banners'
                       : activeTab === 'popup' ? 'Popup'
@@ -1301,6 +1356,14 @@ export default function AdminPanel() {
                       >
                         <span className="block text-lg mb-1">🃏</span>
                         Lotería de Equipos
+                      </button>
+                      <button
+                        onClick={() => handleTabChange('ruleta')}
+                        className="p-3 rounded-xl text-xs font-bold text-left cursor-pointer transition-all hover:scale-[1.02]"
+                        style={{ background: 'rgba(255,200,0,0.06)', border: '1px solid rgba(255,200,0,0.15)', color: '#ffc800' }}
+                      >
+                        <span className="block text-lg mb-1">🎰</span>
+                        Ruleta de Equipos
                       </button>
                       <button
                         onClick={() => handleTabChange('participants')}
@@ -2856,6 +2919,270 @@ export default function AdminPanel() {
                       </div>
                       <div className="px-2 py-1 rounded text-[0.55rem] font-bold" style={{ background: 'rgba(255,200,0,0.1)', color: '#ffc800', border: '1px solid rgba(255,200,0,0.2)' }}>
                         Completa +{loteriaForm.pointsFull}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ) : activeTab === 'ruleta' ? (
+                /* ========== RULETA TAB ========== */
+                <div className="space-y-3">
+                  <div
+                    className="p-3 rounded-xl flex items-center gap-3"
+                    style={{
+                      background: 'rgba(255, 200, 0, 0.05)',
+                      border: '1px solid rgba(255, 200, 0, 0.2)',
+                    }}
+                  >
+                    <span style={{ color: '#ffc800', fontSize: '1.2rem' }}>🎰</span>
+                    <span className="text-xs" style={{ color: 'rgba(255,200,0,0.7)' }}>
+                      Configura la <b style={{ color: '#ffc800' }}>Ruleta de Equipos</b>: puntos por acierto exacto, puntos por misma región y velocidad del giro. Los cambios se reflejan en tiempo real.
+                    </span>
+                  </div>
+
+                  {/* Current Config Display */}
+                  {ruletaConfig && (
+                    <div
+                      className="p-4 rounded-xl"
+                      style={{
+                        background: 'rgba(255, 200, 0, 0.04)',
+                        border: '1px solid rgba(255, 200, 0, 0.15)',
+                      }}
+                    >
+                      <div className="flex items-center justify-between mb-3">
+                        <span className="text-sm font-bold" style={{ color: '#ffc800' }}>
+                          Estado Actual
+                        </span>
+                        <button
+                          onClick={() => setRuletaForm({
+                            pointsExact: ruletaConfig.pointsExact,
+                            pointsRegion: ruletaConfig.pointsRegion,
+                            spinDuration: ruletaConfig.spinDuration,
+                            isActive: ruletaConfig.isActive,
+                          })}
+                          className="text-[0.65rem] font-bold cursor-pointer px-2 py-1 rounded-lg"
+                          style={{ background: 'rgba(255,200,0,0.1)', color: '#ffc800', border: '1px solid rgba(255,200,0,0.3)' }}
+                        >
+                          Restablecer
+                        </button>
+                      </div>
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                        <div className="p-2 rounded-lg text-center" style={{ background: 'rgba(255,200,0,0.06)' }}>
+                          <div className="text-lg font-black" style={{ color: '#ffc800' }}>+{ruletaConfig.pointsExact}</div>
+                          <div className="text-[0.55rem] uppercase" style={{ color: 'rgba(255,255,255,0.4)' }}>Exacto</div>
+                        </div>
+                        <div className="p-2 rounded-lg text-center" style={{ background: 'rgba(0,255,255,0.06)' }}>
+                          <div className="text-lg font-black" style={{ color: '#00ffff' }}>+{ruletaConfig.pointsRegion}</div>
+                          <div className="text-[0.55rem] uppercase" style={{ color: 'rgba(255,255,255,0.4)' }}>Región</div>
+                        </div>
+                        <div className="p-2 rounded-lg text-center" style={{ background: 'rgba(168,85,247,0.06)' }}>
+                          <div className="text-lg font-black" style={{ color: '#d8b4fe' }}>{ruletaConfig.spinDuration}s</div>
+                          <div className="text-[0.55rem] uppercase" style={{ color: 'rgba(255,255,255,0.4)' }}>Giro</div>
+                        </div>
+                        <div className="p-2 rounded-lg text-center" style={{ background: ruletaConfig.isActive ? 'rgba(34,197,94,0.06)' : 'rgba(239,68,68,0.06)' }}>
+                          <div className="text-lg font-black" style={{ color: ruletaConfig.isActive ? '#4ade80' : '#ef4444' }}>
+                            {ruletaConfig.isActive ? '●' : '○'}
+                          </div>
+                          <div className="text-[0.55rem] uppercase" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                            {ruletaConfig.isActive ? 'Activo' : 'Inactivo'}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Configuration Form */}
+                  <div
+                    className="p-4 rounded-xl space-y-4"
+                    style={{
+                      background: 'rgba(255, 200, 0, 0.03)',
+                      border: '1px solid rgba(255, 200, 0, 0.15)',
+                    }}
+                  >
+                    <span className="text-sm font-bold" style={{ color: '#ffc800' }}>
+                      Configuración del Juego
+                    </span>
+
+                    {/* Points Configuration */}
+                    <div>
+                      <label className="block text-xs font-bold uppercase tracking-wider mb-2" style={{ color: '#ffc800' }}>
+                        Puntos por Tipo de Acierto
+                      </label>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-[0.6rem] uppercase mb-1" style={{ color: '#ffc800' }}>Escudo Exacto</label>
+                          <input
+                            type="number"
+                            min="1"
+                            value={ruletaForm.pointsExact}
+                            onChange={(e) => setRuletaForm({ ...ruletaForm, pointsExact: parseInt(e.target.value) || 50 })}
+                            className="w-full px-3 py-2 rounded-lg text-sm text-white text-center font-bold outline-none"
+                            style={{ background: 'rgba(0,0,0,0.5)', border: '1px solid rgba(255,200,0,0.3)' }}
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-[0.6rem] uppercase mb-1" style={{ color: '#00ffff' }}>Misma Región</label>
+                          <input
+                            type="number"
+                            min="0"
+                            value={ruletaForm.pointsRegion}
+                            onChange={(e) => setRuletaForm({ ...ruletaForm, pointsRegion: parseInt(e.target.value) || 10 })}
+                            className="w-full px-3 py-2 rounded-lg text-sm text-white text-center font-bold outline-none"
+                            style={{ background: 'rgba(0,0,0,0.5)', border: '1px solid rgba(0,255,255,0.3)' }}
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Spin Duration */}
+                    <div>
+                      <label className="block text-xs font-bold uppercase tracking-wider mb-2" style={{ color: '#d8b4fe' }}>
+                        Duración del Giro
+                      </label>
+                      <div className="flex items-center gap-3">
+                        <input
+                          type="range"
+                          min="2"
+                          max="8"
+                          step="1"
+                          value={ruletaForm.spinDuration}
+                          onChange={(e) => setRuletaForm({ ...ruletaForm, spinDuration: parseInt(e.target.value) })}
+                          className="flex-1"
+                          style={{ accentColor: '#ffc800' }}
+                        />
+                        <span className="text-sm font-bold min-w-[40px] text-center" style={{ color: '#d8b4fe' }}>
+                          {ruletaForm.spinDuration}s
+                        </span>
+                      </div>
+                      <div className="flex justify-between text-[0.5rem] mt-1" style={{ color: 'rgba(255,255,255,0.25)' }}>
+                        <span>Rápido</span>
+                        <span>Lento</span>
+                      </div>
+                    </div>
+
+                    {/* Active toggle */}
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <label className="block text-xs font-bold uppercase tracking-wider" style={{ color: 'rgba(255,255,255,0.6)' }}>
+                          Juego Activo
+                        </label>
+                        <p className="text-[0.55rem]" style={{ color: 'rgba(255,255,255,0.3)' }}>
+                          Desactiva para ocultar la ruleta del sitio
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => setRuletaForm({ ...ruletaForm, isActive: !ruletaForm.isActive })}
+                        className="px-4 py-2 rounded-lg text-xs font-bold cursor-pointer transition-all"
+                        style={{
+                          background: ruletaForm.isActive ? 'rgba(34,197,94,0.15)' : 'rgba(239,68,68,0.15)',
+                          color: ruletaForm.isActive ? '#4ade80' : '#ef4444',
+                          border: `1px solid ${ruletaForm.isActive ? 'rgba(34,197,94,0.3)' : 'rgba(239,68,68,0.3)'}`,
+                          boxShadow: ruletaForm.isActive ? '0 0 8px rgba(34,197,94,0.1)' : '0 0 8px rgba(239,68,68,0.1)',
+                        }}
+                      >
+                        {ruletaForm.isActive ? '● Activo' : '○ Inactivo'}
+                      </button>
+                    </div>
+
+                    {/* Save button */}
+                    <div className="flex gap-2 pt-2">
+                      <button
+                        onClick={handleSaveRuleta}
+                        disabled={savingRuleta}
+                        className="flex-1 py-3 rounded-xl text-sm font-bold uppercase tracking-wider cursor-pointer transition-all disabled:opacity-50"
+                        style={{
+                          background: 'linear-gradient(135deg, #ffc800, #ff00ff)',
+                          color: '#000',
+                          boxShadow: '0 0 12px rgba(255,200,0,0.3), 0 0 24px rgba(255,0,255,0.15)',
+                        }}
+                      >
+                        {savingRuleta ? 'Guardando...' : 'Guardar Configuración'}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Roulette Preview */}
+                  <div
+                    className="p-4 rounded-xl"
+                    style={{
+                      background: 'rgba(255, 200, 0, 0.03)',
+                      border: '1px solid rgba(255, 200, 0, 0.1)',
+                    }}
+                  >
+                    <div className="flex items-center justify-between mb-3">
+                      <span className="text-xs font-bold uppercase tracking-wider" style={{ color: 'rgba(255,200,0,0.6)' }}>
+                        Vista Previa de la Ruleta
+                      </span>
+                      <span className="text-[0.55rem]" style={{ color: 'rgba(255,255,255,0.25)' }}>
+                        22 escudos de la Liga BetPlay
+                      </span>
+                    </div>
+                    <div className="flex justify-center">
+                      <div className="relative" style={{ width: '200px', height: '200px' }}>
+                        <div
+                          className="w-full h-full rounded-full overflow-hidden"
+                          style={{
+                            background: 'linear-gradient(135deg, rgba(0,0,0,0.8), rgba(30,10,0,0.9))',
+                            border: '2px solid rgba(255,200,0,0.3)',
+                            boxShadow: '0 0 15px rgba(255,200,0,0.15)',
+                          }}
+                        >
+                          {RULETA_TEAMS.slice(0, 22).map((team, i) => {
+                            const segAngle = 360 / 22
+                            const startAngle = i * segAngle
+                            const isEven = i % 2 === 0
+                            return (
+                              <div
+                                key={team.slug}
+                                className="absolute"
+                                style={{
+                                  width: '100%',
+                                  height: '100%',
+                                  clipPath: `polygon(50% 50%, ${50 + 50 * Math.cos((startAngle - 90) * Math.PI / 180)}% ${50 + 50 * Math.sin((startAngle - 90) * Math.PI / 180)}%, ${50 + 50 * Math.cos((startAngle + segAngle - 90) * Math.PI / 180)}% ${50 + 50 * Math.sin((startAngle + segAngle - 90) * Math.PI / 180)}%)`,
+                                  background: isEven
+                                    ? 'rgba(255,200,0,0.08)'
+                                    : 'rgba(255,0,255,0.06)',
+                                }}
+                              >
+                                <div
+                                  className="absolute"
+                                  style={{
+                                    left: `${50 + 32 * Math.cos((startAngle + segAngle / 2 - 90) * Math.PI / 180)}%`,
+                                    top: `${50 + 32 * Math.sin((startAngle + segAngle / 2 - 90) * Math.PI / 180)}%`,
+                                    transform: 'translate(-50%, -50%)',
+                                  }}
+                                >
+                                  <img
+                                    src={`/images/teams/${team.slug}.${team.slug === 'internacional-de-bogota' ? 'png' : 'svg'}`}
+                                    alt=""
+                                    className="w-3.5 h-3.5 object-contain"
+                                    style={{ filter: 'drop-shadow(0 0 2px rgba(255,200,0,0.4))', opacity: 0.6 }}
+                                  />
+                                </div>
+                              </div>
+                            )
+                          })}
+                          {/* Center */}
+                          <div className="absolute inset-0 flex items-center justify-center" style={{ zIndex: 10 }}>
+                            <div
+                              className="w-10 h-10 rounded-full flex items-center justify-center"
+                              style={{
+                                background: 'linear-gradient(135deg, #ffc800, #ff00ff)',
+                                boxShadow: '0 0 8px rgba(255,200,0,0.3)',
+                                border: '1px solid rgba(255,200,0,0.5)',
+                              }}
+                            >
+                              <span className="text-[0.5rem] font-black" style={{ color: '#000' }}>TPK</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="mt-3 flex justify-center gap-2">
+                      <div className="px-2 py-1 rounded text-[0.55rem] font-bold" style={{ background: 'rgba(255,200,0,0.1)', color: '#ffc800', border: '1px solid rgba(255,200,0,0.2)' }}>
+                        Exacto +{ruletaForm.pointsExact}
+                      </div>
+                      <div className="px-2 py-1 rounded text-[0.55rem] font-bold" style={{ background: 'rgba(0,255,255,0.1)', color: '#00ffff', border: '1px solid rgba(0,255,255,0.2)' }}>
+                        Región +{ruletaForm.pointsRegion}
                       </div>
                     </div>
                   </div>
