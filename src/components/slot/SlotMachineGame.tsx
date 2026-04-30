@@ -53,7 +53,6 @@ export default function SlotMachineGame() {
   const [totalPoints, setTotalPoints] = useState(0)
   const [reels, setReels] = useState<[number, number, number]>([0, 0, 0])
   const [spinning, setSpinning] = useState([false, false, false])
-  const [spinSpeeds, setSpinSpeeds] = useState([1, 1, 1])
   const [result, setResult] = useState<'jackpot' | 'double' | 'bonus' | 'none' | null>(null)
   const [resultPoints, setResultPoints] = useState(0)
   const [showWinAnimation, setShowWinAnimation] = useState(false)

@@ -120,6 +120,7 @@ export default function AdminPanel() {
   const [banners, setBanners] = useState<TpkBannerData[]>([])
   const [bannerForm, setBannerForm] = useState({ type: 'ganador', title: 'GANADOR TPK', subtitle: '', imageUrl: '', linkUrl: '', isActive: true })
   const [editingBanner, setEditingBanner] = useState<TpkBannerData | null>(null)
+  const [showBannerForm, setShowBannerForm] = useState(false)
   const [savingBanner, setSavingBanner] = useState(false)
 
   // Auth state
@@ -521,6 +522,7 @@ export default function AdminPanel() {
         })
       }
       setEditingBanner(null)
+      setShowBannerForm(false)
       setBannerForm({ type: 'ganador', title: 'GANADOR TPK', subtitle: '', imageUrl: '', linkUrl: '', isActive: true })
       fetchBanners()
     } catch (err) {
@@ -1447,6 +1449,7 @@ export default function AdminPanel() {
                   onClick={() => {
                     setEditingBanner(null)
                     setBannerForm({ type: 'ganador', title: 'GANADOR TPK', subtitle: '', imageUrl: '', linkUrl: '', isActive: true })
+                    setShowBannerForm(true)
                   }}
                   className="w-full py-3 rounded-xl text-sm font-bold uppercase tracking-wider cursor-pointer transition-all"
                   style={{
@@ -1459,20 +1462,20 @@ export default function AdminPanel() {
                 </button>
 
                 {/* Banner Form */}
-                {editingBanner && (
+                {showBannerForm && (
                   <div
                     className="p-4 rounded-xl space-y-3"
                     style={{
-                      background: `rgba(${editingBanner.type === 'ganador' ? '0,255,255' : '255,0,255'}, 0.05)`,
-                      border: `1px solid rgba(${editingBanner.type === 'ganador' ? '0,255,255' : '255,0,255'}, 0.2)`,
+                      background: `rgba(${bannerForm.type === 'ganador' ? '0,255,255' : '255,0,255'}, 0.05)`,
+                      border: `1px solid rgba(${bannerForm.type === 'ganador' ? '0,255,255' : '255,0,255'}, 0.2)`,
                     }}
                   >
                     <div className="flex items-center justify-between">
-                      <span className="text-sm font-bold" style={{ color: editingBanner.type === 'ganador' ? '#00ffff' : '#ff00ff' }}>
-                        {editingBanner.type === 'ganador' ? '🏆 Editar GANADOR TPK' : '🎁 Editar PREMIO TPK'}
+                      <span className="text-sm font-bold" style={{ color: bannerForm.type === 'ganador' ? '#00ffff' : '#ff00ff' }}>
+                        {bannerForm.type === 'ganador' ? '🏆 GANADOR TPK' : '🎁 PREMIO TPK'}
                       </span>
                       <button
-                        onClick={() => setEditingBanner(null)}
+                        onClick={() => { setEditingBanner(null); setShowBannerForm(false) }}
                         className="text-xs cursor-pointer"
                         style={{ color: 'rgba(255,255,255,0.4)' }}
                       >
@@ -1592,7 +1595,7 @@ export default function AdminPanel() {
                         {savingBanner ? 'Guardando...' : 'Guardar Banner'}
                       </button>
                       <button
-                        onClick={() => setEditingBanner(null)}
+                        onClick={() => { setEditingBanner(null); setShowBannerForm(false) }}
                         className="px-4 py-2 rounded-lg text-sm cursor-pointer"
                         style={{ background: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.6)' }}
                       >
@@ -1700,6 +1703,7 @@ export default function AdminPanel() {
                                   linkUrl: banner.linkUrl || '',
                                   isActive: banner.isActive,
                                 })
+                                setShowBannerForm(true)
                               }}
                               className="w-7 h-7 rounded-lg flex items-center justify-center cursor-pointer"
                               style={{ background: `${glowBg}0.1)`, color, border: `1px solid ${glowBg}0.2)` }}
