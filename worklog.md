@@ -92,3 +92,44 @@ Stage Summary:
 - Signal stays always active (24/7)
 - YouTube available as free alternative
 - All configurable from Admin Panel
+
+---
+Task ID: 3
+Agent: Main Agent
+Task: Add WIN+ premium channel, anti-tracking protection, source selector, and proxy
+
+Work Log:
+- Updated Prisma model CanalVivoConfig: added WIN+ fields (winplusEmail, winplusPassword, winplusUrl), stealthMode, embedProtection
+- Updated API route /api/canal-vivo to handle all new WIN+ fields and anti-tracking settings in GET/POST/PUT
+- Created proxy API route /api/canal-vivo/proxy for bypassing X-Frame-Options blocks from streaming platforms
+  - Validates allowed domains (winplay.co, winsports.co, youtube.com)
+  - Sends stealth headers (User-Agent, no referrer, proper Accept headers)
+  - Removes frame-busting JavaScript and X-Frame-Options/CSP headers from proxied content
+  - Injects base tag for relative URLs
+- Completely rewrote CanalEnVivo.tsx with:
+  - 3 source tabs: Win Play (green), WIN+ premium (purple), YouTube (red)
+  - Source selector dropdown in header for quick switching
+  - Login overlay for each subscription source with brand-matched colors
+  - Proxy toggle button (🛡️ Proxy ON/OFF) for anti-blocking
+  - Loading and error overlays with fallback options
+  - Anti-tracking: referrerpolicy="no-referrer" on all iframes, restrictive sandbox attribute
+  - Footer with quick-access source buttons
+- Updated AdminPanel Canal en Vivo tab with:
+  - 3-source selector (Win Play, WIN+, YouTube) with visual cards
+  - WIN+ credential section (email, password, URL) in purple theme
+  - Anti-tracking protection section (Modo Sigiloso, Protección de Embebido) in blue theme
+  - Status dashboard with 7 indicators (Estado, Fuente, Win Play, WIN+, 24/7, Sigiloso, Protec.)
+  - Quick links including WIN+ and Plans
+- Added anti-tracking meta tags in layout.tsx:
+  - referrer policy: no-referrer-when-downgrade
+  - X-Content-Type-Options: nosniff
+  - googlebot: noarchive
+- Successfully built and deployed to tpkplay.vercel.app
+
+Stage Summary:
+- WIN+ premium subscription channel fully integrated with its own credentials and URL
+- Admin can choose primary channel: Win Play, WIN+, or YouTube
+- Anti-tracking protection: stealth mode (hidden referrer, sandbox), embed protection (proxy)
+- Proxy API bypasses X-Frame-Options for direct iframe embedding
+- All streaming is internal (no external redirects)
+- 3 channels available, each with their own login flow and branding
