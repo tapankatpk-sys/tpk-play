@@ -7,6 +7,7 @@ import dynamic from 'next/dynamic'
 const MemoryGame = dynamic(() => import('@/components/memory/MemoryGame'), { ssr: false })
 const CrosswordGame = dynamic(() => import('@/components/crossword/CrosswordGame'), { ssr: false })
 const SlotMachineGame = dynamic(() => import('@/components/slot/SlotMachineGame'), { ssr: false })
+const LoteriaGame = dynamic(() => import('@/components/loteria/LoteriaGame'), { ssr: false })
 
 interface Game {
   id: string
@@ -31,6 +32,7 @@ const GAME_TYPES: Record<string, { label: string; icon: string; color: string }>
   'memoria-futbolera': { label: 'Memoria Futbolera', icon: '🧠', color: '#ec4899' },
   'crucigrama-futbolero': { label: 'Crucigrama Futbolero', icon: '🎯', color: '#a855f7' },
   'tragamonedas-futbolera': { label: 'Tragamonedas Futbolera', icon: '🎰', color: '#fbbf24' },
+  'loteria-futbolera': { label: 'Lotería de Equipos', icon: '🃏', color: '#ff00ff' },
   'prediccion': { label: 'Predicción', icon: '🎯', color: '#f97316' },
   'encuesta': { label: 'Encuesta', icon: '📊', color: '#3b82f6' },
   'personalizado': { label: 'Personalizado', icon: '🎮', color: '#22c55e' },
@@ -733,6 +735,47 @@ export default function GamePreviewModal({ game, onClose }: GamePreviewModalProp
     )
   }
 
+  // Lotería de Equipos gets a full-screen embedded game experience
+  if (game.type === 'loteria-futbolera') {
+    return (
+      <div
+        className="fixed inset-0 z-[60] flex flex-col"
+        style={{ backgroundColor: 'rgba(0,0,0,0.95)' }}
+      >
+        {/* Admin Preview Banner */}
+        <div
+          className="px-4 py-2 flex items-center justify-between flex-shrink-0"
+          style={{
+            background: 'linear-gradient(90deg, rgba(255,0,255,0.15), rgba(255,200,0,0.15), rgba(255,0,255,0.15))',
+            borderBottom: '1px solid rgba(255, 0, 255, 0.3)',
+          }}
+        >
+          <div className="flex items-center gap-2">
+            <span style={{ color: '#ff00ff', fontSize: '0.7rem' }}>🃏</span>
+            <span
+              className="text-xs font-black uppercase tracking-widest"
+              style={{ color: '#ff00ff', textShadow: '0 0 8px rgba(255, 0, 255, 0.4)' }}
+            >
+              Vista Previa — Lotería de Equipos — Juega sin código TPK
+            </span>
+          </div>
+          <button
+            onClick={onClose}
+            className="px-3 py-1 rounded-lg text-xs font-bold cursor-pointer transition-all"
+            style={{ background: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.6)', border: '1px solid rgba(255,255,255,0.15)' }}
+          >
+            ✕ Cerrar
+          </button>
+        </div>
+
+        {/* Embedded Game - full area */}
+        <div className="flex-1 overflow-y-auto py-4" style={{ scrollbarColor: 'rgba(255,0,255,0.3) transparent' }}>
+          <LoteriaGame />
+        </div>
+      </div>
+    )
+  }
+
   // Trivia games get the standard modal with interactive preview
   return (
     <div
@@ -799,7 +842,7 @@ export default function GamePreviewModal({ game, onClose }: GamePreviewModalProp
         <div className="flex-1 overflow-y-auto p-4" style={{ scrollbarColor: `${gameType.color}30 transparent` }}>
           {game.type === 'trivia-futbolera' && <TriviaFutboleraInteractive />}
           {game.type === 'trivia-relampago' && <TriviaRelampagoInteractive />}
-          {!['trivia-futbolera', 'trivia-relampago', 'memoria-futbolera', 'crucigrama-futbolero', 'tragamonedas-futbolera'].includes(game.type) && <GenericGamePreview game={game} />}
+          {!['trivia-futbolera', 'trivia-relampago', 'memoria-futbolera', 'crucigrama-futbolero', 'tragamonedas-futbolera', 'loteria-futbolera'].includes(game.type) && <GenericGamePreview game={game} />}
         </div>
 
         {/* Footer */}

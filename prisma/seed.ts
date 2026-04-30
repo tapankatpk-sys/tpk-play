@@ -161,6 +161,34 @@ async function main() {
 
   console.log('✅ Created game:', tragamonedasFutbolera.name)
 
+  // Create Lotería de Equipos game
+  const loteriaFutbolera = await prisma.game.upsert({
+    where: { id: 'game-loteria-futbolera' },
+    update: {},
+    create: {
+      id: 'game-loteria-futbolera',
+      name: 'Lotería de Equipos',
+      description: 'Se sortean escudos de la Liga BetPlay y tú marcas en tu tabla. ¡Completa línea, diagonal o lotería completa para ganar puntos!',
+      type: 'loteria-futbolera',
+      imageUrl: null,
+      config: JSON.stringify({
+        mode: 'loteria',
+        boardSize: 4,
+        totalTeams: 22,
+        scoring: {
+          line: 30,
+          diagonal: 50,
+          fullBoard: 100,
+        },
+        rotationMode: 'hourly',
+      }),
+      isActive: true,
+      order: 5,
+    },
+  })
+
+  console.log('✅ Created game:', loteriaFutbolera.name)
+
   // Create GANADOR TPK banner
   const ganadorBanner = await prisma.tpkBanner.upsert({
     where: { type: 'ganador' },

@@ -97,6 +97,7 @@ const GAME_TYPES: Record<string, { label: string; icon: string; color: string; d
   'memoria-futbolera': { label: 'Memoria Futbolera', icon: '🧠', color: '#ec4899', description: 'Encuentra los pares de escudos de la Liga BetPlay' },
   'crucigrama-futbolero': { label: 'Crucigrama Futbolero', icon: '🎯', color: '#a855f7', description: '3 niveles de crucigrama por equipo de la Liga BetPlay' },
   'tragamonedas-futbolera': { label: 'Tragamonedas Futbolera', icon: '🎰', color: '#fbbf24', description: 'Slot machine con escudos de la Liga BetPlay' },
+  'loteria-futbolera': { label: 'Lotería de Equipos', icon: '🃏', color: '#ff00ff', description: 'Lotería con escudos de la Liga BetPlay' },
   'prediccion': { label: 'Predicción', icon: '🎯', color: '#f97316', description: 'Predice resultados de partidos' },
   'encuesta': { label: 'Encuesta', icon: '📊', color: '#3b82f6', description: 'Vota en encuestas futboleras' },
   'personalizado': { label: 'Personalizado', icon: '🎮', color: '#22c55e', description: 'Juego personalizado' },
