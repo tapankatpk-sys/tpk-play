@@ -73,7 +73,7 @@ interface MatchPredictionData {
   updatedAt: string
 }
 
-type Tab = 'dashboard' | 'games' | 'participants' | 'stats' | 'popup' | 'banners' | 'predictions' | 'loteria' | 'ruleta' | 'circuito' | 'parques' | 'audio'
+type Tab = 'dashboard' | 'games' | 'participants' | 'stats' | 'popup' | 'banners' | 'predictions' | 'loteria' | 'ruleta' | 'circuito' | 'parques' | 'rompecabezas' | 'audio'
 
 interface SidebarSection {
   id: string
@@ -103,6 +103,7 @@ const GAME_TYPES: Record<string, { label: string; icon: string; color: string; d
   'ruleta-futbolera': { label: 'Ruleta de Equipos', icon: '🎰', color: '#ffc800', description: 'Ruleta casino con escudos de la Liga BetPlay' },
   'circuito-futbolero': { label: 'Circuito Futbolero', icon: '🎮', color: '#00ff80', description: 'Pac-Man con escudos de rivales de la Liga BetPlay' },
   'parques-futbolero': { label: 'Parqués Futbolero', icon: '🎲', color: '#facc15', description: 'Parqués clásico con clásicos rivales de la Liga BetPlay' },
+  'rompecabezas-futbolero': { label: 'Rompecabezas de Escudos', icon: '🧩', color: '#00ffc8', description: 'Rompecabezas con escudos de la Liga BetPlay que cambia cada hora' },
   'prediccion': { label: 'Predicción', icon: '🎯', color: '#f97316', description: 'Predice resultados de partidos' },
   'encuesta': { label: 'Encuesta', icon: '📊', color: '#3b82f6', description: 'Vota en encuestas futboleras' },
   'personalizado': { label: 'Personalizado', icon: '🎮', color: '#22c55e', description: 'Juego personalizado' },
@@ -245,6 +246,11 @@ export default function AdminPanel() {
   const [parquesConfig, setParquesConfig] = useState<{ id: string; tokensPerPlayer: number; pointsCapture: number; pointsFinish: number; pointsWin: number; diceSpeed: number; isActive: boolean } | null>(null)
   const [parquesForm, setParquesForm] = useState({ tokensPerPlayer: 2, pointsCapture: 50, pointsFinish: 100, pointsWin: 500, diceSpeed: 3, isActive: true })
   const [savingParques, setSavingParques] = useState(false)
+
+  // Rompecabezas state
+  const [rompecabezasConfig, setRompecabezasConfig] = useState<{ id: string; gridSize: number; pointsComplete: number; timeBonusMax: number; timeLimit: number; showPreview: boolean; isActive: boolean } | null>(null)
+  const [rompecabezasForm, setRompecabezasForm] = useState({ gridSize: 6, pointsComplete: 200, timeBonusMax: 100, timeLimit: 300, showPreview: true, isActive: true })
+  const [savingRompecabezas, setSavingRompecabezas] = useState(false)
 
   // Audio config state
   const [audioConfig, setAudioConfig] = useState<{ id: string; audioUrl: string; volume: number; autoPlay: boolean; isActive: boolean; label: string } | null>(null)
@@ -507,6 +513,27 @@ export default function AdminPanel() {
     }
   }, [])
 
+  const fetchRompecabezasConfig = useCallback(async () => {
+    try {
+      const res = await fetch('/api/rompecabezas')
+      if (!res.ok) throw new Error(`Error ${res.status}`)
+      const data = await res.json()
+      if (data && !data.error) {
+        setRompecabezasConfig(data)
+        setRompecabezasForm({
+          gridSize: data.gridSize,
+          pointsComplete: data.pointsComplete,
+          timeBonusMax: data.timeBonusMax,
+          timeLimit: data.timeLimit,
+          showPreview: data.showPreview,
+          isActive: data.isActive,
+        })
+      }
+    } catch (err) {
+      console.error('Error fetching rompecabezas config:', err)
+    }
+  }, [])
+
   const fetchAudioConfig = useCallback(async () => {
     try {
       const res = await fetch('/api/audio')
@@ -531,12 +558,12 @@ export default function AdminPanel() {
     if (isAuthenticated && showPanel) {
       const load = async () => {
         setLoading(true)
-        await Promise.all([fetchGames(), fetchParticipants(), fetchPopups(), fetchBanners(), fetchPredictions(), fetchLoteriaConfig(), fetchRuletaConfig(), fetchCircuitoConfig(), fetchParquesConfig(), fetchAudioConfig()])
+        await Promise.all([fetchGames(), fetchParticipants(), fetchPopups(), fetchBanners(), fetchPredictions(), fetchLoteriaConfig(), fetchRuletaConfig(), fetchCircuitoConfig(), fetchParquesConfig(), fetchRompecabezasConfig(), fetchAudioConfig()])
         setLoading(false)
       }
       load()
     }
-  }, [isAuthenticated, showPanel, fetchGames, fetchParticipants, fetchPopups, fetchBanners, fetchPredictions, fetchLoteriaConfig, fetchRuletaConfig, fetchCircuitoConfig, fetchParquesConfig, fetchAudioConfig])
+  }, [isAuthenticated, showPanel, fetchGames, fetchParticipants, fetchPopups, fetchBanners, fetchPredictions, fetchLoteriaConfig, fetchRuletaConfig, fetchCircuitoConfig, fetchParquesConfig, fetchRompecabezasConfig, fetchAudioConfig])
 
   // Fetch Parques Rooms
   const fetchParquesRooms = useCallback(async () => {
@@ -988,6 +1015,30 @@ export default function AdminPanel() {
     }
   }
 
+  const handleSaveRompecabezas = async () => {
+    setSavingRompecabezas(true)
+    try {
+      if (rompecabezasConfig) {
+        await fetch('/api/rompecabezas', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: rompecabezasConfig.id, ...rompecabezasForm }),
+        })
+      } else {
+        await fetch('/api/rompecabezas', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(rompecabezasForm),
+        })
+      }
+      fetchRompecabezasConfig()
+    } catch (err) {
+      console.error('Error saving rompecabezas config:', err)
+    } finally {
+      setSavingRompecabezas(false)
+    }
+  }
+
   const handleSaveAudio = async () => {
     setSavingAudio(true)
     try {
@@ -1042,6 +1093,7 @@ export default function AdminPanel() {
         { id: 'ruleta', label: 'Ruleta', icon: '🎰', color: '#ffc800' },
         { id: 'circuito', label: 'Circuito', icon: '🎮', color: '#00ff80' },
         { id: 'parques', label: 'Parqués', icon: '🎲', color: '#facc15' },
+        { id: 'rompecabezas', label: 'Rompecabezas', icon: '🧩', color: '#00ffc8' },
         { id: 'audio', label: 'Audio', icon: '🎵', color: '#a855f7' },
         { id: 'predictions', label: 'Predicciones', icon: '⚽', color: '#00ff80', count: predictions.length },
         { id: 'popup', label: 'Popup', icon: '💬', color: '#eab308', count: popups.length },
@@ -1469,6 +1521,7 @@ export default function AdminPanel() {
                         : activeTab === 'ruleta' ? '#ffc800'
                         : activeTab === 'circuito' ? '#00ff80'
                         : activeTab === 'parques' ? '#facc15'
+                        : activeTab === 'rompecabezas' ? '#00ffc8'
                         : activeTab === 'audio' ? '#a855f7'
                         : activeTab === 'predictions' ? '#00ff80'
                         : activeTab === 'banners' ? '#00ffff'
@@ -1483,6 +1536,7 @@ export default function AdminPanel() {
                       : activeTab === 'ruleta' ? 'Ruleta de Equipos'
                       : activeTab === 'circuito' ? 'Circuito Futbolero'
                       : activeTab === 'parques' ? 'Parqués Futbolero'
+                      : activeTab === 'rompecabezas' ? 'Rompecabezas de Escudos'
                       : activeTab === 'audio' ? 'Reproductor de Audio'
                       : activeTab === 'predictions' ? 'Predicciones'
                       : activeTab === 'banners' ? 'Banners'
@@ -3847,6 +3901,201 @@ export default function AdminPanel() {
                           {['#facc15','#3b82f6','#ef4444','#22c55e'].map((c, ci) => (
                             <div key={ci} className="w-3 h-3 rounded-full" style={{ backgroundColor: c, boxShadow: `0 0 4px ${c}60` }} />
                           ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ) : activeTab === 'rompecabezas' ? (
+                /* ========== ROMPECABEZAS TAB ========== */
+                <div className="space-y-4">
+                  <div className="p-3 rounded-xl" style={{ background: 'rgba(0,255,200,0.04)', border: '1px solid rgba(0,255,200,0.15)' }}>
+                    <p className="text-[0.65rem]" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                      Configura el <b style={{ color: '#00ffc8' }}>Rompecabezas de Escudos</b>: tamaño de grilla, puntos por completar, bonus por tiempo, límite y vista previa. El escudo cambia cada hora automáticamente entre los 20 equipos de la Liga BetPlay.
+                    </p>
+                  </div>
+
+                  {rompecabezasConfig && (
+                    <div className="grid grid-cols-6 gap-2">
+                      <div className="p-2 rounded-lg text-center" style={{ background: 'rgba(0,255,200,0.06)' }}>
+                        <div className="text-[0.5rem] uppercase" style={{ color: 'rgba(0,255,200,0.5)' }}>Grilla</div>
+                        <div className="text-lg font-black" style={{ color: '#00ffc8' }}>{rompecabezasConfig.gridSize}x{rompecabezasConfig.gridSize}</div>
+                      </div>
+                      <div className="p-2 rounded-lg text-center" style={{ background: 'rgba(0,255,100,0.06)' }}>
+                        <div className="text-[0.5rem] uppercase" style={{ color: 'rgba(0,255,100,0.5)' }}>Puntos</div>
+                        <div className="text-lg font-black" style={{ color: '#00ff64' }}>+{rompecabezasConfig.pointsComplete}</div>
+                      </div>
+                      <div className="p-2 rounded-lg text-center" style={{ background: 'rgba(0,170,255,0.06)' }}>
+                        <div className="text-[0.5rem] uppercase" style={{ color: 'rgba(0,170,255,0.5)' }}>Bonus</div>
+                        <div className="text-lg font-black" style={{ color: '#00aaff' }}>+{rompecabezasConfig.timeBonusMax}</div>
+                      </div>
+                      <div className="p-2 rounded-lg text-center" style={{ background: 'rgba(239,68,68,0.06)' }}>
+                        <div className="text-[0.5rem] uppercase" style={{ color: 'rgba(239,68,68,0.5)' }}>Límite</div>
+                        <div className="text-lg font-black" style={{ color: '#ef4444' }}>{rompecabezasConfig.timeLimit || '∞'}</div>
+                      </div>
+                      <div className="p-2 rounded-lg text-center" style={{ background: 'rgba(234,179,8,0.06)' }}>
+                        <div className="text-[0.5rem] uppercase" style={{ color: 'rgba(234,179,8,0.5)' }}>Preview</div>
+                        <div className="text-lg font-black" style={{ color: '#eab308' }}>{rompecabezasConfig.showPreview ? 'Sí' : 'No'}</div>
+                      </div>
+                      <div className="p-2 rounded-lg text-center" style={{ background: rompecabezasConfig.isActive ? 'rgba(34,197,94,0.06)' : 'rgba(239,68,68,0.06)' }}>
+                        <div className="text-[0.5rem] uppercase" style={{ color: 'rgba(255,255,255,0.3)' }}>Estado</div>
+                        <div className="text-lg font-black" style={{ color: rompecabezasConfig.isActive ? '#4ade80' : '#ef4444' }}>
+                          {rompecabezasConfig.isActive ? '●' : '○'}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="space-y-3">
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-[0.6rem] font-bold uppercase tracking-wider block mb-1" style={{ color: 'rgba(0,255,200,0.6)' }}>
+                          Tamaño de Grilla (Complejidad)
+                        </label>
+                        <select
+                          value={rompecabezasForm.gridSize}
+                          onChange={(e) => setRompecabezasForm({ ...rompecabezasForm, gridSize: parseInt(e.target.value) })}
+                          className="w-full px-3 py-2 rounded-lg text-sm font-bold outline-none cursor-pointer"
+                          style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(0,255,200,0.2)', color: '#00ffc8' }}
+                        >
+                          <option value={4} style={{ background: '#1a0a2e' }}>4x4 - Fácil (16 piezas)</option>
+                          <option value={5} style={{ background: '#1a0a2e' }}>5x5 - Medio (25 piezas)</option>
+                          <option value={6} style={{ background: '#1a0a2e' }}>6x6 - Complejo (36 piezas)</option>
+                          <option value={7} style={{ background: '#1a0a2e' }}>7x7 - Experto (49 piezas)</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="text-[0.6rem] font-bold uppercase tracking-wider block mb-1" style={{ color: 'rgba(0,255,100,0.6)' }}>
+                          Puntos por Completar
+                        </label>
+                        <input type="number" min={50} max={1000} step={25}
+                          value={rompecabezasForm.pointsComplete}
+                          onChange={(e) => setRompecabezasForm({ ...rompecabezasForm, pointsComplete: parseInt(e.target.value) || 200 })}
+                          className="w-full px-3 py-2 rounded-lg text-sm font-bold"
+                          style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(0,255,100,0.2)', color: '#00ff64' }}
+                        />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-[0.6rem] font-bold uppercase tracking-wider block mb-1" style={{ color: 'rgba(0,170,255,0.6)' }}>
+                          Bonus Máx. por Tiempo
+                        </label>
+                        <input type="number" min={0} max={500} step={10}
+                          value={rompecabezasForm.timeBonusMax}
+                          onChange={(e) => setRompecabezasForm({ ...rompecabezasForm, timeBonusMax: parseInt(e.target.value) || 100 })}
+                          className="w-full px-3 py-2 rounded-lg text-sm font-bold"
+                          style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(0,170,255,0.2)', color: '#00aaff' }}
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[0.6rem] font-bold uppercase tracking-wider block mb-1" style={{ color: 'rgba(239,68,68,0.6)' }}>
+                          Tiempo Límite (segundos)
+                        </label>
+                        <input type="number" min={0} max={600} step={30}
+                          value={rompecabezasForm.timeLimit}
+                          onChange={(e) => setRompecabezasForm({ ...rompecabezasForm, timeLimit: parseInt(e.target.value) || 0 })}
+                          className="w-full px-3 py-2 rounded-lg text-sm font-bold"
+                          style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(239,68,68,0.2)', color: '#ef4444' }}
+                        />
+                        <p className="text-[0.5rem] mt-1" style={{ color: 'rgba(255,255,255,0.25)' }}>0 = sin límite de tiempo</p>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-[0.6rem] font-bold uppercase tracking-wider block mb-1" style={{ color: 'rgba(234,179,8,0.6)' }}>
+                          Mostrar Vista Previa
+                        </label>
+                        <p className="text-[0.5rem] mb-2" style={{ color: 'rgba(255,255,255,0.25)' }}>
+                          Muestra la imagen completa como referencia al armar el rompecabezas
+                        </p>
+                        <button
+                          onClick={() => setRompecabezasForm({ ...rompecabezasForm, showPreview: !rompecabezasForm.showPreview })}
+                          className="px-4 py-2 rounded-lg text-xs font-bold cursor-pointer transition-all"
+                          style={{
+                            background: rompecabezasForm.showPreview ? 'rgba(234,179,8,0.15)' : 'rgba(239,68,68,0.15)',
+                            color: rompecabezasForm.showPreview ? '#eab308' : '#ef4444',
+                            border: `1px solid ${rompecabezasForm.showPreview ? 'rgba(234,179,8,0.3)' : 'rgba(239,68,68,0.3)'}`,
+                          }}
+                        >
+                          {rompecabezasForm.showPreview ? '● Visible' : '○ Oculta'}
+                        </button>
+                      </div>
+                      <div>
+                        <label className="text-[0.6rem] font-bold uppercase tracking-wider block mb-1" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                          Estado del Juego
+                        </label>
+                        <p className="text-[0.5rem] mb-2" style={{ color: 'rgba(255,255,255,0.25)' }}>
+                          Desactiva para ocultar el rompecabezas del sitio
+                        </p>
+                        <button
+                          onClick={() => setRompecabezasForm({ ...rompecabezasForm, isActive: !rompecabezasForm.isActive })}
+                          className="px-4 py-2 rounded-lg text-xs font-bold cursor-pointer transition-all"
+                          style={{
+                            background: rompecabezasForm.isActive ? 'rgba(34,197,94,0.15)' : 'rgba(239,68,68,0.15)',
+                            color: rompecabezasForm.isActive ? '#4ade80' : '#ef4444',
+                            border: `1px solid ${rompecabezasForm.isActive ? 'rgba(34,197,94,0.3)' : 'rgba(239,68,68,0.3)'}`,
+                            boxShadow: rompecabezasForm.isActive ? '0 0 8px rgba(34,197,94,0.1)' : '0 0 8px rgba(239,68,68,0.1)',
+                          }}
+                        >
+                          {rompecabezasForm.isActive ? '● Activo' : '○ Inactivo'}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end">
+                    <button
+                      onClick={handleSaveRompecabezas}
+                      disabled={savingRompecabezas}
+                      className="px-6 py-2.5 rounded-xl font-bold text-sm cursor-pointer transition-all hover:scale-105 disabled:opacity-50"
+                      style={{
+                        background: 'linear-gradient(135deg, #00ffc8, #00aaff)',
+                        color: '#000',
+                        boxShadow: '0 0 12px rgba(0,255,200,0.2)',
+                      }}
+                    >
+                      {savingRompecabezas ? 'Guardando...' : 'Guardar Configuración'}
+                    </button>
+                  </div>
+
+                  {/* Rompecabezas Preview */}
+                  <div>
+                    <div className="text-[0.6rem] font-bold uppercase tracking-wider mb-2" style={{ color: 'rgba(0,255,200,0.4)' }}>
+                      Vista Previa del Rompecabezas
+                    </div>
+                    <div className="flex items-center gap-4 p-4 rounded-xl" style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(0,255,200,0.1)' }}>
+                      <div className="relative" style={{ width: '160px', height: '160px' }}>
+                        <div className="w-full h-full rounded-lg overflow-hidden" style={{
+                          display: 'grid',
+                          gridTemplateColumns: `repeat(${rompecabezasForm.gridSize}, 1fr)`,
+                          gridTemplateRows: `repeat(${rompecabezasForm.gridSize}, 1fr)`,
+                          gap: '1px',
+                          background: 'rgba(0,255,200,0.15)',
+                        }}>
+                          {Array.from({ length: rompecabezasForm.gridSize * rompecabezasForm.gridSize }).map((_, i) => (
+                            <div key={`rm-${i}`} className="flex items-center justify-center" style={{
+                              background: `rgba(0,255,200,${0.02 + (i % 3) * 0.02})`,
+                              border: '0.5px solid rgba(0,255,200,0.1)',
+                            }}>
+                              <div className="w-[2px] h-[2px] rounded-full" style={{ backgroundColor: 'rgba(0,255,200,0.2)' }} />
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <div className="text-xs font-black uppercase" style={{ color: '#00ffc8', textShadow: '0 0 6px rgba(0,255,200,0.3)' }}>
+                          Rompecabezas de Escudos
+                        </div>
+                        <div className="space-y-1 text-[0.55rem]">
+                          <div style={{ color: 'rgba(0,255,200,0.6)' }}>&#x1F9E9; Grilla {rompecabezasForm.gridSize}x{rompecabezasForm.gridSize} = {rompecabezasForm.gridSize * rompecabezasForm.gridSize} piezas</div>
+                          <div style={{ color: 'rgba(0,255,100,0.6)' }}>&#x1F3C6; Completar +{rompecabezasForm.pointsComplete}pts</div>
+                          <div style={{ color: 'rgba(0,170,255,0.6)' }}>&#x26A1; Bonus máx +{rompecabezasForm.timeBonusMax}pts</div>
+                          <div style={{ color: 'rgba(239,68,68,0.6)' }}>&#x23F1; Límite {rompecabezasForm.timeLimit || '∞'}s</div>
+                          <div style={{ color: 'rgba(234,179,8,0.6)' }}>&#x1F441; Preview {rompecabezasForm.showPreview ? 'activada' : 'oculta'}</div>
+                        </div>
+                        <div className="text-[0.5rem] mt-2 px-2 py-1 rounded" style={{ background: 'rgba(0,255,200,0.06)', color: 'rgba(0,255,200,0.4)' }}>
+                          Cambia cada hora entre 20 escudos
                         </div>
                       </div>
                     </div>

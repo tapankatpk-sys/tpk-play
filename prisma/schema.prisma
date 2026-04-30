@@ -270,6 +270,22 @@ model ParquesRoomPlayer {
 }
 
 // ============================================
+// ROMPECABEZAS DE ESCUDOS - Configuración del juego
+// ============================================
+
+model RompecabezasConfig {
+  id              String   @id @default(cuid())
+  gridSize        Int      @default(6)      // Grid: 4=fácil, 5=medio, 6=complejo
+  pointsComplete  Int      @default(200)    // Puntos por completar el rompecabezas
+  timeBonusMax    Int      @default(100)    // Bonus máximo por tiempo (se reduce con cada segundo)
+  timeLimit       Int      @default(300)    // Tiempo límite en segundos (0 = sin límite)
+  showPreview     Boolean  @default(true)   // Mostrar imagen de referencia
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+// ============================================
 // AUDIO PLAYER - Configuración del reproductor
 // ============================================
 

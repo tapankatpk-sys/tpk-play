@@ -11,6 +11,7 @@ import LoteriaGame from '@/components/loteria/LoteriaGame'
 import RuletaEquipos from '@/components/ruleta/RuletaEquipos'
 import CircuitoFutbolero from '@/components/circuito/CircuitoFutbolero'
 import ParquesGame from '@/components/parques/ParquesGame'
+import RompecabezasGame from '@/components/rompecabezas/RompecabezasGame'
 import GameGuard from '@/components/gameguard/GameGuard'
 import AdminPanel from '@/components/admin/AdminPanel'
 import CircularPopup from '@/components/popup/CircularPopup'
@@ -252,9 +253,33 @@ export default function Home() {
         </div>
 
         {/* Parqués Futbolero — Solo con invitación */}
-        <div className="relative z-10">
+        <div className="relative z-10 mb-10">
           <GameGuard gameName="Parqués Futbolero" gameIcon="🎲" accentColor="#facc15">
             <ParquesGame />
+          </GameGuard>
+        </div>
+
+        {/* Separator before Rompecabezas */}
+        <div className="flex items-center justify-center gap-3 py-6">
+          <div className="h-px flex-1 max-w-32" style={{
+            background: 'linear-gradient(to right, transparent, rgba(0,255,200,0.4))',
+          }} />
+          <div className="flex items-center gap-2">
+            <span style={{ color: '#00ffc8', textShadow: '0 0 8px rgba(0,255,200,0.6)', fontSize: '0.75rem' }}>&#x1F9E9;</span>
+            <span className="text-[0.6rem] uppercase tracking-[0.3em] font-bold" style={{ color: 'rgba(0,255,200,0.5)' }}>
+              Nuevo juego
+            </span>
+            <span style={{ color: '#00ffc8', textShadow: '0 0 8px rgba(0,255,200,0.6)', fontSize: '0.75rem' }}>&#x1F9E9;</span>
+          </div>
+          <div className="h-px flex-1 max-w-32" style={{
+            background: 'linear-gradient(to left, transparent, rgba(0,255,200,0.4))',
+          }} />
+        </div>
+
+        {/* Rompecabezas de Escudos */}
+        <div className="relative z-10">
+          <GameGuard gameName="Rompecabezas de Escudos" gameIcon="🧩" accentColor="#00ffc8">
+            <RompecabezasGame />
           </GameGuard>
         </div>
       </section>
