@@ -4,27 +4,21 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 
 interface CanalVivoConfig {
   id: string
-  primarySource: string // 'winplay' | 'winplus' | 'youtube'
-  // Win Play
+  primarySource: string
   winplayEmail: string
   winplayPassword: string
   winplayUrl: string
-  // WIN+
   winplusEmail: string
   winplusPassword: string
   winplusUrl: string
-  // YouTube
   youtubeChannelId: string
   youtubeVideoId: string
-  // General
   streamTitle: string
   streamSubtitle: string
   altStreamUrl: string
   altStreamLabel: string
-  // Protection
   stealthMode: boolean
   embedProtection: boolean
-  // Features
   showChat: boolean
   showSchedule: boolean
   autoPlay: boolean
@@ -61,35 +55,24 @@ function getTeamImage(slug: string) {
   return `/images/teams/${slug}.${ext}`
 }
 
-// Source configuration
 const SOURCE_CONFIG = {
-  winplay: {
-    label: 'Win Play',
-    icon: '📺',
-    color: '#4ade80',
-    gradient: 'linear-gradient(135deg, #22c55e, #16a34a)',
-    bgColor: 'rgba(34,197,94,0.06)',
-    borderColor: 'rgba(34,197,94,0.2)',
-    desc: 'Plataforma de streaming Win Play',
-  },
-  winplus: {
-    label: 'WIN+',
-    icon: '⭐',
-    color: '#a78bfa',
-    gradient: 'linear-gradient(135deg, #8b5cf6, #6d28d9)',
-    bgColor: 'rgba(139,92,246,0.06)',
-    borderColor: 'rgba(139,92,246,0.2)',
-    desc: 'Canal premium por suscripción',
-  },
-  youtube: {
-    label: 'YouTube Live',
-    icon: '🔴',
-    color: '#ff4444',
-    gradient: 'linear-gradient(135deg, #ef4444, #dc2626)',
-    bgColor: 'rgba(255,0,0,0.06)',
-    borderColor: 'rgba(255,0,0,0.2)',
-    desc: 'Señal alternativa gratuita',
-  },
+  winplay: { label: 'Win Play', icon: '📺', color: '#4ade80', gradient: 'linear-gradient(135deg, #22c55e, #16a34a)', bgColor: 'rgba(34,197,94,0.06)', borderColor: 'rgba(34,197,94,0.2)', desc: 'Streaming Win Play' },
+  winplus: { label: 'WIN+', icon: '⭐', color: '#a78bfa', gradient: 'linear-gradient(135deg, #8b5cf6, #6d28d9)', bgColor: 'rgba(139,92,246,0.06)', borderColor: 'rgba(139,92,246,0.2)', desc: 'Canal premium' },
+  youtube: { label: 'YouTube', icon: '🔴', color: '#ff4444', gradient: 'linear-gradient(135deg, #ef4444, #dc2626)', bgColor: 'rgba(255,0,0,0.06)', borderColor: 'rgba(255,0,0,0.2)', desc: 'Señal gratuita' },
+}
+
+// ============ SVG ICONS ============
+const Icons = {
+  fullscreen: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3m0 18h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3"/></svg>,
+  exitFullscreen: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M8 3v3a2 2 0 01-2 2H3m18 0h-3a2 2 0 01-2-2V3m0 18v-3a2 2 0 012-2h3M3 16h3a2 2 0 012 2v3"/></svg>,
+  pip: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="2" y="3" width="20" height="14" rx="2"/><rect x="11" y="9" width="9" height="6" rx="1" fill="currentColor" opacity="0.3"/></svg>,
+  settings: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>,
+  login: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>,
+  signal: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M2 20h.01M7 20v-4M12 20v-8M17 20V8M22 20V4"/></svg>,
+  refresh: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>,
+  close: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>,
+  shield: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>,
+  chevronDown: <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M7 10l5 5 5-5z"/></svg>,
 }
 
 export default function CanalEnVivo() {
@@ -105,8 +88,18 @@ export default function CanalEnVivo() {
   const [iframeError, setIframeError] = useState(false)
   const [useProxy, setUseProxy] = useState(false)
   const [showSourceMenu, setShowSourceMenu] = useState(false)
+  const [isFullscreen, setIsFullscreen] = useState(false)
+  const [showControls, setShowControls] = useState(true)
+  const [showSettings, setShowSettings] = useState(false)
+  const [isPiP, setIsPiP] = useState(false)
+  const [elapsedTime, setElapsedTime] = useState(0)
+  const [signalQuality, setSignalQuality] = useState<'HD' | 'SD' | 'LD'>('HD')
+
   const iframeRef = useRef<HTMLIFrameElement>(null)
   const sourceMenuRef = useRef<HTMLDivElement>(null)
+  const playerRef = useRef<HTMLDivElement>(null)
+  const controlsTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const settingsRef = useRef<HTMLDivElement>(null)
 
   // Fetch config
   useEffect(() => {
@@ -133,43 +126,138 @@ export default function CanalEnVivo() {
     return () => clearInterval(interval)
   }, [])
 
+  // Elapsed time counter
+  useEffect(() => {
+    const interval = setInterval(() => setElapsedTime(t => t + 1), 1000)
+    return () => clearInterval(interval)
+  }, [])
+
+  // Signal quality simulation
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const qualities: ('HD' | 'SD' | 'LD')[] = ['HD', 'HD', 'HD', 'HD', 'SD']
+      setSignalQuality(qualities[Math.floor(Math.random() * qualities.length)])
+    }, 8000)
+    return () => clearInterval(interval)
+  }, [])
+
   // Always active
   useEffect(() => {
     if (config?.alwaysActive) setIsLive(true)
   }, [config?.alwaysActive])
 
-  // Close source menu on outside click
+  // Auto-hide controls
+  const resetControlsTimeout = useCallback(() => {
+    setShowControls(true)
+    if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current)
+    controlsTimeoutRef.current = setTimeout(() => {
+      if (!showLoginOverlay && !showSettings && !showSourceMenu) {
+        setShowControls(false)
+      }
+    }, 4000)
+  }, [showLoginOverlay, showSettings, showSourceMenu])
+
+  useEffect(() => {
+    if (isFullscreen) resetControlsTimeout()
+  }, [isFullscreen, resetControlsTimeout])
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return
+      switch (e.key.toLowerCase()) {
+        case 'f':
+          toggleFullscreen()
+          break
+        case 'escape':
+          if (isFullscreen) exitFullscreen()
+          break
+        case 'm':
+          // mute toggle would need player API
+          break
+        case 'p':
+          togglePiP()
+          break
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [isFullscreen])
+
+  // Close menus on outside click
   useEffect(() => {
     const handleClick = (e: MouseEvent) => {
       if (sourceMenuRef.current && !sourceMenuRef.current.contains(e.target as Node)) {
         setShowSourceMenu(false)
+      }
+      if (settingsRef.current && !settingsRef.current.contains(e.target as Node)) {
+        setShowSettings(false)
       }
     }
     document.addEventListener('mousedown', handleClick)
     return () => document.removeEventListener('mousedown', handleClick)
   }, [])
 
-  // Get current source info
+  // Fullscreen change listener
+  useEffect(() => {
+    const handleFsChange = () => {
+      setIsFullscreen(!!document.fullscreenElement)
+    }
+    document.addEventListener('fullscreenchange', handleFsChange)
+    return () => document.removeEventListener('fullscreenchange', handleFsChange)
+  }, [])
+
+  // Fullscreen API
+  const toggleFullscreen = useCallback(() => {
+    if (!playerRef.current) return
+    if (!document.fullscreenElement) {
+      playerRef.current.requestFullscreen().then(() => setIsFullscreen(true)).catch(() => {})
+    } else {
+      document.exitFullscreen().then(() => setIsFullscreen(false)).catch(() => {})
+    }
+  }, [])
+
+  const exitFullscreen = useCallback(() => {
+    document.exitFullscreen().then(() => setIsFullscreen(false)).catch(() => {})
+  }, [])
+
+  // PiP
+  const togglePiP = useCallback(async () => {
+    try {
+      if (document.pictureInPictureElement) {
+        await document.exitPictureInPicture()
+        setIsPiP(false)
+      } else if (iframeRef.current) {
+        // PiP via the iframe's video element isn't directly accessible
+        // We'll use the document PiP API for the whole player
+        const pipWindow = await (window as any).documentPictureInPicture?.requestWindow({
+          width: 480, height: 270
+        })
+        if (pipWindow) setIsPiP(true)
+      }
+    } catch {
+      // PiP not supported
+    }
+  }, [])
+
+  // Helpers
   const getCurrentSource = useCallback(() => {
     if (activeTab === 'youtube') return SOURCE_CONFIG.youtube
     if (activeTab === 'winplus') return SOURCE_CONFIG.winplus
     return SOURCE_CONFIG.winplay
   }, [activeTab])
 
-  // Get iframe URL - uses proxy if stealth mode enabled
   const getEmbedUrl = useCallback((source: 'winplay' | 'winplus') => {
     if (!config) return ''
     const url = source === 'winplay' 
       ? (config.winplayUrl || 'https://winplay.co')
       : (config.winplusUrl || 'https://winsports.co/win-mas')
-    
     if (useProxy && config.stealthMode) {
       return `/api/canal-vivo/proxy?url=${encodeURIComponent(url)}`
     }
     return url
   }, [config, useProxy])
 
-  // YouTube embed URLs
   const getYoutubeEmbedUrl = useCallback(() => {
     if (!config) return ''
     if (config.youtubeVideoId) {
@@ -187,89 +275,63 @@ export default function CanalEnVivo() {
     return `https://www.youtube.com/live_chat?channel=${config.youtubeChannelId}&embed_domain=${domain}`
   }, [config])
 
-  // Handle login for subscription sources
+  const getSandboxAttr = useCallback(() => {
+    if (!config?.embedProtection) return 'allow-same-origin allow-scripts allow-popups allow-forms allow-top-navigation allow-presentation'
+    return 'allow-same-origin allow-scripts allow-forms allow-presentation allow-popups'
+  }, [config?.embedProtection])
+
   const handleLogin = useCallback(() => {
-    if (!loginEmail || !loginPassword) {
-      setLoginMessage('Ingresa email y contraseña')
-      return
-    }
-
+    if (!loginEmail || !loginPassword) { setLoginMessage('Ingresa email y contraseña'); return }
     const source = activeTab
-    const sourceConfig = SOURCE_CONFIG[source]
-
-    // Try postMessage to iframe
+    const sourceConf = SOURCE_CONFIG[source as keyof typeof SOURCE_CONFIG]
     if (iframeRef.current?.contentWindow) {
       try {
-        iframeRef.current.contentWindow.postMessage({
-          type: `${source}-login`,
-          email: loginEmail,
-          password: loginPassword,
-        }, '*')
-        setLoginMessage(`Credenciales enviadas a ${sourceConfig.label}. Si la plataforma permite el acceso, se iniciará sesión automáticamente.`)
-      } catch {
-        setLoginMessage('No se pudo comunicar con la plataforma. Intenta hacer clic en "Ingresar" dentro del reproductor.')
-      }
+        iframeRef.current.contentWindow.postMessage({ type: `${source}-login`, email: loginEmail, password: loginPassword }, '*')
+        setLoginMessage(`Credenciales enviadas a ${sourceConf?.label}. Se iniciará sesión si la plataforma lo permite.`)
+      } catch { setLoginMessage('No se pudo comunicar con la plataforma.') }
     }
-
     setShowLoginOverlay(false)
-
-    // Save credentials to backend
     if (config) {
       const updateData: Record<string, string> = { id: config.id }
-      if (source === 'winplay') {
-        updateData.winplayEmail = loginEmail
-        updateData.winplayPassword = loginPassword
-      } else if (source === 'winplus') {
-        updateData.winplusEmail = loginEmail
-        updateData.winplusPassword = loginPassword
-      }
-      fetch('/api/canal-vivo', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(updateData),
-      }).catch(() => {})
+      if (source === 'winplay') { updateData.winplayEmail = loginEmail; updateData.winplayPassword = loginPassword }
+      else if (source === 'winplus') { updateData.winplusEmail = loginEmail; updateData.winplusPassword = loginPassword }
+      fetch('/api/canal-vivo', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(updateData) }).catch(() => {})
     }
   }, [loginEmail, loginPassword, activeTab, config])
 
-  // Switch source and load credentials
   const switchSource = useCallback((source: SourceTab) => {
     setActiveTab(source)
     setShowSourceMenu(false)
+    setShowSettings(false)
     setIframeLoaded(false)
     setIframeError(false)
-
     if (config) {
-      if (source === 'winplay') {
-        setLoginEmail(config.winplayEmail || '')
-        setLoginPassword(config.winplayPassword || '')
-      } else if (source === 'winplus') {
-        setLoginEmail(config.winplusEmail || '')
-        setLoginPassword(config.winplusPassword || '')
-      }
+      if (source === 'winplay') { setLoginEmail(config.winplayEmail || ''); setLoginPassword(config.winplayPassword || '') }
+      else if (source === 'winplus') { setLoginEmail(config.winplusEmail || ''); setLoginPassword(config.winplusPassword || '') }
     }
-  }, [config])
+    resetControlsTimeout()
+  }, [config, resetControlsTimeout])
 
-  // Load credentials when config changes
+  const refreshStream = useCallback(() => {
+    setIframeLoaded(false)
+    setIframeError(false)
+  }, [])
+
+  // Load credentials
   useEffect(() => {
     if (config) {
-      if (activeTab === 'winplay') {
-        setLoginEmail(config.winplayEmail || '')
-        setLoginPassword(config.winplayPassword || '')
-      } else if (activeTab === 'winplus') {
-        setLoginEmail(config.winplusEmail || '')
-        setLoginPassword(config.winplusPassword || '')
-      }
+      if (activeTab === 'winplay') { setLoginEmail(config.winplayEmail || ''); setLoginPassword(config.winplayPassword || '') }
+      else if (activeTab === 'winplus') { setLoginEmail(config.winplusEmail || ''); setLoginPassword(config.winplusPassword || '') }
     }
   }, [config, activeTab])
 
-  // Get sandbox attribute based on embed protection setting
-  const getSandboxAttr = useCallback(() => {
-    if (!config?.embedProtection) {
-      return 'allow-same-origin allow-scripts allow-popups allow-forms allow-top-navigation allow-presentation'
-    }
-    // Restrictive sandbox - allows login forms but prevents top-level navigation and detection
-    return 'allow-same-origin allow-scripts allow-forms allow-presentation allow-popups'
-  }, [config?.embedProtection])
+  // Format elapsed time
+  const formatTime = (s: number) => {
+    const h = Math.floor(s / 3600)
+    const m = Math.floor((s % 3600) / 60)
+    const sec = s % 60
+    return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${sec.toString().padStart(2, '0')}`
+  }
 
   // Loading state
   if (!config) {
@@ -287,626 +349,515 @@ export default function CanalEnVivo() {
   }
 
   const currentSource = getCurrentSource()
-  const hasCredentials = activeTab === 'winplay' 
-    ? !!config.winplayEmail 
-    : activeTab === 'winplus' 
-    ? !!config.winplusEmail 
-    : true
+  const hasCredentials = activeTab === 'winplay' ? !!config.winplayEmail : activeTab === 'winplus' ? !!config.winplusEmail : true
+  const isStreamView = activeTab !== 'schedule'
 
   return (
     <div className="max-w-5xl mx-auto px-3 md:px-4">
-      {/* Main Container */}
-      <div className="rounded-2xl overflow-hidden" style={{
-        background: 'linear-gradient(145deg, #0a0015 0%, #1a0020 30%, #0d0a20 60%, #0a0015 100%)',
-        border: '1px solid rgba(239, 68, 68, 0.25)',
-        boxShadow: '0 0 40px rgba(239, 68, 68, 0.1), 0 0 80px rgba(168, 85, 247, 0.05), inset 0 1px 0 rgba(239, 68, 68, 0.1)',
-      }}>
-        {/* Header Bar */}
-        <div className="px-4 py-3 flex items-center justify-between flex-wrap gap-2" style={{
-          background: 'linear-gradient(90deg, rgba(239,68,68,0.15) 0%, rgba(168,85,247,0.1) 50%, rgba(239,68,68,0.15) 100%)',
-          borderBottom: '1px solid rgba(239,68,68,0.15)',
-        }}>
-          <div className="flex items-center gap-3">
-            {/* Live Indicator */}
-            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full" style={{
-              background: isLive ? 'rgba(239,68,68,0.2)' : 'rgba(107,114,128,0.2)',
-              border: `1px solid ${isLive ? 'rgba(239,68,68,0.4)' : 'rgba(107,114,128,0.3)'}`,
+      {/* ===== PLAYER CONTAINER ===== */}
+      <div
+        ref={playerRef}
+        className="rounded-2xl overflow-hidden relative"
+        style={{
+          background: '#000',
+          border: isFullscreen ? 'none' : '1px solid rgba(239, 68, 68, 0.25)',
+          boxShadow: isFullscreen ? 'none' : '0 0 40px rgba(239, 68, 68, 0.1), 0 0 80px rgba(168, 85, 247, 0.05)',
+        }}
+        onMouseMove={resetControlsTimeout}
+        onTouchStart={resetControlsTimeout}
+      >
+        {/* ===== IFRAME PLAYER ===== */}
+        {isStreamView && (
+          <div className="relative" style={{ 
+            width: '100%', 
+            height: isFullscreen ? '100vh' : '0',
+            paddingBottom: isFullscreen ? '0' : '56.25%',
+          }}>
+            {/* Loading Screen */}
+            {!iframeLoaded && !iframeError && (
+              <div className="absolute inset-0 z-10 flex items-center justify-center" style={{ background: '#000' }}>
+                <div className="text-center">
+                  <div className="relative w-20 h-20 mx-auto mb-4">
+                    <div className="absolute inset-0 rounded-full animate-spin" style={{
+                      border: '3px solid rgba(255,255,255,0.05)', borderTopColor: currentSource.color,
+                    }} />
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <span className="text-2xl">{currentSource.icon}</span>
+                    </div>
+                  </div>
+                  <p className="text-sm font-bold mb-1" style={{ color: currentSource.color }}>
+                    {activeTab === 'winplay' ? 'Win Play' : activeTab === 'winplus' ? 'WIN+' : 'YouTube Live'}
+                  </p>
+                  <p className="text-[0.6rem]" style={{ color: 'rgba(255,255,255,0.3)' }}>
+                    {useProxy ? 'Conectando vía proxy protegido...' : 'Conectando señal en vivo...'}
+                  </p>
+                  <div className="flex items-center justify-center gap-1.5 mt-3">
+                    <div className="w-1.5 h-1.5 rounded-full animate-bounce" style={{ background: currentSource.color, animationDelay: '0ms' }} />
+                    <div className="w-1.5 h-1.5 rounded-full animate-bounce" style={{ background: currentSource.color, animationDelay: '150ms' }} />
+                    <div className="w-1.5 h-1.5 rounded-full animate-bounce" style={{ background: currentSource.color, animationDelay: '300ms' }} />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Error Screen */}
+            {iframeError && (
+              <div className="absolute inset-0 z-10 flex items-center justify-center" style={{ background: '#000' }}>
+                <div className="text-center max-w-sm px-4">
+                  <div className="w-20 h-20 mx-auto mb-4 rounded-full flex items-center justify-center" style={{
+                    background: `${currentSource.bgColor}`, border: `1px solid ${currentSource.borderColor}`,
+                  }}>
+                    <span className="text-3xl">⚠️</span>
+                  </div>
+                  <p className="text-base font-bold mb-2" style={{ color: 'rgba(255,255,255,0.8)' }}>Señal no disponible</p>
+                  <p className="text-[0.6rem] mb-4" style={{ color: 'rgba(255,255,255,0.35)' }}>
+                    La plataforma puede estar bloqueando la reproducción. Intenta activar el Proxy o cambiar de fuente.
+                  </p>
+                  <div className="flex gap-2 justify-center flex-wrap">
+                    <button onClick={refreshStream}
+                      className="px-4 py-2 rounded-lg text-[0.6rem] font-bold cursor-pointer transition-all hover:scale-105 flex items-center gap-1.5"
+                      style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.15)', color: '#fff' }}>
+                      {Icons.refresh} Reintentar
+                    </button>
+                    {(activeTab === 'winplay' || activeTab === 'winplus') && (
+                      <button onClick={() => { setUseProxy(true); refreshStream() }}
+                        className="px-4 py-2 rounded-lg text-[0.6rem] font-bold cursor-pointer transition-all hover:scale-105 flex items-center gap-1.5"
+                        style={{ background: 'rgba(59,130,246,0.15)', border: '1px solid rgba(59,130,246,0.3)', color: '#60a5fa' }}>
+                        {Icons.shield} Activar Proxy
+                      </button>
+                    )}
+                    <button onClick={() => switchSource('youtube')}
+                      className="px-4 py-2 rounded-lg text-[0.6rem] font-bold cursor-pointer transition-all hover:scale-105"
+                      style={{ background: 'rgba(255,0,0,0.15)', border: '1px solid rgba(255,0,0,0.3)', color: '#ff6666' }}>
+                      🔴 Ver en YouTube
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Iframe */}
+            {activeTab === 'youtube' ? (
+              <iframe
+                ref={iframeRef}
+                key="youtube-player"
+                src={getYoutubeEmbedUrl()}
+                className="absolute inset-0 w-full h-full"
+                style={{ border: 'none', background: '#000' }}
+                onLoad={() => setIframeLoaded(true)}
+                onError={() => setIframeError(true)}
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
+                allowFullScreen
+                referrerPolicy="no-referrer"
+                title="YouTube Live"
+              />
+            ) : (
+              <iframe
+                ref={iframeRef}
+                key={`${activeTab}-${useProxy}`}
+                src={getEmbedUrl(activeTab as 'winplay' | 'winplus')}
+                className="absolute inset-0 w-full h-full"
+                style={{ border: 'none', background: '#000' }}
+                onLoad={() => setIframeLoaded(true)}
+                onError={() => setIframeError(true)}
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
+                allowFullScreen
+                sandbox={getSandboxAttr()}
+                referrerPolicy={config.stealthMode ? 'no-referrer' : 'origin'}
+                title="Streaming en Vivo"
+              />
+            )}
+
+            {/* ===== OVERLAY CONTROLS (fullscreen mode) ===== */}
+            {isFullscreen && isStreamView && (
+              <>
+                {/* Gradient top bar */}
+                <div className="absolute top-0 left-0 right-0 z-20 pointer-events-none" style={{
+                  background: 'linear-gradient(to bottom, rgba(0,0,0,0.85) 0%, transparent 100%)',
+                  height: '120px',
+                  opacity: showControls ? 1 : 0,
+                  transition: 'opacity 0.4s ease',
+                }}>
+                  <div className="pointer-events-auto p-4 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      {/* Live Badge */}
+                      <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full" style={{
+                        background: 'rgba(239,68,68,0.25)', border: '1px solid rgba(239,68,68,0.5)',
+                      }}>
+                        <div className="w-2 h-2 rounded-full" style={{
+                          background: '#ef4444',
+                          boxShadow: pulseDot ? '0 0 8px #ef4444' : 'none',
+                          transition: 'box-shadow 0.3s',
+                        }} />
+                        <span className="text-[0.65rem] font-black uppercase tracking-wider text-red-400">EN VIVO</span>
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-black uppercase" style={{
+                          background: 'linear-gradient(90deg, #ef4444, #f97316, #fbbf24)',
+                          WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text',
+                        }}>{config.streamTitle}</h3>
+                        <p className="text-[0.5rem]" style={{ color: 'rgba(255,255,255,0.4)' }}>{config.streamSubtitle}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[0.55rem] font-mono" style={{ color: 'rgba(255,255,255,0.35)' }}>{formatTime(elapsedTime)}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Gradient bottom bar */}
+                <div className="absolute bottom-0 left-0 right-0 z-20 pointer-events-none" style={{
+                  background: 'linear-gradient(to top, rgba(0,0,0,0.9) 0%, transparent 100%)',
+                  height: '140px',
+                  opacity: showControls ? 1 : 0,
+                  transition: 'opacity 0.4s ease',
+                }}>
+                  <div className="pointer-events-auto absolute bottom-0 left-0 right-0 p-4">
+                    {/* Source pills */}
+                    <div className="flex items-center gap-2 mb-3">
+                      {Object.entries(SOURCE_CONFIG).map(([key, src]) => (
+                        <button key={key} onClick={() => switchSource(key as SourceTab)}
+                          className="px-3 py-1.5 rounded-full text-[0.55rem] font-bold cursor-pointer transition-all hover:scale-105 flex items-center gap-1"
+                          style={{
+                            background: activeTab === key ? `${src.color}25` : 'rgba(255,255,255,0.08)',
+                            border: `1px solid ${activeTab === key ? `${src.color}50` : 'rgba(255,255,255,0.1)'}`,
+                            color: activeTab === key ? src.color : 'rgba(255,255,255,0.4)',
+                          }}>
+                          <span className="text-[0.5rem]">{src.icon}</span> {src.label}
+                        </button>
+                      ))}
+                      <button onClick={() => switchSource('schedule')}
+                        className="px-3 py-1.5 rounded-full text-[0.55rem] font-bold cursor-pointer transition-all hover:scale-105 flex items-center gap-1"
+                        style={{
+                          background: activeTab === 'schedule' ? 'rgba(251,191,36,0.15)' : 'rgba(255,255,255,0.08)',
+                          border: `1px solid ${activeTab === 'schedule' ? 'rgba(251,191,36,0.3)' : 'rgba(255,255,255,0.1)'}`,
+                          color: activeTab === 'schedule' ? '#fbbf24' : 'rgba(255,255,255,0.4)',
+                        }}>
+                        📅 Programación
+                      </button>
+                    </div>
+
+                    {/* Controls row */}
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        {/* Signal quality */}
+                        <div className="flex items-center gap-1 px-2 py-1 rounded" style={{
+                          background: signalQuality === 'HD' ? 'rgba(34,197,94,0.1)' : signalQuality === 'SD' ? 'rgba(251,191,36,0.1)' : 'rgba(239,68,68,0.1)',
+                          border: `1px solid ${signalQuality === 'HD' ? 'rgba(34,197,94,0.2)' : signalQuality === 'SD' ? 'rgba(251,191,36,0.2)' : 'rgba(239,68,68,0.2)'}`,
+                        }}>
+                          {Icons.signal}
+                          <span className="text-[0.5rem] font-bold" style={{
+                            color: signalQuality === 'HD' ? '#4ade80' : signalQuality === 'SD' ? '#fbbf24' : '#fca5a5',
+                          }}>{signalQuality}</span>
+                        </div>
+
+                        {/* Proxy badge */}
+                        {config.stealthMode && useProxy && (
+                          <div className="flex items-center gap-1 px-2 py-1 rounded" style={{
+                            background: 'rgba(59,130,246,0.1)', border: '1px solid rgba(59,130,246,0.2)',
+                          }}>
+                            {Icons.shield}
+                            <span className="text-[0.5rem] font-bold" style={{ color: '#60a5fa' }}>Proxy</span>
+                          </div>
+                        )}
+
+                        {/* Credentials badge */}
+                        {(activeTab === 'winplay' || activeTab === 'winplus') && (
+                          <button onClick={() => setShowLoginOverlay(true)}
+                            className="flex items-center gap-1 px-2 py-1 rounded cursor-pointer transition-all hover:scale-105"
+                            style={{
+                              background: hasCredentials ? 'rgba(34,197,94,0.1)' : 'rgba(239,68,68,0.1)',
+                              border: `1px solid ${hasCredentials ? 'rgba(34,197,94,0.2)' : 'rgba(239,68,68,0.2)'}`,
+                            }}>
+                            {Icons.login}
+                            <span className="text-[0.5rem] font-bold" style={{ color: hasCredentials ? '#4ade80' : '#fca5a5' }}>
+                              {hasCredentials ? 'Suscrito' : 'Suscribir'}
+                            </span>
+                          </button>
+                        )}
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        {/* Refresh */}
+                        <button onClick={refreshStream} className="p-2 rounded-lg cursor-pointer transition-all hover:scale-110"
+                          style={{ color: 'rgba(255,255,255,0.5)' }} title="Refrescar señal">
+                          {Icons.refresh}
+                        </button>
+                        {/* PiP */}
+                        <button onClick={togglePiP} className="p-2 rounded-lg cursor-pointer transition-all hover:scale-110"
+                          style={{ color: isPiP ? currentSource.color : 'rgba(255,255,255,0.5)' }} title="Picture in Picture (P)">
+                          {Icons.pip}
+                        </button>
+                        {/* Settings */}
+                        <div className="relative" ref={settingsRef}>
+                          <button onClick={() => { setShowSettings(!showSettings); resetControlsTimeout() }}
+                            className="p-2 rounded-lg cursor-pointer transition-all hover:scale-110"
+                            style={{ color: showSettings ? '#fff' : 'rgba(255,255,255,0.5)' }} title="Configuración">
+                            {Icons.settings}
+                          </button>
+                          {showSettings && (
+                            <div className="absolute bottom-full right-0 mb-2 rounded-xl overflow-hidden min-w-[200px]" style={{
+                              background: 'rgba(15,15,25,0.98)', border: '1px solid rgba(255,255,255,0.1)',
+                              boxShadow: '0 8px 32px rgba(0,0,0,0.8)', backdropFilter: 'blur(10px)',
+                            }}>
+                              <div className="p-2 space-y-1">
+                                <div className="text-[0.5rem] font-bold uppercase tracking-wider px-3 py-1" style={{ color: 'rgba(255,255,255,0.3)' }}>Configuración</div>
+                                {(activeTab === 'winplay' || activeTab === 'winplus') && config.stealthMode && (
+                                  <button onClick={() => { setUseProxy(!useProxy); refreshStream(); setShowSettings(false) }}
+                                    className="w-full px-3 py-2 text-left transition-all cursor-pointer flex items-center justify-between rounded-lg"
+                                    style={{ color: useProxy ? '#60a5fa' : 'rgba(255,255,255,0.5)' }}>
+                                    <span className="text-[0.55rem] font-bold flex items-center gap-1.5">{Icons.shield} Proxy Anti-Bloqueo</span>
+                                    <span className="text-[0.5rem] font-bold">{useProxy ? 'ON' : 'OFF'}</span>
+                                  </button>
+                                )}
+                                <button onClick={() => { switchSource('youtube'); setShowSettings(false) }}
+                                  className="w-full px-3 py-2 text-left transition-all cursor-pointer flex items-center justify-between rounded-lg hover:bg-white/5"
+                                  style={{ color: 'rgba(255,255,255,0.5)' }}>
+                                  <span className="text-[0.55rem] font-bold">🔴 Cambiar a YouTube</span>
+                                </button>
+                                <button onClick={() => { switchSource('winplay'); setShowSettings(false) }}
+                                  className="w-full px-3 py-2 text-left transition-all cursor-pointer flex items-center justify-between rounded-lg hover:bg-white/5"
+                                  style={{ color: 'rgba(255,255,255,0.5)' }}>
+                                  <span className="text-[0.55rem] font-bold">📺 Cambiar a Win Play</span>
+                                </button>
+                                <button onClick={() => { switchSource('winplus'); setShowSettings(false) }}
+                                  className="w-full px-3 py-2 text-left transition-all cursor-pointer flex items-center justify-between rounded-lg hover:bg-white/5"
+                                  style={{ color: 'rgba(255,255,255,0.5)' }}>
+                                  <span className="text-[0.55rem] font-bold">⭐ Cambiar a WIN+</span>
+                                </button>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                        {/* Fullscreen */}
+                        <button onClick={toggleFullscreen} className="p-2 rounded-lg cursor-pointer transition-all hover:scale-110"
+                          style={{ color: '#fff' }} title="Pantalla completa (F)">
+                          {Icons.exitFullscreen}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
+
+            {/* ===== EMBEDDED (non-fullscreen) CONTROLS ===== */}
+            {!isFullscreen && isStreamView && (
+              <div className="absolute bottom-0 left-0 right-0 z-20 pointer-events-none" style={{
+                background: 'linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 100%)',
+                height: '80px',
+                opacity: showControls ? 1 : 0,
+                transition: 'opacity 0.3s ease',
+              }}>
+                <div className="pointer-events-auto absolute bottom-0 left-0 right-0 p-3 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1 px-2 py-0.5 rounded" style={{
+                      background: signalQuality === 'HD' ? 'rgba(34,197,94,0.15)' : 'rgba(251,191,36,0.15)',
+                      border: `1px solid ${signalQuality === 'HD' ? 'rgba(34,197,94,0.25)' : 'rgba(251,191,36,0.25)'}`,
+                    }}>
+                      {Icons.signal}
+                      <span className="text-[0.45rem] font-bold" style={{ color: signalQuality === 'HD' ? '#4ade80' : '#fbbf24' }}>{signalQuality}</span>
+                    </div>
+                    <span className="text-[0.45rem] font-mono" style={{ color: 'rgba(255,255,255,0.3)' }}>{formatTime(elapsedTime)}</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <button onClick={refreshStream} className="p-1.5 rounded cursor-pointer transition-all hover:scale-110" style={{ color: 'rgba(255,255,255,0.5)' }} title="Refrescar">
+                      {Icons.refresh}
+                    </button>
+                    <button onClick={toggleFullscreen} className="p-1.5 rounded cursor-pointer transition-all hover:scale-110" style={{ color: '#fff' }} title="Pantalla completa (F)">
+                      {Icons.fullscreen}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ===== SCHEDULE VIEW ===== */}
+        {activeTab === 'schedule' && (
+          <div className="space-y-3 p-3 md:p-4" style={{ background: 'linear-gradient(145deg, #0a0015 0%, #1a0020 30%, #0d0a20 60%, #0a0015 100%)', minHeight: isFullscreen ? '100vh' : 'auto' }}>
+            <div className="p-3 rounded-xl" style={{ background: 'rgba(239,68,68,0.04)', border: '1px solid rgba(239,68,68,0.1)' }}>
+              <p className="text-[0.6rem]" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                Próximos partidos de la <b style={{ color: '#fca5a5' }}>Liga BetPlay Dimayor 2026-1</b>
+              </p>
+            </div>
+            {UPCOMING_MATCHES.map((match, idx) => (
+              <div key={idx} className="p-3 rounded-xl transition-all hover:scale-[1.01]"
+                style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(239,68,68,0.08)' }}>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 flex-1">
+                    <img src={getTeamImage(match.home)} alt="" className="w-8 h-8 object-contain"
+                      onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }} />
+                    <div className="text-[0.65rem] font-bold" style={{ color: '#fca5a5' }}>{TEAM_NAMES[match.home] || match.home}</div>
+                  </div>
+                  <div className="text-center px-3">
+                    <div className="text-[0.4rem] uppercase" style={{ color: 'rgba(239,68,68,0.5)' }}>{match.date}</div>
+                    <div className="text-sm font-black px-2 py-0.5 rounded" style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', color: '#fbbf24' }}>VS</div>
+                    <div className="text-[0.4rem]" style={{ color: 'rgba(255,255,255,0.3)' }}>{match.time}</div>
+                  </div>
+                  <div className="flex items-center gap-2 flex-1 justify-end">
+                    <div className="text-[0.65rem] font-bold" style={{ color: '#93c5fd' }}>{TEAM_NAMES[match.away] || match.away}</div>
+                    <img src={getTeamImage(match.away)} alt="" className="w-8 h-8 object-contain"
+                      onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }} />
+                  </div>
+                </div>
+              </div>
+            ))}
+            {/* Back to live button in fullscreen */}
+            {isFullscreen && (
+              <div className="text-center pt-2">
+                <button onClick={() => switchSource(config.primarySource as SourceTab)}
+                  className="px-6 py-2.5 rounded-xl text-sm font-bold cursor-pointer transition-all hover:scale-105"
+                  style={{ background: 'linear-gradient(135deg, #ef4444, #f97316)', color: '#fff' }}>
+                  ▶ Volver a la Señal en Vivo
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ===== LOGIN OVERLAY ===== */}
+        {showLoginOverlay && (
+          <div className="absolute inset-0 z-30 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.95)' }}>
+            <div className="w-full max-w-sm mx-4 p-6 rounded-2xl" style={{
+              background: 'linear-gradient(135deg, #0a0a0a 0%, #1a0a2e 50%, #0a0a0a 100%)',
+              border: `1px solid ${currentSource.borderColor}`,
+              boxShadow: `0 0 60px ${currentSource.bgColor}`,
             }}>
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ background: currentSource.gradient }}>
+                    <span className="text-lg">{currentSource.icon}</span>
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-black" style={{ color: currentSource.color }}>Suscripción {currentSource.label}</h3>
+                    <p className="text-[0.5rem]" style={{ color: 'rgba(255,255,255,0.3)' }}>Ingresa tus credenciales</p>
+                  </div>
+                </div>
+                <button onClick={() => setShowLoginOverlay(false)} className="p-1 rounded cursor-pointer" style={{ color: 'rgba(255,255,255,0.3)' }}>
+                  {Icons.close}
+                </button>
+              </div>
+
+              <div className="space-y-3">
+                <input type="email" value={loginEmail} onChange={(e) => setLoginEmail(e.target.value)}
+                  className="w-full px-3 py-2.5 rounded-lg text-sm outline-none"
+                  style={{ background: 'rgba(0,0,0,0.5)', border: `1px solid ${currentSource.borderColor}`, color: currentSource.color }}
+                  placeholder="Email" />
+                <input type="password" value={loginPassword} onChange={(e) => setLoginPassword(e.target.value)}
+                  className="w-full px-3 py-2.5 rounded-lg text-sm outline-none"
+                  style={{ background: 'rgba(0,0,0,0.5)', border: `1px solid ${currentSource.borderColor}`, color: currentSource.color }}
+                  placeholder="Contraseña" />
+                {loginMessage && (
+                  <p className="text-[0.5rem] p-2 rounded-lg" style={{ background: currentSource.bgColor, color: `${currentSource.color}bb`, border: `1px solid ${currentSource.borderColor}` }}>
+                    {loginMessage}
+                  </p>
+                )}
+                <button onClick={handleLogin}
+                  className="w-full px-4 py-2.5 rounded-lg text-xs font-bold cursor-pointer transition-all hover:scale-[1.02]"
+                  style={{ background: currentSource.gradient, color: '#fff' }}>
+                  Guardar y Conectar
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* ===== INFO BAR (non-fullscreen only) ===== */}
+      {!isFullscreen && (
+        <div className="mt-1 px-3 py-2 flex items-center justify-between flex-wrap gap-2" style={{
+          background: 'linear-gradient(145deg, #0a0015, #1a0020)',
+          border: '1px solid rgba(239,68,68,0.1)',
+          borderRadius: '0 0 0.75rem 0.75rem',
+          borderTop: 'none',
+        }}>
+          <div className="flex items-center gap-2">
+            {/* Live dot */}
+            <div className="flex items-center gap-1.5">
               <div className="w-2 h-2 rounded-full" style={{
                 background: isLive ? '#ef4444' : '#6b7280',
-                boxShadow: isLive && pulseDot ? '0 0 8px #ef4444' : 'none',
-                transition: 'box-shadow 0.3s',
+                boxShadow: isLive && pulseDot ? '0 0 6px #ef4444' : 'none',
               }} />
-              <span className="text-[0.6rem] font-black uppercase tracking-wider" style={{ color: isLive ? '#ef4444' : '#6b7280' }}>
+              <span className="text-[0.55rem] font-black uppercase tracking-wider" style={{ color: isLive ? '#ef4444' : '#6b7280' }}>
                 {isLive ? 'EN VIVO' : 'OFFLINE'}
               </span>
             </div>
-            <div>
-              <h3 className="text-sm md:text-base font-black uppercase tracking-wide" style={{
-                background: 'linear-gradient(90deg, #ef4444, #f97316, #fbbf24)',
-                WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text',
-              }}>
-                {config.streamTitle}
-              </h3>
-              <p className="text-[0.55rem]" style={{ color: 'rgba(255,255,255,0.35)' }}>{config.streamSubtitle}</p>
-            </div>
-          </div>
 
-          {/* Source Selector + Login Button */}
-          <div className="flex items-center gap-2">
-            {/* Source Selector Dropdown */}
+            {/* Source selector */}
             <div className="relative" ref={sourceMenuRef}>
-              <button
-                onClick={() => setShowSourceMenu(!showSourceMenu)}
-                className="px-3 py-1.5 rounded-lg text-[0.6rem] font-bold cursor-pointer transition-all hover:scale-105 flex items-center gap-1.5"
-                style={{
-                  background: currentSource.bgColor,
-                  border: `1px solid ${currentSource.borderColor}`,
-                  color: currentSource.color,
-                }}
-              >
-                <span>{currentSource.icon}</span>
-                <span>{currentSource.label}</span>
-                <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor" style={{ opacity: 0.5 }}>
-                  <path d="M5 7L1 3h8z"/>
-                </svg>
+              <button onClick={() => setShowSourceMenu(!showSourceMenu)}
+                className="px-2.5 py-1 rounded-lg text-[0.55rem] font-bold cursor-pointer transition-all flex items-center gap-1"
+                style={{ background: currentSource.bgColor, border: `1px solid ${currentSource.borderColor}`, color: currentSource.color }}>
+                {currentSource.icon} {currentSource.label} {Icons.chevronDown}
               </button>
-
               {showSourceMenu && (
-                <div className="absolute right-0 top-full mt-1 z-30 rounded-xl overflow-hidden min-w-[180px]" style={{
-                  background: 'rgba(10,10,20,0.98)',
-                  border: '1px solid rgba(255,255,255,0.1)',
-                  boxShadow: '0 8px 32px rgba(0,0,0,0.8)',
-                  backdropFilter: 'blur(10px)',
+                <div className="absolute left-0 top-full mt-1 z-30 rounded-xl overflow-hidden min-w-[180px]" style={{
+                  background: 'rgba(10,10,20,0.98)', border: '1px solid rgba(255,255,255,0.1)', boxShadow: '0 8px 32px rgba(0,0,0,0.8)',
                 }}>
                   {Object.entries(SOURCE_CONFIG).map(([key, src]) => (
-                    <button
-                      key={key}
-                      onClick={() => switchSource(key as SourceTab)}
-                      className="w-full px-4 py-2.5 text-left transition-all cursor-pointer flex items-center gap-2"
-                      style={{
-                        background: activeTab === key ? src.bgColor : 'transparent',
-                        borderLeft: activeTab === key ? `3px solid ${src.color}` : '3px solid transparent',
-                      }}
-                    >
-                      <span className="text-sm">{src.icon}</span>
-                      <div>
-                        <div className="text-[0.6rem] font-bold" style={{ color: activeTab === key ? src.color : 'rgba(255,255,255,0.5)' }}>
-                          {src.label}
-                        </div>
-                        <div className="text-[0.45rem]" style={{ color: 'rgba(255,255,255,0.25)' }}>{src.desc}</div>
-                      </div>
-                      {activeTab === key && (
-                        <div className="ml-auto w-1.5 h-1.5 rounded-full" style={{ background: src.color }} />
-                      )}
+                    <button key={key} onClick={() => switchSource(key as SourceTab)}
+                      className="w-full px-3 py-2 text-left transition-all cursor-pointer flex items-center gap-2"
+                      style={{ background: activeTab === key ? src.bgColor : 'transparent', borderLeft: activeTab === key ? `2px solid ${src.color}` : '2px solid transparent' }}>
+                      <span className="text-xs">{src.icon}</span>
+                      <span className="text-[0.55rem] font-bold" style={{ color: activeTab === key ? src.color : 'rgba(255,255,255,0.5)' }}>{src.label}</span>
+                      {activeTab === key && <div className="ml-auto w-1.5 h-1.5 rounded-full" style={{ background: src.color }} />}
                     </button>
                   ))}
-                  <button
-                    onClick={() => switchSource('schedule')}
-                    className="w-full px-4 py-2.5 text-left transition-all cursor-pointer flex items-center gap-2"
-                    style={{
-                      background: activeTab === 'schedule' ? 'rgba(251,191,36,0.1)' : 'transparent',
-                      borderLeft: activeTab === 'schedule' ? '3px solid #fbbf24' : '3px solid transparent',
-                    }}
-                  >
-                    <span className="text-sm">📅</span>
-                    <div>
-                      <div className="text-[0.6rem] font-bold" style={{ color: activeTab === 'schedule' ? '#fbbf24' : 'rgba(255,255,255,0.5)' }}>
-                        Programación
-                      </div>
-                      <div className="text-[0.45rem]" style={{ color: 'rgba(255,255,255,0.25)' }}>Próximos partidos</div>
-                    </div>
+                  <button onClick={() => switchSource('schedule')}
+                    className="w-full px-3 py-2 text-left transition-all cursor-pointer flex items-center gap-2"
+                    style={{ background: activeTab === 'schedule' ? 'rgba(251,191,36,0.1)' : 'transparent', borderLeft: activeTab === 'schedule' ? '2px solid #fbbf24' : '2px solid transparent' }}>
+                    <span className="text-xs">📅</span>
+                    <span className="text-[0.55rem] font-bold" style={{ color: activeTab === 'schedule' ? '#fbbf24' : 'rgba(255,255,255,0.5)' }}>Programación</span>
                   </button>
                 </div>
               )}
             </div>
 
-            {/* Login Button - only for subscription sources */}
+            {/* Subscription button */}
             {(activeTab === 'winplay' || activeTab === 'winplus') && (
-              <button
-                onClick={() => setShowLoginOverlay(!showLoginOverlay)}
-                className="px-3 py-1.5 rounded-lg text-[0.6rem] font-bold cursor-pointer transition-all hover:scale-105"
+              <button onClick={() => setShowLoginOverlay(true)}
+                className="px-2.5 py-1 rounded-lg text-[0.55rem] font-bold cursor-pointer transition-all hover:scale-105 flex items-center gap-1"
                 style={{
-                  background: hasCredentials ? 'rgba(34,197,94,0.15)' : 'rgba(239,68,68,0.15)',
-                  border: `1px solid ${hasCredentials ? 'rgba(34,197,94,0.3)' : 'rgba(239,68,68,0.3)'}`,
+                  background: hasCredentials ? 'rgba(34,197,94,0.1)' : 'rgba(239,68,68,0.1)',
+                  border: `1px solid ${hasCredentials ? 'rgba(34,197,94,0.2)' : 'rgba(239,68,68,0.2)'}`,
                   color: hasCredentials ? '#4ade80' : '#fca5a5',
-                }}
-              >
-                {hasCredentials ? '● Suscripción Activa' : '○ Ingresar Suscripción'}
+                }}>
+                {Icons.login} {hasCredentials ? 'Suscrito' : 'Suscribir'}
               </button>
             )}
 
-            {/* Proxy Toggle */}
+            {/* Proxy toggle */}
             {(activeTab === 'winplay' || activeTab === 'winplus') && config.stealthMode && (
-              <button
-                onClick={() => { setUseProxy(!useProxy); setIframeLoaded(false); setIframeError(false) }}
-                className="px-2 py-1 rounded text-[0.5rem] font-bold cursor-pointer transition-all"
+              <button onClick={() => { setUseProxy(!useProxy); refreshStream() }}
+                className="px-2 py-1 rounded text-[0.5rem] font-bold cursor-pointer transition-all flex items-center gap-1"
                 style={{
-                  background: useProxy ? 'rgba(59,130,246,0.15)' : 'rgba(255,255,255,0.05)',
-                  border: `1px solid ${useProxy ? 'rgba(59,130,246,0.3)' : 'rgba(255,255,255,0.08)'}`,
-                  color: useProxy ? '#60a5fa' : 'rgba(255,255,255,0.3)',
-                }}
-                title={useProxy ? 'Proxy activado - Protección anti-bloqueo' : 'Activar proxy para evitar bloqueos'}
-              >
-                {useProxy ? '🛡️ Proxy ON' : '🛡️ Proxy'}
+                  background: useProxy ? 'rgba(59,130,246,0.1)' : 'rgba(255,255,255,0.03)',
+                  border: `1px solid ${useProxy ? 'rgba(59,130,246,0.2)' : 'rgba(255,255,255,0.06)'}`,
+                  color: useProxy ? '#60a5fa' : 'rgba(255,255,255,0.25)',
+                }}>
+                {Icons.shield} {useProxy ? 'Proxy ON' : 'Proxy'}
               </button>
             )}
           </div>
-        </div>
 
-        {/* Content Area */}
-        <div className="relative">
-          {/* Win Play Tab */}
-          {activeTab === 'winplay' && (
-            <div className="relative">
-              <div className="relative w-full" style={{ minHeight: '500px' }}>
-                {/* Loading overlay */}
-                {!iframeLoaded && !iframeError && (
-                  <div className="absolute inset-0 z-10 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.9)' }}>
-                    <div className="text-center">
-                      <div className="w-12 h-12 mx-auto mb-3 rounded-full animate-spin" style={{
-                        border: '3px solid rgba(34,197,94,0.2)', borderTopColor: '#4ade80',
-                      }} />
-                      <p className="text-[0.65rem] font-bold" style={{ color: '#4ade80' }}>Cargando Win Play...</p>
-                      <p className="text-[0.45rem] mt-1" style={{ color: 'rgba(255,255,255,0.3)' }}>
-                        {useProxy ? 'Conectando vía proxy protegido' : 'Conectando directamente'}
-                      </p>
-                    </div>
-                  </div>
-                )}
-
-                {/* Error overlay */}
-                {iframeError && (
-                  <div className="absolute inset-0 z-10 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.95)' }}>
-                    <div className="text-center max-w-sm px-4">
-                      <div className="w-16 h-16 mx-auto mb-3 rounded-full flex items-center justify-center" style={{
-                        background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)',
-                      }}>
-                        <span className="text-2xl">⚠️</span>
-                      </div>
-                      <p className="text-sm font-bold mb-2" style={{ color: '#fca5a5' }}>No se pudo cargar Win Play</p>
-                      <p className="text-[0.55rem] mb-3" style={{ color: 'rgba(255,255,255,0.4)' }}>
-                        La plataforma puede estar bloqueando la reproducción embebida.
-                        Intenta activar el modo Proxy o usar la señal de YouTube.
-                      </p>
-                      <div className="flex gap-2 justify-center">
-                        <button
-                          onClick={() => { setUseProxy(true); setIframeError(false); setIframeLoaded(false) }}
-                          className="px-3 py-1.5 rounded-lg text-[0.55rem] font-bold cursor-pointer transition-all hover:scale-105"
-                          style={{ background: 'rgba(59,130,246,0.2)', border: '1px solid rgba(59,130,246,0.3)', color: '#60a5fa' }}
-                        >
-                          🛡️ Activar Proxy
-                        </button>
-                        <button
-                          onClick={() => switchSource('youtube')}
-                          className="px-3 py-1.5 rounded-lg text-[0.55rem] font-bold cursor-pointer transition-all hover:scale-105"
-                          style={{ background: 'rgba(255,0,0,0.15)', border: '1px solid rgba(255,0,0,0.3)', color: '#ff6666' }}
-                        >
-                          🔴 Ver en YouTube
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                <iframe
-                  ref={iframeRef}
-                  key={`winplay-${useProxy}`}
-                  src={getEmbedUrl('winplay')}
-                  className="w-full"
-                  style={{
-                    height: '600px',
-                    border: 'none',
-                    background: '#000',
-                  }}
-                  onLoad={() => setIframeLoaded(true)}
-                  onError={() => setIframeError(true)}
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
-                  allowFullScreen
-                  sandbox={getSandboxAttr()}
-                  referrerPolicy={config.stealthMode ? 'no-referrer' : 'origin'}
-                  title="Streaming en Vivo"
-                />
-              </div>
-
-              {/* Login Overlay */}
-              {showLoginOverlay && (
-                <div className="absolute inset-0 z-20 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.92)' }}>
-                  <div className="w-full max-w-sm mx-4 p-6 rounded-2xl" style={{
-                    background: 'linear-gradient(135deg, #0a0a0a 0%, #1a0a2e 50%, #0a0a0a 100%)',
-                    border: `1px solid ${currentSource.borderColor}`,
-                    boxShadow: `0 0 40px ${currentSource.bgColor}`,
-                  }}>
-                    <div className="text-center mb-4">
-                      <div className="w-14 h-14 mx-auto rounded-full flex items-center justify-center mb-3" style={{
-                        background: currentSource.gradient,
-                        boxShadow: `0 0 20px ${currentSource.bgColor}`,
-                      }}>
-                        <span className="text-2xl">{currentSource.icon}</span>
-                      </div>
-                      <h3 className="text-base font-black" style={{ color: currentSource.color }}>
-                        Suscripción {currentSource.label}
-                      </h3>
-                      <p className="text-[0.6rem] mt-1" style={{ color: 'rgba(255,255,255,0.4)' }}>
-                        Ingresa tus credenciales de {currentSource.label} para acceder a la señal en vivo
-                      </p>
-                    </div>
-
-                    <div className="space-y-3">
-                      <div>
-                        <label className="text-[0.6rem] font-bold uppercase tracking-wider block mb-1" style={{ color: `${currentSource.color}99` }}>
-                          Email de {currentSource.label}
-                        </label>
-                        <input type="email" value={loginEmail} onChange={(e) => setLoginEmail(e.target.value)}
-                          className="w-full px-3 py-2.5 rounded-lg text-sm outline-none"
-                          style={{ background: 'rgba(0,0,0,0.5)', border: `1px solid ${currentSource.borderColor}`, color: currentSource.color }}
-                          placeholder="tu@email.com"
-                        />
-                      </div>
-                      <div>
-                        <label className="text-[0.6rem] font-bold uppercase tracking-wider block mb-1" style={{ color: `${currentSource.color}99` }}>
-                          Contraseña
-                        </label>
-                        <input type="password" value={loginPassword} onChange={(e) => setLoginPassword(e.target.value)}
-                          className="w-full px-3 py-2.5 rounded-lg text-sm outline-none"
-                          style={{ background: 'rgba(0,0,0,0.5)', border: `1px solid ${currentSource.borderColor}`, color: currentSource.color }}
-                          placeholder="Tu contraseña"
-                        />
-                      </div>
-
-                      {loginMessage && (
-                        <p className="text-[0.55rem] p-2 rounded-lg" style={{
-                          background: `${currentSource.bgColor}`, color: `${currentSource.color}bb`,
-                          border: `1px solid ${currentSource.borderColor}`,
-                        }}>
-                          {loginMessage}
-                        </p>
-                      )}
-
-                      <div className="flex gap-2">
-                        <button onClick={handleLogin}
-                          className="flex-1 px-4 py-2.5 rounded-lg text-xs font-bold cursor-pointer transition-all hover:scale-105"
-                          style={{ background: currentSource.gradient, color: '#fff' }}>
-                          Guardar y Conectar
-                        </button>
-                        <button onClick={() => setShowLoginOverlay(false)}
-                          className="px-4 py-2.5 rounded-lg text-xs font-bold cursor-pointer transition-all"
-                          style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', color: '#fca5a5' }}>
-                          Cancelar
-                        </button>
-                      </div>
-
-                      <div className="text-center pt-2" style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}>
-                        <p className="text-[0.45rem]" style={{ color: 'rgba(255,255,255,0.2)' }}>
-                          Si no tienes suscripción, usa la señal de YouTube Live para contenido gratuito
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Info bar below iframe */}
-              <div className="px-4 py-2 flex items-center justify-between flex-wrap gap-1" style={{
-                background: 'rgba(0,0,0,0.4)',
-                borderTop: `1px solid ${currentSource.borderColor}`,
-              }}>
-                <div className="flex items-center gap-2">
-                  <div className="w-1.5 h-1.5 rounded-full" style={{ background: hasCredentials ? '#4ade80' : '#ef4444' }} />
-                  <span className="text-[0.5rem]" style={{ color: hasCredentials ? 'rgba(34,197,94,0.6)' : 'rgba(239,68,68,0.6)' }}>
-                    {hasCredentials ? `Conectado: ${config.winplayEmail}` : 'Sin suscripción - Vista gratuita'}
-                  </span>
-                  {config.stealthMode && useProxy && (
-                    <span className="text-[0.4rem] px-1.5 py-0.5 rounded" style={{ background: 'rgba(59,130,246,0.1)', color: 'rgba(59,130,246,0.5)', border: '1px solid rgba(59,130,246,0.15)' }}>
-                      🛡️ Proxy Protegido
-                    </span>
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* WIN+ Tab */}
-          {activeTab === 'winplus' && (
-            <div className="relative">
-              <div className="relative w-full" style={{ minHeight: '500px' }}>
-                {/* Loading overlay */}
-                {!iframeLoaded && !iframeError && (
-                  <div className="absolute inset-0 z-10 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.9)' }}>
-                    <div className="text-center">
-                      <div className="w-12 h-12 mx-auto mb-3 rounded-full animate-spin" style={{
-                        border: '3px solid rgba(139,92,246,0.2)', borderTopColor: '#a78bfa',
-                      }} />
-                      <p className="text-[0.65rem] font-bold" style={{ color: '#a78bfa' }}>Cargando WIN+...</p>
-                      <p className="text-[0.45rem] mt-1" style={{ color: 'rgba(255,255,255,0.3)' }}>
-                        {useProxy ? 'Conectando vía proxy protegido' : 'Conectando directamente'}
-                      </p>
-                    </div>
-                  </div>
-                )}
-
-                {/* Error overlay */}
-                {iframeError && (
-                  <div className="absolute inset-0 z-10 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.95)' }}>
-                    <div className="text-center max-w-sm px-4">
-                      <div className="w-16 h-16 mx-auto mb-3 rounded-full flex items-center justify-center" style={{
-                        background: 'rgba(139,92,246,0.1)', border: '1px solid rgba(139,92,246,0.2)',
-                      }}>
-                        <span className="text-2xl">⚠️</span>
-                      </div>
-                      <p className="text-sm font-bold mb-2" style={{ color: '#c4b5fd' }}>No se pudo cargar WIN+</p>
-                      <p className="text-[0.55rem] mb-3" style={{ color: 'rgba(255,255,255,0.4)' }}>
-                        La plataforma puede estar bloqueando la reproducción embebida.
-                        Intenta activar el modo Proxy o usar la señal de YouTube.
-                      </p>
-                      <div className="flex gap-2 justify-center">
-                        <button
-                          onClick={() => { setUseProxy(true); setIframeError(false); setIframeLoaded(false) }}
-                          className="px-3 py-1.5 rounded-lg text-[0.55rem] font-bold cursor-pointer transition-all hover:scale-105"
-                          style={{ background: 'rgba(59,130,246,0.2)', border: '1px solid rgba(59,130,246,0.3)', color: '#60a5fa' }}
-                        >
-                          🛡️ Activar Proxy
-                        </button>
-                        <button
-                          onClick={() => switchSource('youtube')}
-                          className="px-3 py-1.5 rounded-lg text-[0.55rem] font-bold cursor-pointer transition-all hover:scale-105"
-                          style={{ background: 'rgba(255,0,0,0.15)', border: '1px solid rgba(255,0,0,0.3)', color: '#ff6666' }}
-                        >
-                          🔴 Ver en YouTube
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                <iframe
-                  ref={iframeRef}
-                  key={`winplus-${useProxy}`}
-                  src={getEmbedUrl('winplus')}
-                  className="w-full"
-                  style={{
-                    height: '600px',
-                    border: 'none',
-                    background: '#000',
-                  }}
-                  onLoad={() => setIframeLoaded(true)}
-                  onError={() => setIframeError(true)}
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
-                  allowFullScreen
-                  sandbox={getSandboxAttr()}
-                  referrerPolicy={config.stealthMode ? 'no-referrer' : 'origin'}
-                  title="Streaming Premium en Vivo"
-                />
-              </div>
-
-              {/* Login Overlay for WIN+ */}
-              {showLoginOverlay && (
-                <div className="absolute inset-0 z-20 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.92)' }}>
-                  <div className="w-full max-w-sm mx-4 p-6 rounded-2xl" style={{
-                    background: 'linear-gradient(135deg, #0a0a0a 0%, #1a0a2e 50%, #0a0a0a 100%)',
-                    border: `1px solid ${currentSource.borderColor}`,
-                    boxShadow: `0 0 40px ${currentSource.bgColor}`,
-                  }}>
-                    <div className="text-center mb-4">
-                      <div className="w-14 h-14 mx-auto rounded-full flex items-center justify-center mb-3" style={{
-                        background: currentSource.gradient,
-                        boxShadow: `0 0 20px ${currentSource.bgColor}`,
-                      }}>
-                        <span className="text-2xl">⭐</span>
-                      </div>
-                      <h3 className="text-base font-black" style={{ color: '#a78bfa' }}>Suscripción WIN+</h3>
-                      <p className="text-[0.6rem] mt-1" style={{ color: 'rgba(255,255,255,0.4)' }}>
-                        Ingresa tus credenciales de WIN+ para acceder al canal premium
-                      </p>
-                    </div>
-
-                    <div className="space-y-3">
-                      <div>
-                        <label className="text-[0.6rem] font-bold uppercase tracking-wider block mb-1" style={{ color: 'rgba(139,92,246,0.6)' }}>
-                          Email de WIN+
-                        </label>
-                        <input type="email" value={loginEmail} onChange={(e) => setLoginEmail(e.target.value)}
-                          className="w-full px-3 py-2.5 rounded-lg text-sm outline-none"
-                          style={{ background: 'rgba(0,0,0,0.5)', border: '1px solid rgba(139,92,246,0.2)', color: '#a78bfa' }}
-                          placeholder="tu@email.com"
-                        />
-                      </div>
-                      <div>
-                        <label className="text-[0.6rem] font-bold uppercase tracking-wider block mb-1" style={{ color: 'rgba(139,92,246,0.6)' }}>
-                          Contraseña
-                        </label>
-                        <input type="password" value={loginPassword} onChange={(e) => setLoginPassword(e.target.value)}
-                          className="w-full px-3 py-2.5 rounded-lg text-sm outline-none"
-                          style={{ background: 'rgba(0,0,0,0.5)', border: '1px solid rgba(139,92,246,0.2)', color: '#a78bfa' }}
-                          placeholder="Tu contraseña"
-                        />
-                      </div>
-
-                      {loginMessage && (
-                        <p className="text-[0.55rem] p-2 rounded-lg" style={{
-                          background: 'rgba(139,92,246,0.08)', color: 'rgba(139,92,246,0.7)',
-                          border: '1px solid rgba(139,92,246,0.15)',
-                        }}>
-                          {loginMessage}
-                        </p>
-                      )}
-
-                      <div className="flex gap-2">
-                        <button onClick={handleLogin}
-                          className="flex-1 px-4 py-2.5 rounded-lg text-xs font-bold cursor-pointer transition-all hover:scale-105"
-                          style={{ background: 'linear-gradient(135deg, #8b5cf6, #6d28d9)', color: '#fff' }}>
-                          Guardar y Conectar
-                        </button>
-                        <button onClick={() => setShowLoginOverlay(false)}
-                          className="px-4 py-2.5 rounded-lg text-xs font-bold cursor-pointer transition-all"
-                          style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', color: '#fca5a5' }}>
-                          Cancelar
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Info bar */}
-              <div className="px-4 py-2 flex items-center justify-between flex-wrap gap-1" style={{
-                background: 'rgba(0,0,0,0.4)',
-                borderTop: '1px solid rgba(139,92,246,0.15)',
-              }}>
-                <div className="flex items-center gap-2">
-                  <div className="w-1.5 h-1.5 rounded-full" style={{ background: config.winplusEmail ? '#a78bfa' : '#ef4444' }} />
-                  <span className="text-[0.5rem]" style={{ color: config.winplusEmail ? 'rgba(139,92,246,0.6)' : 'rgba(239,68,68,0.6)' }}>
-                    {config.winplusEmail ? `Conectado: ${config.winplusEmail}` : 'Sin suscripción WIN+'}
-                  </span>
-                  {config.stealthMode && useProxy && (
-                    <span className="text-[0.4rem] px-1.5 py-0.5 rounded" style={{ background: 'rgba(59,130,246,0.1)', color: 'rgba(59,130,246,0.5)', border: '1px solid rgba(59,130,246,0.15)' }}>
-                      🛡️ Proxy
-                    </span>
-                  )}
-                </div>
-                <span className="text-[0.45rem] px-2 py-0.5 rounded-full font-bold" style={{
-                  background: 'linear-gradient(135deg, rgba(139,92,246,0.2), rgba(168,85,247,0.1))',
-                  border: '1px solid rgba(139,92,246,0.3)',
-                  color: '#a78bfa',
-                }}>
-                  ⭐ CANAL PREMIUM
-                </span>
-              </div>
-            </div>
-          )}
-
-          {/* YouTube Tab */}
-          {activeTab === 'youtube' && (
-            <div className="space-y-3 p-3 md:p-4">
-              <div className="relative w-full" style={{ paddingTop: '56.25%' }}>
-                <iframe
-                  src={getYoutubeEmbedUrl()}
-                  className="absolute inset-0 w-full h-full rounded-xl"
-                  style={{ border: '1px solid rgba(239,68,68,0.15)', background: '#000' }}
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                  allowFullScreen
-                  referrerPolicy="no-referrer"
-                  title="YouTube Live"
-                />
-              </div>
-
-              {/* YouTube Chat */}
-              {config.showChat && (
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                  <div className="md:col-span-2">
-                    <div className="p-3 rounded-xl" style={{ background: 'rgba(239,68,68,0.04)', border: '1px solid rgba(239,68,68,0.1)' }}>
-                      <div className="flex items-center gap-2 mb-2">
-                        <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{
-                          background: 'linear-gradient(135deg, #ef4444, #f97316)', boxShadow: '0 0 12px rgba(239,68,68,0.3)',
-                        }}>
-                          <span className="text-sm">📺</span>
-                        </div>
-                        <div>
-                          <div className="text-xs font-bold" style={{ color: '#fca5a5' }}>YouTube Live</div>
-                          <div className="text-[0.5rem]" style={{ color: 'rgba(255,255,255,0.3)' }}>Señal alternativa gratuita</div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="md:col-span-1">
-                    <div className="rounded-xl overflow-hidden" style={{ border: '1px solid rgba(239,68,68,0.1)', height: '250px' }}>
-                      <iframe src={getYoutubeChatUrl()} className="w-full h-full" style={{ background: '#0a0a0a' }} title="Chat YouTube" />
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Schedule Tab */}
-          {activeTab === 'schedule' && config.showSchedule && (
-            <div className="space-y-3 p-3 md:p-4">
-              <div className="p-3 rounded-xl" style={{ background: 'rgba(239,68,68,0.04)', border: '1px solid rgba(239,68,68,0.1)' }}>
-                <p className="text-[0.6rem]" style={{ color: 'rgba(255,255,255,0.4)' }}>
-                  Próximos partidos de la <b style={{ color: '#fca5a5' }}>Liga BetPlay Dimayor 2026-1</b>. La señal se activa 15 minutos antes de cada partido.
-                </p>
-              </div>
-
-              {UPCOMING_MATCHES.map((match, idx) => (
-                <div key={idx} className="p-3 rounded-xl transition-all hover:scale-[1.01]"
-                  style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(239,68,68,0.08)' }}>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2 flex-1">
-                      <img src={getTeamImage(match.home)} alt="" className="w-8 h-8 md:w-10 md:h-10 object-contain"
-                        onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }} />
-                      <div>
-                        <div className="text-[0.65rem] md:text-xs font-bold" style={{ color: '#fca5a5' }}>
-                          {TEAM_NAMES[match.home] || match.home}
-                        </div>
-                        <div className="text-[0.45rem]" style={{ color: 'rgba(255,255,255,0.25)' }}>Local</div>
-                      </div>
-                    </div>
-                    <div className="text-center px-2 md:px-4">
-                      <div className="text-[0.45rem] uppercase tracking-wider mb-0.5" style={{ color: 'rgba(239,68,68,0.5)' }}>{match.date}</div>
-                      <div className="text-sm md:text-lg font-black px-3 py-1 rounded-lg"
-                        style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', color: '#fbbf24' }}>VS</div>
-                      <div className="text-[0.45rem] mt-0.5" style={{ color: 'rgba(255,255,255,0.3)' }}>{match.time} | {match.venue}</div>
-                    </div>
-                    <div className="flex items-center gap-2 flex-1 justify-end">
-                      <div className="text-right">
-                        <div className="text-[0.65rem] md:text-xs font-bold" style={{ color: '#93c5fd' }}>
-                          {TEAM_NAMES[match.away] || match.away}
-                        </div>
-                        <div className="text-[0.45rem]" style={{ color: 'rgba(255,255,255,0.25)' }}>Visitante</div>
-                      </div>
-                      <img src={getTeamImage(match.away)} alt="" className="w-8 h-8 md:w-10 md:h-10 object-contain"
-                        onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }} />
-                    </div>
-                  </div>
-                </div>
-              ))}
-
-              <div className="text-center pt-2">
-                <a href="https://www.winsports.co/programacion" target="_blank" rel="noopener noreferrer"
-                  className="inline-block px-4 py-2 rounded-lg text-[0.6rem] font-bold transition-all hover:scale-105"
-                  style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', color: '#fca5a5' }}>
-                  Ver programación completa
-                </a>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Footer */}
-        <div className="px-4 py-2 flex items-center justify-between flex-wrap gap-1" style={{
-          background: 'rgba(0,0,0,0.3)', borderTop: '1px solid rgba(239,68,68,0.08)',
-        }}>
           <div className="flex items-center gap-2">
-            <span className="text-[0.45rem]" style={{ color: 'rgba(255,255,255,0.2)' }}>
-              Señal en vivo TPK PLAY
-            </span>
             {config.stealthMode && (
-              <span className="text-[0.35rem] px-1 py-0.5 rounded" style={{
-                background: 'rgba(59,130,246,0.08)', color: 'rgba(59,130,246,0.4)',
-                border: '1px solid rgba(59,130,246,0.1)',
+              <span className="text-[0.35rem] px-1.5 py-0.5 rounded flex items-center gap-0.5" style={{
+                background: 'rgba(59,130,246,0.05)', color: 'rgba(59,130,246,0.35)', border: '1px solid rgba(59,130,246,0.08)',
               }}>
-                🛡️ Protegido
+                {Icons.shield} Protegido
               </span>
             )}
-          </div>
-          <div className="flex items-center gap-2">
-            <button onClick={() => switchSource('winplay')} className="text-[0.45rem] cursor-pointer transition-all hover:underline"
-              style={{ color: activeTab === 'winplay' ? '#4ade80' : 'rgba(34,197,94,0.3)' }}>
-              Win Play
-            </button>
-            <span style={{ color: 'rgba(255,255,255,0.1)' }}>|</span>
-            <button onClick={() => switchSource('winplus')} className="text-[0.45rem] cursor-pointer transition-all hover:underline"
-              style={{ color: activeTab === 'winplus' ? '#a78bfa' : 'rgba(139,92,246,0.3)' }}>
-              WIN+
-            </button>
-            <span style={{ color: 'rgba(255,255,255,0.1)' }}>|</span>
-            <button onClick={() => switchSource('youtube')} className="text-[0.45rem] cursor-pointer transition-all hover:underline"
-              style={{ color: activeTab === 'youtube' ? '#ff6666' : 'rgba(255,0,0,0.3)' }}>
-              YouTube
+            <button onClick={toggleFullscreen}
+              className="px-3 py-1.5 rounded-lg text-[0.55rem] font-bold cursor-pointer transition-all hover:scale-105 flex items-center gap-1.5"
+              style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', color: '#fca5a5' }}>
+              {Icons.fullscreen} Pantalla Completa
             </button>
           </div>
         </div>
-      </div>
+      )}
     </div>
   )
 }
