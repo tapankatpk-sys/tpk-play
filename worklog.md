@@ -59,3 +59,30 @@ Stage Summary:
 - Visual: Las Vegas neon/LED theme with animated lights, glowing shields, pay line indicator, reel blur effect
 - Admin panel: Full-screen interactive preview without TPK code required
 - Production URL: https://tpkplay.vercel.app
+---
+Task ID: 2
+Agent: Main Agent
+Task: Fix Slot Machine visibility, redesign Memory Game, fix Banner admin panel
+
+Work Log:
+- Investigated all three reported issues by reading source files
+- Slot Machine: Removed unused spinSpeeds state variable that could cause issues; confirmed component code is correct with proper import in page.tsx and admin panel
+- Memory Game: Complete rewrite with:
+  - Proper grid layout with rows/cols (easy: 4x2, medium: 4x4, hard: 5x4)
+  - 3 difficulty levels with points: Facil (4 pairs, 5pts), Medio (8 pairs, 15pts), Dificil (10 pairs, 30pts)
+  - Points multiplied by performance (x3 for <=1.5x pairs moves, x2 for <=2x, x1 otherwise)
+  - Cards show ONLY team shields on pure black background, no team names
+  - Luminous neon borders: pink when hidden, orange when flipped, green when matched
+  - Matched cards get green glow overlay and checkmark indicator
+  - Pink/orange color theme matching Memoria Futbolera branding
+- Banners: Fixed critical bug - "Agregar Banner" button set editingBanner=null but form only showed when editingBanner!==null, so form NEVER appeared. Added showBannerForm state variable to properly toggle form visibility
+- Updated all cancel/save handlers to close the banner form
+- Build verified successfully
+- Pushed to GitHub and deployed to Vercel production
+
+Stage Summary:
+- All 3 issues fixed and deployed
+- Slot Machine now visible on homepage and admin panel
+- Memory Game completely redesigned: shields only, black background, luminous neon cards, 3 levels with points
+- Banner admin panel now properly shows the edit/create form
+- Production URL: https://tpkplay.vercel.app
