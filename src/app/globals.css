@@ -455,3 +455,60 @@
     text-shadow: 0 0 20px rgba(239,68,68,0.8), 0 0 40px rgba(239,68,68,0.4);
   }
 }
+
+/* ============================================ */
+/* TPK PLAY - Slot Machine Animations           */
+/* ============================================ */
+
+/* Slot machine icon float animation */
+@keyframes slot-float {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-8px) scale(1.03); }
+}
+
+/* Slot machine light blink animation */
+@keyframes slot-light-blink {
+  0%, 100% { opacity: 0.4; transform: scale(0.8); }
+  50% { opacity: 1; transform: scale(1.2); }
+}
+
+/* Slot machine jackpot flash overlay */
+@keyframes slot-jackpot-flash {
+  0% { opacity: 0; }
+  50% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* Slot machine result pop animation */
+@keyframes slot-result-pop {
+  0% { transform: scale(0.8); opacity: 0; }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+/* Slot machine light chase animation */
+@keyframes slot-light-chase {
+  0% { opacity: 0.3; }
+  50% { opacity: 1; }
+  100% { opacity: 0.3; }
+}
+
+/* Slot machine reel blur during spinning */
+@keyframes slot-reel-blur {
+  0% { filter: blur(0px); }
+  20% { filter: blur(2px); }
+  80% { filter: blur(2px); }
+  100% { filter: blur(0px); }
+}
+
+/* Slot machine shield glow for jackpot */
+@keyframes slot-shield-glow {
+  0% { filter: drop-shadow(0 0 5px rgba(251,191,36,0.3)); transform: scale(1); }
+  100% { filter: drop-shadow(0 0 20px rgba(251,191,36,0.8)); transform: scale(1.05); }
+}
+
+/* Slot machine glow pulse animation */
+@keyframes slot-glow-pulse {
+  0% { opacity: 0.5; }
+  100% { opacity: 1; }
+}

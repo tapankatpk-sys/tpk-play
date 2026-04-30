@@ -63,7 +63,7 @@ export default function SlotMachineGame() {
   const [showWinAnimation, setShowWinAnimation] = useState(false)
   const [dailyTeam, setDailyTeam] = useState(0)
   const [history, setHistory] = useState<Array<{ reels: [number, number, number]; result: string; points: number }>>([])
-  const reelIntervalsRef = useRef<(NodeJS.Timeout | null)[]>([null, null, null])
+  const reelIntervalsRef = useRef<(ReturnType<typeof setInterval> | null)[]>([null, null, null])
 
   // Set daily team based on date
   useEffect(() => {
@@ -400,16 +400,7 @@ export default function SlotMachineGame() {
           </div>
         </div>
 
-        <style jsx>{`
-          @keyframes slot-float {
-            0%, 100% { transform: translateY(0) scale(1); }
-            50% { transform: translateY(-8px) scale(1.03); }
-          }
-          @keyframes slot-light-blink {
-            0%, 100% { opacity: 0.4; transform: scale(0.8); }
-            50% { opacity: 1; transform: scale(1.2); }
-          }
-        `}</style>
+
       </div>
     )
   }
@@ -826,29 +817,7 @@ export default function SlotMachineGame() {
         </div>
       </div>
 
-      <style jsx>{`
-        @keyframes slot-jackpot-flash {
-          0% { opacity: 0; }
-          50% { opacity: 1; }
-          100% { opacity: 0; }
-        }
-        @keyframes slot-result-pop {
-          0% { transform: scale(0.8); opacity: 0; }
-          50% { transform: scale(1.05); }
-          100% { transform: scale(1); opacity: 1; }
-        }
-        @keyframes slot-light-chase {
-          0% { opacity: 0.3; }
-          50% { opacity: 1; }
-          100% { opacity: 0.3; }
-        }
-        @keyframes slot-reel-blur {
-          0% { filter: blur(0px); }
-          20% { filter: blur(2px); }
-          80% { filter: blur(2px); }
-          100% { filter: blur(0px); }
-        }
-      `}</style>
+
     </div>
   )
 }
@@ -1007,16 +976,7 @@ function SlotReel({
         ))}
       </div>
 
-      <style jsx>{`
-        @keyframes slot-shield-glow {
-          0% { filter: drop-shadow(0 0 5px rgba(251,191,36,0.3)); transform: scale(1); }
-          100% { filter: drop-shadow(0 0 20px rgba(251,191,36,0.8)); transform: scale(1.05); }
-        }
-        @keyframes slot-glow-pulse {
-          0% { opacity: 0.5; }
-          100% { opacity: 1; }
-        }
-      `}</style>
+
     </div>
   )
 }
