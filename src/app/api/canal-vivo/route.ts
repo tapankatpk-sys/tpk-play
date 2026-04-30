@@ -8,15 +8,20 @@ export async function GET() {
     if (!config) {
       config = await db.canalVivoConfig.create({
         data: {
+          primarySource: 'winplay',
+          winplayEmail: '',
+          winplayPassword: '',
+          winplayUrl: 'https://winplay.co',
           youtubeChannelId: 'UCZjpA3YBPXvJv3pg4SPEjfw',
           youtubeVideoId: '',
           streamTitle: 'Liga BetPlay en Vivo',
-          streamSubtitle: 'Win Sports - Señal en Vivo',
+          streamSubtitle: 'Win Play - Señal en Vivo',
           altStreamUrl: '',
           altStreamLabel: 'Señal Alternativa',
           showChat: true,
           showSchedule: true,
           autoPlay: true,
+          alwaysActive: true,
           isActive: true,
         },
       })
@@ -38,15 +43,20 @@ export async function POST(request: NextRequest) {
     }
     const config = await db.canalVivoConfig.create({
       data: {
+        primarySource: body.primarySource ?? 'winplay',
+        winplayEmail: body.winplayEmail ?? '',
+        winplayPassword: body.winplayPassword ?? '',
+        winplayUrl: body.winplayUrl ?? 'https://winplay.co',
         youtubeChannelId: body.youtubeChannelId ?? 'UCZjpA3YBPXvJv3pg4SPEjfw',
         youtubeVideoId: body.youtubeVideoId ?? '',
         streamTitle: body.streamTitle ?? 'Liga BetPlay en Vivo',
-        streamSubtitle: body.streamSubtitle ?? 'Win Sports - Señal en Vivo',
+        streamSubtitle: body.streamSubtitle ?? 'Win Play - Señal en Vivo',
         altStreamUrl: body.altStreamUrl ?? '',
         altStreamLabel: body.altStreamLabel ?? 'Señal Alternativa',
         showChat: body.showChat ?? true,
         showSchedule: body.showSchedule ?? true,
         autoPlay: body.autoPlay ?? true,
+        alwaysActive: body.alwaysActive ?? true,
         isActive: body.isActive ?? true,
       },
     })
@@ -66,6 +76,10 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: 'ID requerido' }, { status: 400 })
     }
     const updateData: Record<string, unknown> = {}
+    if (data.primarySource !== undefined) updateData.primarySource = data.primarySource
+    if (data.winplayEmail !== undefined) updateData.winplayEmail = data.winplayEmail
+    if (data.winplayPassword !== undefined) updateData.winplayPassword = data.winplayPassword
+    if (data.winplayUrl !== undefined) updateData.winplayUrl = data.winplayUrl
     if (data.youtubeChannelId !== undefined) updateData.youtubeChannelId = data.youtubeChannelId
     if (data.youtubeVideoId !== undefined) updateData.youtubeVideoId = data.youtubeVideoId
     if (data.streamTitle !== undefined) updateData.streamTitle = data.streamTitle
@@ -75,6 +89,7 @@ export async function PUT(request: NextRequest) {
     if (data.showChat !== undefined) updateData.showChat = data.showChat
     if (data.showSchedule !== undefined) updateData.showSchedule = data.showSchedule
     if (data.autoPlay !== undefined) updateData.autoPlay = data.autoPlay
+    if (data.alwaysActive !== undefined) updateData.alwaysActive = data.alwaysActive
     if (data.isActive !== undefined) updateData.isActive = data.isActive
     const config = await db.canalVivoConfig.update({
       where: { id },
