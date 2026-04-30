@@ -192,9 +192,9 @@ export default function AudioPlayer() {
         className="fixed z-50"
         style={{
           bottom: showControls ? 'auto' : '24px',
-          right: showControls ? 'auto' : '24px',
+          left: showControls ? '50%' : '24px',
           top: showControls ? '50%' : 'auto',
-          left: showControls ? '50%' : 'auto',
+          right: showControls ? 'auto' : 'auto',
           transform: showControls ? 'translate(-50%, -50%)' : 'none',
         }}
       >
@@ -486,7 +486,7 @@ export default function AudioPlayer() {
 
             {/* Tooltip */}
             <div
-              className="absolute bottom-full right-0 mb-2 px-2 py-1 rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"
+              className="absolute bottom-full left-0 mb-2 px-2 py-1 rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"
               style={{
                 background: 'rgba(0,0,0,0.9)',
                 border: '1px solid rgba(168,85,247,0.3)',
