@@ -51,6 +51,7 @@ const SESSION_KEY = 'tpk_admin_token'
 const GAME_TYPES: Record<string, { label: string; icon: string; color: string; description: string }> = {
   'trivia-futbolera': { label: 'Trivia Futbolera', icon: '⚽', color: '#a855f7', description: 'Pregunta por hora sobre la Liga BetPlay' },
   'trivia-relampago': { label: 'Trivia Relámpago', icon: '⚡', color: '#eab308', description: '5 preguntas en 60 segundos' },
+  'memoria-futbolera': { label: 'Memoria Futbolera', icon: '🧠', color: '#ec4899', description: 'Encuentra los pares de escudos de la Liga BetPlay' },
   'prediccion': { label: 'Predicción', icon: '🎯', color: '#f97316', description: 'Predice resultados de partidos' },
   'encuesta': { label: 'Encuesta', icon: '📊', color: '#3b82f6', description: 'Vota en encuestas futboleras' },
   'personalizado': { label: 'Personalizado', icon: '🎮', color: '#22c55e', description: 'Juego personalizado' },

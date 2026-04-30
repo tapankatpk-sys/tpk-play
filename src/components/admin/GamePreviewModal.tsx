@@ -22,10 +22,35 @@ interface GamePreviewModalProps {
 const GAME_TYPES: Record<string, { label: string; icon: string; color: string }> = {
   'trivia-futbolera': { label: 'Trivia Futbolera', icon: '⚽', color: '#a855f7' },
   'trivia-relampago': { label: 'Trivia Relámpago', icon: '⚡', color: '#eab308' },
+  'memoria-futbolera': { label: 'Memoria Futbolera', icon: '🧠', color: '#ec4899' },
   'prediccion': { label: 'Predicción', icon: '🎯', color: '#f97316' },
   'encuesta': { label: 'Encuesta', icon: '📊', color: '#3b82f6' },
   'personalizado': { label: 'Personalizado', icon: '🎮', color: '#22c55e' },
 }
+
+// Teams data for Memoria Futbolera preview
+const MEMORY_TEAMS = [
+  { id: 'atletico-nacional', name: 'Atlético Nacional', color: '#00953b', city: 'Medellín' },
+  { id: 'millonarios', name: 'Millonarios', color: '#0033a0', city: 'Bogotá' },
+  { id: 'america-de-cali', name: 'América de Cali', color: '#e31937', city: 'Cali' },
+  { id: 'deportivo-cali', name: 'Deportivo Cali', color: '#007a33', city: 'Cali' },
+  { id: 'atletico-junior', name: 'Junior FC', color: '#c8102e', city: 'Barranquilla' },
+  { id: 'independiente-santa-fe', name: 'Santa Fe', color: '#c8102e', city: 'Bogotá' },
+  { id: 'independiente-medellin', name: 'Independiente Medellín', color: '#e31937', city: 'Medellín' },
+  { id: 'once-caldas', name: 'Once Caldas', color: '#0033a0', city: 'Manizales' },
+  { id: 'deportes-tolima', name: 'Deportes Tolima', color: '#fdd835', city: 'Ibagué' },
+  { id: 'atletico-bucaramanga', name: 'Atlético Bucaramanga', color: '#fdd835', city: 'Bucaramanga' },
+  { id: 'fortaleza-ceif', name: 'Fortaleza CEIF', color: '#e31937', city: 'Bogotá' },
+  { id: 'deportivo-pereira', name: 'Deportivo Pereira', color: '#c8102e', city: 'Pereira' },
+  { id: 'deportivo-pasto', name: 'Deportivo Pasto', color: '#1a237e', city: 'Pasto' },
+  { id: 'la-equidad', name: 'La Equidad', color: '#2e7d32', city: 'Bogotá' },
+  { id: 'jaguares-de-cordoba', name: 'Jaguares de Córdoba', color: '#f57f17', city: 'Montería' },
+  { id: 'cucuta-deportivo', name: 'Cúcuta Deportivo', color: '#b71c1c', city: 'Cúcuta' },
+  { id: 'internacional-de-bogota', name: 'Internacional de Bogotá', color: '#1565c0', city: 'Bogotá' },
+  { id: 'alianza-valledupar', name: 'Alianza Valledupar', color: '#00838f', city: 'Valledupar' },
+  { id: 'boyaca-chico', name: 'Boyacá Chicó', color: '#e65100', city: 'Tunja' },
+  { id: 'llaneros', name: 'Llaneros', color: '#4e342e', city: 'Villavicencio' },
+]
 
 // Preview component for Trivia Futbolera
 function TriviaFutboleraPreview() {
@@ -323,6 +348,150 @@ function TriviaRelampagoPreview() {
   )
 }
 
+// Preview component for Memoria Futbolera
+function MemoriaFutboleraPreview() {
+  const difficultyConfig = [
+    { key: 'easy', label: 'Fácil', emoji: '🟢', pairs: 4, cols: 4 },
+    { key: 'medium', label: 'Medio', emoji: '🟡', pairs: 6, cols: 4 },
+    { key: 'hard', label: 'Difícil', emoji: '🔴', pairs: 10, cols: 5 },
+  ]
+
+  return (
+    <div className="space-y-4">
+      {/* Game info card */}
+      <div
+        className="p-4 rounded-xl text-center"
+        style={{
+          background: 'rgba(236, 72, 153, 0.08)',
+          border: '1px solid rgba(236, 72, 153, 0.3)',
+        }}
+      >
+        <div className="text-4xl mb-2">🧠</div>
+        <h3 className="text-lg font-bold" style={{ color: '#ec4899' }}>Memoria Futbolera</h3>
+        <p className="text-sm mt-1" style={{ color: 'rgba(255,255,255,0.5)' }}>
+          Encuentra los pares de escudos de la Liga BetPlay
+        </p>
+      </div>
+
+      {/* Difficulty levels */}
+      <div>
+        <div className="text-xs font-bold uppercase mb-2" style={{ color: 'rgba(255,255,255,0.4)' }}>
+          Niveles de dificultad
+        </div>
+        <div className="grid grid-cols-3 gap-2">
+          {difficultyConfig.map((d) => (
+            <div
+              key={d.key}
+              className="p-3 rounded-xl text-center"
+              style={{ background: 'rgba(236, 72, 153, 0.06)', border: '1px solid rgba(236, 72, 153, 0.2)' }}
+            >
+              <div className="text-xl mb-1">{d.emoji}</div>
+              <div className="text-xs font-bold" style={{ color: '#f9a8d4' }}>{d.label}</div>
+              <div className="text-[0.65rem]" style={{ color: 'rgba(255,255,255,0.4)' }}>{d.pairs} pares</div>
+              <div className="text-[0.6rem]" style={{ color: 'rgba(255,255,255,0.3)' }}>{d.cols} columnas</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* How to play */}
+      <div>
+        <div className="text-xs font-bold uppercase mb-2" style={{ color: 'rgba(255,255,255,0.4)' }}>
+          Cómo jugar
+        </div>
+        <div className="space-y-1.5">
+          {[
+            { icon: '🃏', text: 'Voltea 2 cartas por turno' },
+            { icon: '⚽', text: 'Encuentra los escudos iguales' },
+            { icon: '🏆', text: 'Menos movimientos = más estrellas' },
+            { icon: '⏱', text: 'Cronómetro y contador de movimientos' },
+            { icon: '💾', text: 'Mejores puntuaciones guardadas' },
+          ].map((item, i) => (
+            <div
+              key={i}
+              className="px-3 py-2 rounded-lg flex items-center gap-2 text-xs"
+              style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}
+            >
+              <span>{item.icon}</span>
+              <span style={{ color: 'rgba(255,255,255,0.6)' }}>{item.text}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Team shields gallery */}
+      <div>
+        <div className="text-xs font-bold uppercase mb-2" style={{ color: 'rgba(255,255,255,0.4)' }}>
+          Equipos disponibles ({MEMORY_TEAMS.length})
+        </div>
+        <div className="grid grid-cols-4 sm:grid-cols-5 gap-2">
+          {MEMORY_TEAMS.map((team) => (
+            <div
+              key={team.id}
+              className="p-2 rounded-lg text-center"
+              style={{
+                background: 'rgba(0,0,0,0.3)',
+                border: `1px solid ${team.color}30`,
+              }}
+            >
+              <div
+                className="w-10 h-10 mx-auto rounded-full flex items-center justify-center mb-1"
+                style={{
+                  background: `linear-gradient(135deg, ${team.color}15, ${team.color}30)`,
+                  border: `1px solid ${team.color}40`,
+                  boxShadow: `0 0 6px ${team.color}20`,
+                }}
+              >
+                <img
+                  src={`/images/teams/${team.id}.svg`}
+                  alt={team.name}
+                  className="w-7 h-7 object-contain"
+                  style={{ filter: 'drop-shadow(0 0 2px rgba(255,255,255,0.2))' }}
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement
+                    if (!target.src.endsWith('.png')) {
+                      target.src = `/images/teams/${team.id}.png`
+                    }
+                  }}
+                />
+              </div>
+              <div
+                className="text-[0.5rem] font-bold truncate"
+                style={{ color: team.color, textShadow: `0 0 4px ${team.color}40` }}
+              >
+                {team.name}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Scoring system */}
+      <div>
+        <div className="text-xs font-bold uppercase mb-2" style={{ color: 'rgba(255,255,255,0.4)' }}>
+          Sistema de estrellas
+        </div>
+        <div className="space-y-1.5">
+          {[
+            { stars: 3, condition: 'Hasta 1.5x el número de pares en movimientos', color: '#fbbf24' },
+            { stars: 2, condition: 'Hasta 2x el número de pares en movimientos', color: '#a855f7' },
+            { stars: 1, condition: 'Más de 2x el número de pares', color: '#f97316' },
+          ].map((level, i) => (
+            <div
+              key={i}
+              className="px-3 py-2 rounded-lg flex items-center gap-3 text-xs"
+              style={{ background: `${level.color}08`, border: `1px solid ${level.color}20` }}
+            >
+              <span className="text-sm">{'⭐'.repeat(level.stars)}</span>
+              <span style={{ color: 'rgba(255,255,255,0.5)' }}>{level.condition}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // Generic placeholder preview for other game types
 function GenericGamePreview({ game }: { game: Game }) {
   const gameType = GAME_TYPES[game.type] || GAME_TYPES['personalizado']
@@ -503,7 +672,8 @@ export default function GamePreviewModal({ game, onClose }: GamePreviewModalProp
         <div className="flex-1 overflow-y-auto p-4" style={{ scrollbarColor: `${gameType.color}30 transparent` }}>
           {game.type === 'trivia-futbolera' && <TriviaFutboleraPreview />}
           {game.type === 'trivia-relampago' && <TriviaRelampagoPreview />}
-          {!['trivia-futbolera', 'trivia-relampago'].includes(game.type) && <GenericGamePreview game={game} />}
+          {game.type === 'memoria-futbolera' && <MemoriaFutboleraPreview />}
+          {!['trivia-futbolera', 'trivia-relampago', 'memoria-futbolera'].includes(game.type) && <GenericGamePreview game={game} />}
         </div>
 
         {/* Footer */}

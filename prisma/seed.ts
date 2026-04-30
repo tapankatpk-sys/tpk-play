@@ -60,6 +60,37 @@ async function main() {
 
   console.log('✅ Created game:', triviaRelampago.name)
 
+  // Create Memoria Futbolera game
+  const memoriaFutbolera = await prisma.game.upsert({
+    where: { id: 'game-memoria-futbolera' },
+    update: {},
+    create: {
+      id: 'game-memoria-futbolera',
+      name: 'Memoria Futbolera',
+      description: 'Encuentra los pares de escudos de los equipos de la Liga BetPlay. ¡Pon a prueba tu memoria futbolera!',
+      type: 'memoria-futbolera',
+      imageUrl: null,
+      config: JSON.stringify({
+        mode: 'memory-match',
+        difficulties: {
+          easy: { pairs: 4, cols: 4 },
+          medium: { pairs: 6, cols: 4 },
+          hard: { pairs: 10, cols: 5 },
+        },
+        totalTeams: 20,
+        scoringSystem: {
+          threeStars: 'upTo1.5xPairs',
+          twoStars: 'upTo2xPairs',
+          oneStar: 'moreThan2xPairs',
+        },
+      }),
+      isActive: true,
+      order: 2,
+    },
+  })
+
+  console.log('✅ Created game:', memoriaFutbolera.name)
+
   // Verify games
   const allGames = await prisma.game.findMany({
     include: { _count: { select: { participants: true } } },
