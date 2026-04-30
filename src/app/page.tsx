@@ -2,6 +2,7 @@ import HeroSection from '@/components/hero/HeroSection'
 import RegistrationSection from '@/components/registration/RegistrationSection'
 import TriviaGame from '@/components/trivia/TriviaGame'
 import LightningTriviaGame from '@/components/lightning/LightningTriviaGame'
+import MemoryGame from '@/components/memory/MemoryGame'
 import AdminPanel from '@/components/admin/AdminPanel'
 import CircularPopup from '@/components/popup/CircularPopup'
 
@@ -66,8 +67,30 @@ export default function Home() {
         </div>
 
         {/* Trivia Relámpago */}
-        <div className="relative z-10">
+        <div className="relative z-10 mb-10">
           <LightningTriviaGame />
+        </div>
+
+        {/* Separator before Memory Game */}
+        <div className="flex items-center justify-center gap-3 py-6">
+          <div className="h-px flex-1 max-w-32" style={{
+            background: 'linear-gradient(to right, transparent, rgba(168, 85, 247, 0.4))',
+          }} />
+          <div className="flex items-center gap-2">
+            <span style={{ color: '#a855f7', textShadow: '0 0 8px rgba(168, 85, 247, 0.6)', fontSize: '0.75rem' }}>🧠</span>
+            <span className="text-[0.6rem] uppercase tracking-[0.3em] font-bold" style={{ color: 'rgba(168, 85, 247, 0.5)' }}>
+              Nuevo juego
+            </span>
+            <span style={{ color: '#a855f7', textShadow: '0 0 8px rgba(168, 85, 247, 0.6)', fontSize: '0.75rem' }}>🧠</span>
+          </div>
+          <div className="h-px flex-1 max-w-32" style={{
+            background: 'linear-gradient(to left, transparent, rgba(168, 85, 247, 0.4))',
+          }} />
+        </div>
+
+        {/* Memoria Futbolera */}
+        <div className="relative z-10">
+          <MemoryGame />
         </div>
       </section>
       
