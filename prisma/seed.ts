@@ -127,6 +127,40 @@ async function main() {
 
   console.log('✅ Created game:', crucigramaFutbolero.name)
 
+  // Create Tragamonedas Futbolera game
+  const tragamonedasFutbolera = await prisma.game.upsert({
+    where: { id: 'game-tragamonedas-futbolera' },
+    update: {},
+    create: {
+      id: 'game-tragamonedas-futbolera',
+      name: 'Tragamonedas Futbolera',
+      description: 'Gira los rodillos y encuentra los escudos iguales de la Liga BetPlay. ¡Jackpot con 3 escudos iguales! 5 giros gratis por partida.',
+      type: 'tragamonedas-futbolera',
+      imageUrl: null,
+      config: JSON.stringify({
+        mode: 'slot-machine',
+        reels: 3,
+        spinsPerGame: 5,
+        scoring: {
+          jackpot: { match: 3, basePoints: 50, multiplier: 'teamValue' },
+          double: { match: 2, points: 10 },
+          dailyBonus: { match: 'dailyTeam', points: 5 },
+        },
+        teamValues: {
+          3: ['atletico-nacional', 'millonarios', 'america-de-cali'],
+          2: ['deportivo-cali', 'atletico-junior', 'independiente-santa-fe', 'independiente-medellin'],
+          1: ['once-caldas', 'deportes-tolima', 'atletico-bucaramanga', 'fortaleza-ceif', 'deportivo-pereira', 'deportivo-pasto', 'la-equidad', 'jaguares-de-cordoba', 'cucuta-deportivo', 'internacional-de-bogota', 'alianza-valledupar', 'boyaca-chico', 'llaneros', 'envigado'],
+        },
+        dailyTeamRotation: true,
+        totalTeams: 20,
+      }),
+      isActive: true,
+      order: 4,
+    },
+  })
+
+  console.log('✅ Created game:', tragamonedasFutbolera.name)
+
   // Create GANADOR TPK banner
   const ganadorBanner = await prisma.tpkBanner.upsert({
     where: { type: 'ganador' },
