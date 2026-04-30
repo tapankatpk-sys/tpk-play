@@ -218,3 +218,19 @@ model CircuitoConfig {
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 }
+
+// ============================================
+// PARQUÉS FUTBOLERO - Configuración del juego
+// ============================================
+
+model ParquesConfig {
+  id              String   @id @default(cuid())
+  tokensPerPlayer Int      @default(2)      // Fichas por jugador (2 o 4)
+  pointsCapture   Int      @default(50)     // Puntos por capturar rival
+  pointsFinish    Int      @default(100)    // Puntos por llegar a la meta
+  pointsWin       Int      @default(500)    // Puntos por ganar la partida
+  diceSpeed       Int      @default(3)      // Velocidad de animación del dado 1-5
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}

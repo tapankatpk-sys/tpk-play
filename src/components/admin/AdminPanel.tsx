@@ -71,7 +71,7 @@ interface MatchPredictionData {
   updatedAt: string
 }
 
-type Tab = 'dashboard' | 'games' | 'participants' | 'stats' | 'popup' | 'banners' | 'predictions' | 'loteria' | 'ruleta' | 'circuito'
+type Tab = 'dashboard' | 'games' | 'participants' | 'stats' | 'popup' | 'banners' | 'predictions' | 'loteria' | 'ruleta' | 'circuito' | 'parques'
 
 interface SidebarSection {
   id: string
@@ -100,6 +100,7 @@ const GAME_TYPES: Record<string, { label: string; icon: string; color: string; d
   'loteria-futbolera': { label: 'Lotería de Equipos', icon: '🃏', color: '#ff00ff', description: 'Lotería con escudos de la Liga BetPlay' },
   'ruleta-futbolera': { label: 'Ruleta de Equipos', icon: '🎰', color: '#ffc800', description: 'Ruleta casino con escudos de la Liga BetPlay' },
   'circuito-futbolero': { label: 'Circuito Futbolero', icon: '🎮', color: '#00ff80', description: 'Pac-Man con escudos de rivales de la Liga BetPlay' },
+  'parques-futbolero': { label: 'Parqués Futbolero', icon: '🎲', color: '#facc15', description: 'Parqués clásico con clásicos rivales de la Liga BetPlay' },
   'prediccion': { label: 'Predicción', icon: '🎯', color: '#f97316', description: 'Predice resultados de partidos' },
   'encuesta': { label: 'Encuesta', icon: '📊', color: '#3b82f6', description: 'Vota en encuestas futboleras' },
   'personalizado': { label: 'Personalizado', icon: '🎮', color: '#22c55e', description: 'Juego personalizado' },
@@ -237,6 +238,11 @@ export default function AdminPanel() {
   const [circuitoConfig, setCircuitoConfig] = useState<{ id: string; pointsDot: number; pointsGhost: number; gameSpeed: number; lives: number; isActive: boolean } | null>(null)
   const [circuitoForm, setCircuitoForm] = useState({ pointsDot: 10, pointsGhost: 200, gameSpeed: 3, lives: 3, isActive: true })
   const [savingCircuito, setSavingCircuito] = useState(false)
+
+  // Parques state
+  const [parquesConfig, setParquesConfig] = useState<{ id: string; tokensPerPlayer: number; pointsCapture: number; pointsFinish: number; pointsWin: number; diceSpeed: number; isActive: boolean } | null>(null)
+  const [parquesForm, setParquesForm] = useState({ tokensPerPlayer: 2, pointsCapture: 50, pointsFinish: 100, pointsWin: 500, diceSpeed: 3, isActive: true })
+  const [savingParques, setSavingParques] = useState(false)
 
   // Auth state
   const [isAuthenticated, setIsAuthenticated] = useState(false)
@@ -469,16 +475,37 @@ export default function AdminPanel() {
     }
   }, [])
 
+  const fetchParquesConfig = useCallback(async () => {
+    try {
+      const res = await fetch('/api/parques')
+      if (!res.ok) throw new Error(`Error ${res.status}`)
+      const data = await res.json()
+      if (data && !data.error) {
+        setParquesConfig(data)
+        setParquesForm({
+          tokensPerPlayer: data.tokensPerPlayer,
+          pointsCapture: data.pointsCapture,
+          pointsFinish: data.pointsFinish,
+          pointsWin: data.pointsWin,
+          diceSpeed: data.diceSpeed,
+          isActive: data.isActive,
+        })
+      }
+    } catch (err) {
+      console.error('Error fetching parqués config:', err)
+    }
+  }, [])
+
   useEffect(() => {
     if (isAuthenticated && showPanel) {
       const load = async () => {
         setLoading(true)
-        await Promise.all([fetchGames(), fetchParticipants(), fetchPopups(), fetchBanners(), fetchPredictions(), fetchLoteriaConfig(), fetchRuletaConfig(), fetchCircuitoConfig()])
+        await Promise.all([fetchGames(), fetchParticipants(), fetchPopups(), fetchBanners(), fetchPredictions(), fetchLoteriaConfig(), fetchRuletaConfig(), fetchCircuitoConfig(), fetchParquesConfig()])
         setLoading(false)
       }
       load()
     }
-  }, [isAuthenticated, showPanel, fetchGames, fetchParticipants, fetchPopups, fetchBanners, fetchPredictions, fetchLoteriaConfig, fetchRuletaConfig, fetchCircuitoConfig])
+  }, [isAuthenticated, showPanel, fetchGames, fetchParticipants, fetchPopups, fetchBanners, fetchPredictions, fetchLoteriaConfig, fetchRuletaConfig, fetchCircuitoConfig, fetchParquesConfig])
 
   // Game CRUD
   const handleOpenAddGame = () => {
@@ -880,6 +907,31 @@ export default function AdminPanel() {
     }
   }
 
+  // Parques save handler
+  const handleSaveParques = async () => {
+    setSavingParques(true)
+    try {
+      if (parquesConfig) {
+        await fetch('/api/parques', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: parquesConfig.id, ...parquesForm }),
+        })
+      } else {
+        await fetch('/api/parques', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(parquesForm),
+        })
+      }
+      fetchParquesConfig()
+    } catch (err) {
+      console.error('Error saving parqués config:', err)
+    } finally {
+      setSavingParques(false)
+    }
+  }
+
   // Stats calculations
   const totalParticipants = participants.length
   const totalPoints = participants.reduce((sum, p) => sum + p.totalPoints, 0)
@@ -901,6 +953,7 @@ export default function AdminPanel() {
         { id: 'loteria', label: 'Lotería', icon: '🃏', color: '#ff00ff' },
         { id: 'ruleta', label: 'Ruleta', icon: '🎰', color: '#ffc800' },
         { id: 'circuito', label: 'Circuito', icon: '🎮', color: '#00ff80' },
+        { id: 'parques', label: 'Parqués', icon: '🎲', color: '#facc15' },
         { id: 'predictions', label: 'Predicciones', icon: '⚽', color: '#00ff80', count: predictions.length },
         { id: 'popup', label: 'Popup', icon: '💬', color: '#eab308', count: popups.length },
       ],
@@ -1326,6 +1379,7 @@ export default function AdminPanel() {
                         : activeTab === 'loteria' ? '#ff00ff'
                         : activeTab === 'ruleta' ? '#ffc800'
                         : activeTab === 'circuito' ? '#00ff80'
+                        : activeTab === 'parques' ? '#facc15'
                         : activeTab === 'predictions' ? '#00ff80'
                         : activeTab === 'banners' ? '#00ffff'
                         : activeTab === 'popup' ? '#eab308'
@@ -1338,6 +1392,7 @@ export default function AdminPanel() {
                       : activeTab === 'loteria' ? 'Lotería de Equipos'
                       : activeTab === 'ruleta' ? 'Ruleta de Equipos'
                       : activeTab === 'circuito' ? 'Circuito Futbolero'
+                      : activeTab === 'parques' ? 'Parqués Futbolero'
                       : activeTab === 'predictions' ? 'Predicciones'
                       : activeTab === 'banners' ? 'Banners'
                       : activeTab === 'popup' ? 'Popup'
@@ -3411,6 +3466,203 @@ export default function AdminPanel() {
                           <div style={{ color: 'rgba(255,200,0,0.6)' }}>&#x1F97E; Rival +{circuitoForm.pointsGhost}pts</div>
                           <div style={{ color: 'rgba(168,85,247,0.6)' }}>&#x1F3AE; Velocidad {circuitoForm.gameSpeed}</div>
                           <div style={{ color: 'rgba(239,68,68,0.6)' }}>&#x2764;&#xFE0F; Vidas x{circuitoForm.lives}</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ) : activeTab === 'parques' ? (
+                /* ========== PARQUÉS TAB ========== */
+                <div className="space-y-4">
+                  <div className="p-3 rounded-xl" style={{ background: 'rgba(250,204,21,0.04)', border: '1px solid rgba(250,204,21,0.15)' }}>
+                    <p className="text-[0.65rem]" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                      Configura el <b style={{ color: '#facc15' }}>Parqués Futbolero</b>: fichas por jugador, puntos por captura, meta y victoria, velocidad del dado. Los cambios se reflejan en tiempo real.
+                    </p>
+                  </div>
+
+                  {parquesConfig && (
+                    <div className="grid grid-cols-6 gap-2">
+                      <div className="p-2 rounded-lg text-center" style={{ background: 'rgba(250,204,21,0.06)' }}>
+                        <div className="text-[0.5rem] uppercase" style={{ color: 'rgba(250,204,21,0.5)' }}>Fichas</div>
+                        <div className="text-lg font-black" style={{ color: '#facc15' }}>x{parquesConfig.tokensPerPlayer}</div>
+                      </div>
+                      <div className="p-2 rounded-lg text-center" style={{ background: 'rgba(239,68,68,0.06)' }}>
+                        <div className="text-[0.5rem] uppercase" style={{ color: 'rgba(239,68,68,0.5)' }}>Captura</div>
+                        <div className="text-lg font-black" style={{ color: '#ef4444' }}>+{parquesConfig.pointsCapture}</div>
+                      </div>
+                      <div className="p-2 rounded-lg text-center" style={{ background: 'rgba(34,197,94,0.06)' }}>
+                        <div className="text-[0.5rem] uppercase" style={{ color: 'rgba(34,197,94,0.5)' }}>Meta</div>
+                        <div className="text-lg font-black" style={{ color: '#22c55e' }}>+{parquesConfig.pointsFinish}</div>
+                      </div>
+                      <div className="p-2 rounded-lg text-center" style={{ background: 'rgba(255,200,0,0.06)' }}>
+                        <div className="text-[0.5rem] uppercase" style={{ color: 'rgba(255,200,0,0.5)' }}>Victoria</div>
+                        <div className="text-lg font-black" style={{ color: '#ffc800' }}>+{parquesConfig.pointsWin}</div>
+                      </div>
+                      <div className="p-2 rounded-lg text-center" style={{ background: 'rgba(168,85,247,0.06)' }}>
+                        <div className="text-[0.5rem] uppercase" style={{ color: 'rgba(168,85,247,0.5)' }}>Dado</div>
+                        <div className="text-lg font-black" style={{ color: '#d8b4fe' }}>{parquesConfig.diceSpeed}</div>
+                      </div>
+                      <div className="p-2 rounded-lg text-center" style={{ background: parquesConfig.isActive ? 'rgba(34,197,94,0.06)' : 'rgba(239,68,68,0.06)' }}>
+                        <div className="text-[0.5rem] uppercase" style={{ color: 'rgba(255,255,255,0.3)' }}>Estado</div>
+                        <div className="text-lg font-black" style={{ color: parquesConfig.isActive ? '#4ade80' : '#ef4444' }}>
+                          {parquesConfig.isActive ? '●' : '○'}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="space-y-3">
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-[0.6rem] font-bold uppercase tracking-wider block mb-1" style={{ color: 'rgba(250,204,21,0.6)' }}>
+                          Fichas por Jugador
+                        </label>
+                        <select
+                          value={parquesForm.tokensPerPlayer}
+                          onChange={(e) => setParquesForm({ ...parquesForm, tokensPerPlayer: parseInt(e.target.value) })}
+                          className="w-full px-3 py-2 rounded-lg text-sm font-bold outline-none cursor-pointer"
+                          style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(250,204,21,0.2)', color: '#facc15' }}
+                        >
+                          <option value={2} style={{ background: '#1a0a2e' }}>2 fichas</option>
+                          <option value={4} style={{ background: '#1a0a2e' }}>4 fichas</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="text-[0.6rem] font-bold uppercase tracking-wider block mb-1" style={{ color: 'rgba(239,68,68,0.6)' }}>
+                          Puntos por Captura
+                        </label>
+                        <input type="number" min={10} max={200} step={10}
+                          value={parquesForm.pointsCapture}
+                          onChange={(e) => setParquesForm({ ...parquesForm, pointsCapture: parseInt(e.target.value) || 50 })}
+                          className="w-full px-3 py-2 rounded-lg text-sm font-bold"
+                          style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(239,68,68,0.2)', color: '#ef4444' }}
+                        />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-[0.6rem] font-bold uppercase tracking-wider block mb-1" style={{ color: 'rgba(34,197,94,0.6)' }}>
+                          Puntos por Meta
+                        </label>
+                        <input type="number" min={50} max={500} step={25}
+                          value={parquesForm.pointsFinish}
+                          onChange={(e) => setParquesForm({ ...parquesForm, pointsFinish: parseInt(e.target.value) || 100 })}
+                          className="w-full px-3 py-2 rounded-lg text-sm font-bold"
+                          style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(34,197,94,0.2)', color: '#22c55e' }}
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[0.6rem] font-bold uppercase tracking-wider block mb-1" style={{ color: 'rgba(255,200,0,0.6)' }}>
+                          Puntos por Victoria
+                        </label>
+                        <input type="number" min={100} max={2000} step={50}
+                          value={parquesForm.pointsWin}
+                          onChange={(e) => setParquesForm({ ...parquesForm, pointsWin: parseInt(e.target.value) || 500 })}
+                          className="w-full px-3 py-2 rounded-lg text-sm font-bold"
+                          style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,200,0,0.2)', color: '#ffc800' }}
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="text-[0.6rem] font-bold uppercase tracking-wider block mb-1" style={{ color: 'rgba(168,85,247,0.6)' }}>
+                        Velocidad del Dado (1-5)
+                      </label>
+                      <input type="range" min={1} max={5}
+                        value={parquesForm.diceSpeed}
+                        onChange={(e) => setParquesForm({ ...parquesForm, diceSpeed: parseInt(e.target.value) })}
+                        className="w-full"
+                      />
+                      <div className="text-center text-xs font-bold mt-1" style={{ color: '#d8b4fe' }}>
+                        {parquesForm.diceSpeed}
+                      </div>
+                    </div>
+                    <div>
+                      <label className="text-[0.6rem] font-bold uppercase tracking-wider block mb-1" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                        Estado del Juego
+                      </label>
+                      <p className="text-[0.55rem] mb-2" style={{ color: 'rgba(255,255,255,0.25)' }}>
+                        Desactiva para ocultar el parqués del sitio
+                      </p>
+                      <button
+                        onClick={() => setParquesForm({ ...parquesForm, isActive: !parquesForm.isActive })}
+                        className="px-4 py-2 rounded-lg text-xs font-bold cursor-pointer transition-all"
+                        style={{
+                          background: parquesForm.isActive ? 'rgba(34,197,94,0.15)' : 'rgba(239,68,68,0.15)',
+                          color: parquesForm.isActive ? '#4ade80' : '#ef4444',
+                          border: `1px solid ${parquesForm.isActive ? 'rgba(34,197,94,0.3)' : 'rgba(239,68,68,0.3)'}`,
+                          boxShadow: parquesForm.isActive ? '0 0 8px rgba(34,197,94,0.1)' : '0 0 8px rgba(239,68,68,0.1)',
+                        }}
+                      >
+                        {parquesForm.isActive ? '● Activo' : '○ Inactivo'}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end">
+                    <button
+                      onClick={handleSaveParques}
+                      disabled={savingParques}
+                      className="px-6 py-2.5 rounded-xl font-bold text-sm cursor-pointer transition-all hover:scale-105 disabled:opacity-50"
+                      style={{
+                        background: 'linear-gradient(135deg, #facc15, #ef4444)',
+                        color: '#000',
+                        boxShadow: '0 0 12px rgba(250,204,21,0.2)',
+                      }}
+                    >
+                      {savingParques ? 'Guardando...' : 'Guardar Configuración'}
+                    </button>
+                  </div>
+
+                  {/* Preview */}
+                  <div>
+                    <div className="text-[0.6rem] font-bold uppercase tracking-wider mb-2" style={{ color: 'rgba(250,204,21,0.4)' }}>
+                      Vista Previa del Parqués
+                    </div>
+                    <div className="flex items-center gap-4 p-4 rounded-xl" style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(250,204,21,0.1)' }}>
+                      <div className="relative" style={{ width: '160px', height: '160px' }}>
+                        <div className="w-full h-full" style={{ display: 'grid', gridTemplateColumns: 'repeat(15, 1fr)', gridTemplateRows: 'repeat(15, 1fr)' }}>
+                          {[
+                            [0,0,0,0,0,0,1,1,1,0,0,0,0,0,0],
+                            [0,2,0,2,0,0,1,6,1,0,0,3,0,3,0],
+                            [0,0,0,0,0,0,1,6,1,0,0,0,0,0,0],
+                            [0,2,0,2,0,0,1,6,1,0,0,3,0,3,0],
+                            [0,0,0,0,0,0,1,6,1,0,0,0,0,0,0],
+                            [0,0,0,0,0,0,1,6,1,0,0,0,0,0,0],
+                            [1,1,1,1,1,1,7,6,7,1,1,1,1,1,1],
+                            [1,6,6,6,6,6,6,7,6,6,6,6,6,6,1],
+                            [1,1,1,1,1,1,7,6,7,1,1,1,1,1,1],
+                            [0,0,0,0,0,0,1,6,1,0,0,0,0,0,0],
+                            [0,0,0,0,0,0,1,6,1,0,0,0,0,0,0],
+                            [0,5,0,5,0,0,1,6,1,0,0,4,0,4,0],
+                            [0,0,0,0,0,0,1,6,1,0,0,0,0,0,0],
+                            [0,5,0,5,0,0,1,6,1,0,0,4,0,4,0],
+                            [0,0,0,0,0,0,1,1,1,0,0,0,0,0,0],
+                          ].flat().map((cell, i) => (
+                            <div key={`pq-${i}`} className="flex items-center justify-center"
+                              style={{
+                                background: cell === 1 ? 'rgba(255,255,255,0.08)' : cell >= 2 && cell <= 5 ? ['','rgba(250,204,21,0.12)','rgba(59,130,246,0.12)','rgba(239,68,68,0.12)','rgba(34,197,94,0.12)'][cell] || 'transparent' : cell === 6 ? 'rgba(250,204,21,0.06)' : cell === 7 ? 'rgba(255,200,0,0.1)' : 'transparent',
+                                border: cell > 0 ? '0.5px solid rgba(255,255,255,0.08)' : 'none',
+                              }}
+                            >
+                              {cell === 7 && i === 112 && <div className="w-[3px] h-[3px] rounded-full" style={{ backgroundColor: '#ffc800', boxShadow: '0 0 3px rgba(255,200,0,0.4)' }} />}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <div className="text-xs font-black uppercase" style={{ color: '#facc15', textShadow: '0 0 6px rgba(250,204,21,0.3)' }}>
+                          Parqués Futbolero
+                        </div>
+                        <div className="space-y-1 text-[0.55rem]">
+                          <div style={{ color: 'rgba(250,204,21,0.6)' }}>&#x1F3B2; Fichas x{parquesForm.tokensPerPlayer}</div>
+                          <div style={{ color: 'rgba(239,68,68,0.6)' }}>&#x2694;&#xFE0F; Captura +{parquesForm.pointsCapture}pts</div>
+                          <div style={{ color: 'rgba(34,197,94,0.6)' }}>&#x1F3C6; Meta +{parquesForm.pointsFinish}pts</div>
+                          <div style={{ color: 'rgba(255,200,0,0.6)' }}>&#x1F451; Victoria +{parquesForm.pointsWin}pts</div>
+                        </div>
+                        <div className="flex gap-1 mt-2">
+                          {['#facc15','#3b82f6','#ef4444','#22c55e'].map((c, ci) => (
+                            <div key={ci} className="w-3 h-3 rounded-full" style={{ backgroundColor: c, boxShadow: `0 0 4px ${c}60` }} />
+                          ))}
                         </div>
                       </div>
                     </div>
