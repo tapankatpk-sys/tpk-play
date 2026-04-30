@@ -29,11 +29,11 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const body = await request.json()
-    const { name, email, phone, gameId, followedFb, followedIg, followedWa } = body
+    const { name, email, phone, teamSlug, gameId, followedFb, followedIg, followedWa } = body
 
-    if (!name || !email || !phone) {
+    if (!name || !email || !phone || !teamSlug) {
       return NextResponse.json(
-        { error: 'Nombre, correo y teléfono son requeridos' },
+        { error: 'Nombre, correo, teléfono y equipo hincha son requeridos' },
         { status: 400 }
       )
     }
@@ -61,6 +61,7 @@ export async function POST(request: Request) {
         email,
         phone,
         code,
+        teamSlug: teamSlug || '',
         gameId: gameId || null,
         followedFb: followedFb || false,
         followedIg: followedIg || false,

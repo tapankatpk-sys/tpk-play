@@ -11,6 +11,7 @@ import LoteriaGame from '@/components/loteria/LoteriaGame'
 import RuletaEquipos from '@/components/ruleta/RuletaEquipos'
 import CircuitoFutbolero from '@/components/circuito/CircuitoFutbolero'
 import ParquesGame from '@/components/parques/ParquesGame'
+import GameGuard from '@/components/gameguard/GameGuard'
 import AdminPanel from '@/components/admin/AdminPanel'
 import CircularPopup from '@/components/popup/CircularPopup'
 
@@ -18,13 +19,13 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-black">
       <HeroSection />
-      
+
       {/* TPK Banners - Ganador & Premio */}
       <TPKBanners />
-      
+
       {/* Match Predictions - Liga BetPlay */}
       <MatchPredictions />
-      
+
       {/* Games Section */}
       <section className="relative py-12">
         {/* Section divider */}
@@ -53,14 +54,16 @@ export default function Home() {
               JUEGOS TPK PLAY
             </h2>
             <p className="text-xs uppercase tracking-widest" style={{ color: 'rgba(255,255,255,0.3)' }}>
-              Pon a prueba tu conocimiento futbolero
+              Debes estar registrado e ingresar tu código TPK para participar
             </p>
           </div>
         </div>
 
         {/* Trivia Futbolera */}
         <div className="relative z-10 mb-10">
-          <TriviaGame />
+          <GameGuard gameName="Trivia Futbolera" gameIcon="⚽" accentColor="#a855f7">
+            <TriviaGame />
+          </GameGuard>
         </div>
 
         {/* Separator between games */}
@@ -82,7 +85,9 @@ export default function Home() {
 
         {/* Trivia Relámpago */}
         <div className="relative z-10 mb-10">
-          <LightningTriviaGame />
+          <GameGuard gameName="Trivia Relámpago" gameIcon="⚡" accentColor="#f97316">
+            <LightningTriviaGame />
+          </GameGuard>
         </div>
 
         {/* Separator before Memory Game */}
@@ -102,9 +107,11 @@ export default function Home() {
           }} />
         </div>
 
-        {/* Memoria Futbolera  */}
+        {/* Memoria Futbolera */}
         <div className="relative z-10 mb-10">
-          <MemoryGame />
+          <GameGuard gameName="Memoria Futbolera" gameIcon="🧠" accentColor="#ec4899">
+            <MemoryGame />
+          </GameGuard>
         </div>
 
         {/* Separator before Crossword Game */}
@@ -126,7 +133,9 @@ export default function Home() {
 
         {/* Crucigrama Futbolero */}
         <div className="relative z-10 mb-10">
-          <CrosswordGame />
+          <GameGuard gameName="Crucigrama Futbolero" gameIcon="🎯" accentColor="#06b6d4">
+            <CrosswordGame />
+          </GameGuard>
         </div>
 
         {/* Separator before Slot Machine */}
@@ -148,7 +157,9 @@ export default function Home() {
 
         {/* Tragamonedas Futbolera */}
         <div className="relative z-10 mb-10">
-          <SlotMachineGame />
+          <GameGuard gameName="Tragamonedas Futbolera" gameIcon="🎰" accentColor="#fbbf24">
+            <SlotMachineGame />
+          </GameGuard>
         </div>
 
         {/* Separator before Loteria */}
@@ -170,7 +181,9 @@ export default function Home() {
 
         {/* Lotería de Equipos */}
         <div className="relative z-10 mb-10">
-          <LoteriaGame />
+          <GameGuard gameName="Lotería de Equipos" gameIcon="🃏" accentColor="#e879f9">
+            <LoteriaGame />
+          </GameGuard>
         </div>
 
         {/* Separator before Ruleta */}
@@ -192,7 +205,9 @@ export default function Home() {
 
         {/* Ruleta de Equipos */}
         <div className="relative z-10 mb-10">
-          <RuletaEquipos />
+          <GameGuard gameName="Ruleta de Equipos" gameIcon="🎡" accentColor="#ffc800">
+            <RuletaEquipos />
+          </GameGuard>
         </div>
 
         {/* Separator before Circuito */}
@@ -214,7 +229,9 @@ export default function Home() {
 
         {/* Circuito Futbolero */}
         <div className="relative z-10 mb-10">
-          <CircuitoFutbolero />
+          <GameGuard gameName="Circuito Futbolero" gameIcon="🎮" accentColor="#22c55e">
+            <CircuitoFutbolero />
+          </GameGuard>
         </div>
 
         {/* Separator before Parqués */}
@@ -234,19 +251,21 @@ export default function Home() {
           }} />
         </div>
 
-        {/* Parqués Futbolero */}
+        {/* Parqués Futbolero — Solo con invitación */}
         <div className="relative z-10">
-          <ParquesGame />
+          <GameGuard gameName="Parqués Futbolero" gameIcon="🎲" accentColor="#facc15">
+            <ParquesGame />
+          </GameGuard>
         </div>
       </section>
-      
+
       {/* Registration Section */}
       <section className="relative py-12">
         {/* Section divider */}
         <div className="absolute top-0 left-0 right-0 h-px" style={{
           background: 'linear-gradient(to right, transparent, rgba(168, 85, 247, 0.5), rgba(249, 115, 22, 0.5), rgba(34, 197, 94, 0.5), transparent)',
         }} />
-        
+
         {/* Background glow */}
         <div className="absolute inset-0 pointer-events-none" style={{
           background: 'radial-gradient(ellipse at center, rgba(168, 85, 247, 0.05) 0%, transparent 70%)',

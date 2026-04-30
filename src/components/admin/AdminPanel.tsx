@@ -23,6 +23,7 @@ interface Participant {
   email: string
   phone: string
   code: string
+  teamSlug: string
   gameId: string | null
   game: Game | null
   followedFb: boolean
@@ -668,8 +669,20 @@ export default function AdminPanel() {
   }
 
   const sendAllToWhatsApp = () => {
+    const teamMap: Record<string, string> = {
+      'aguilas-doradas': 'Águilas Doradas', 'alianza-valledupar': 'Alianza Valledupar',
+      'america-de-cali': 'América de Cali', 'atletico-bucaramanga': 'Atl. Bucaramanga',
+      'atletico-junior': 'Atl. Junior', 'atletico-nacional': 'Atl. Nacional',
+      'boyaca-chico': 'Boyacá Chicó', 'cucuta-deportivo': 'Cúcuta Deportivo',
+      'deportes-tolima': 'Deportes Tolima', 'deportivo-cali': 'Deportivo Cali',
+      'deportivo-pasto': 'Deportivo Pasto', 'deportivo-pereira': 'Deportivo Pereira',
+      'fortaleza-ceif': 'Fortaleza CEIF', 'independiente-medellin': 'Ind. Medellín',
+      'independiente-santa-fe': 'Ind. Santa Fe', 'internacional-de-bogota': 'Internacional',
+      'jaguares-de-cordoba': 'Jaguares', 'llaneros': 'Llaneros',
+      'millonarios': 'Millonarios', 'once-caldas': 'Once Caldas',
+    }
     const lines = participants.map(p =>
-      `${p.code} | ${p.name} | ${p.email} | ${p.phone} | ${p.game?.name || 'N/A'}`
+      `${p.code} | ${p.name} | ${p.email} | ${p.phone} | Hincha: ${teamMap[p.teamSlug] || p.teamSlug || 'N/A'} | ${p.game?.name || 'N/A'}`
     )
     const message = encodeURIComponent(
       `🎮 *TPK PLAY - Participantes Registrados (${participants.length})*\n\n` +
@@ -1814,13 +1827,41 @@ export default function AdminPanel() {
                             <div className="font-bold text-sm" style={{ color: '#fed7aa' }}>{p.name}</div>
                             <div className="text-xs mt-1" style={{ color: 'rgba(255,255,255,0.5)' }}>{p.email}</div>
                             <div className="text-xs" style={{ color: 'rgba(255,255,255,0.5)' }}>{p.phone}</div>
-                            <div className="flex items-center gap-2 mt-2">
+                            <div className="flex items-center gap-2 mt-2 flex-wrap">
                               <span
                                 className="px-2 py-0.5 rounded text-xs font-bold"
                                 style={{ background: 'rgba(168, 85, 247, 0.2)', color: '#d8b4fe', border: '1px solid rgba(168, 85, 247, 0.3)' }}
                               >
                                 {p.code}
                               </span>
+                              {p.teamSlug && (
+                                <span
+                                  className="px-2 py-0.5 rounded text-xs font-bold flex items-center gap-1"
+                                  style={{ background: 'rgba(250,204,21,0.15)', color: '#facc15', border: '1px solid rgba(250,204,21,0.3)' }}
+                                >
+                                  <img
+                                    src={`/images/teams/${p.teamSlug}${p.teamSlug === 'internacional-de-bogota' ? '.png' : '.svg'}`}
+                                    alt={p.teamSlug}
+                                    className="w-3 h-3 object-contain"
+                                    onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
+                                  />
+                                  {(() => {
+                                    const tm: Record<string, string> = {
+                                      'aguilas-doradas': 'Águilas Doradas', 'alianza-valledupar': 'Alianza Valledupar',
+                                      'america-de-cali': 'América de Cali', 'atletico-bucaramanga': 'Atl. Bucaramanga',
+                                      'atletico-junior': 'Atl. Junior', 'atletico-nacional': 'Atl. Nacional',
+                                      'boyaca-chico': 'Boyacá Chicó', 'cucuta-deportivo': 'Cúcuta Deportivo',
+                                      'deportes-tolima': 'Deportes Tolima', 'deportivo-cali': 'Deportivo Cali',
+                                      'deportivo-pasto': 'Deportivo Pasto', 'deportivo-pereira': 'Deportivo Pereira',
+                                      'fortaleza-ceif': 'Fortaleza CEIF', 'independiente-medellin': 'Ind. Medellín',
+                                      'independiente-santa-fe': 'Ind. Santa Fe', 'internacional-de-bogota': 'Internacional',
+                                      'jaguares-de-cordoba': 'Jaguares', 'llaneros': 'Llaneros',
+                                      'millonarios': 'Millonarios', 'once-caldas': 'Once Caldas',
+                                    }
+                                    return tm[p.teamSlug] || p.teamSlug
+                                  })()}
+                                </span>
+                              )}
                               {p.game && (
                                 <span
                                   className="px-2 py-0.5 rounded text-xs"

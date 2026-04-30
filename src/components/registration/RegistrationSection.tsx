@@ -26,6 +26,7 @@ export default function RegistrationSection() {
     name: '',
     email: '',
     phone: '',
+    teamSlug: '',
     gameId: '',
   })
   const [socials, setSocials] = useState({
@@ -53,8 +54,8 @@ export default function RegistrationSection() {
 
   const handleSubmit = async () => {
     setError('')
-    if (!form.name.trim() || !form.email.trim() || !form.phone.trim()) {
-      setError('Todos los campos son requeridos')
+    if (!form.name.trim() || !form.email.trim() || !form.phone.trim() || !form.teamSlug.trim()) {
+      setError('Todos los campos son requeridos, incluyendo tu equipo hincha')
       return
     }
     setSubmitting(true)
@@ -64,6 +65,7 @@ export default function RegistrationSection() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...form,
+          teamSlug: form.teamSlug,
           followedFb: socials.facebook,
           followedIg: socials.instagram,
           followedWa: socials.whatsapp,
@@ -469,6 +471,108 @@ export default function RegistrationSection() {
               />
             </div>
 
+            {/* Equipo Hincha - OBLIGATORIO */}
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider mb-2" style={{ color: '#facc15' }}>
+                Equipo Hincha *
+              </label>
+              <p className="text-[0.6rem] mb-2" style={{ color: 'rgba(250,204,21,0.5)' }}>
+                Selecciona el equipo del que eres hincha. Es obligatorio para participar.
+              </p>
+              <select
+                value={form.teamSlug}
+                onChange={(e) => setForm({ ...form, teamSlug: e.target.value })}
+                className="w-full px-4 py-3 rounded-xl text-sm text-white outline-none"
+                style={{
+                  background: 'rgba(0,0,0,0.4)',
+                  border: form.teamSlug ? '1px solid rgba(250,204,21,0.5)' : '1px solid rgba(239,68,68,0.5)',
+                  boxShadow: form.teamSlug ? '0 0 8px rgba(250,204,21,0.15)' : '0 0 8px rgba(239,68,68,0.15)',
+                }}
+              >
+                <option value="">Selecciona tu equipo hincha</option>
+                <optgroup label="Antioquia">
+                  <option value="aguilas-doradas">Águilas Doradas</option>
+                  <option value="atletico-nacional">Atl. Nacional</option>
+                  <option value="independiente-medellin">Ind. Medellín</option>
+                </optgroup>
+                <optgroup label="Atlántico">
+                  <option value="atletico-junior">Atl. Junior</option>
+                </optgroup>
+                <optgroup label="Boyacá">
+                  <option value="boyaca-chico">Boyacá Chicó</option>
+                </optgroup>
+                <optgroup label="Caldas">
+                  <option value="once-caldas">Once Caldas</option>
+                </optgroup>
+                <optgroup label="Cesar">
+                  <option value="alianza-valledupar">Alianza Valledupar</option>
+                </optgroup>
+                <optgroup label="Córdoba">
+                  <option value="jaguares-de-cordoba">Jaguares</option>
+                </optgroup>
+                <optgroup label="Cundinamarca">
+                  <option value="fortaleza-ceif">Fortaleza CEIF</option>
+                  <option value="independiente-santa-fe">Ind. Santa Fe</option>
+                  <option value="internacional-de-bogota">Internacional</option>
+                  <option value="millonarios">Millonarios</option>
+                </optgroup>
+                <optgroup label="Meta">
+                  <option value="llaneros">Llaneros</option>
+                </optgroup>
+                <optgroup label="Nariño">
+                  <option value="deportivo-pasto">Deportivo Pasto</option>
+                </optgroup>
+                <optgroup label="Norte de Santander">
+                  <option value="cucuta-deportivo">Cúcuta Deportivo</option>
+                </optgroup>
+                <optgroup label="Risaralda">
+                  <option value="deportivo-pereira">Deportivo Pereira</option>
+                </optgroup>
+                <optgroup label="Santander">
+                  <option value="atletico-bucaramanga">Atl. Bucaramanga</option>
+                </optgroup>
+                <optgroup label="Tolima">
+                  <option value="deportes-tolima">Deportes Tolima</option>
+                </optgroup>
+                <optgroup label="Valle">
+                  <option value="america-de-cali">América de Cali</option>
+                  <option value="deportivo-cali">Deportivo Cali</option>
+                </optgroup>
+              </select>
+              {!form.teamSlug && (
+                <p className="text-[0.55rem] mt-1 font-bold" style={{ color: '#ef4444' }}>
+                  Debes seleccionar tu equipo hincha para continuar
+                </p>
+              )}
+              {form.teamSlug && (
+                <div className="mt-2 flex items-center gap-2 p-2 rounded-lg" style={{ background: 'rgba(250,204,21,0.06)', border: '1px solid rgba(250,204,21,0.15)' }}>
+                  <img
+                    src={`/images/teams/${form.teamSlug}${form.teamSlug === 'internacional-de-bogota' ? '.png' : '.svg'}`}
+                    alt={form.teamSlug}
+                    className="w-6 h-6 object-contain"
+                    onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
+                  />
+                  <span className="text-xs font-bold" style={{ color: '#facc15' }}>
+                    {(() => {
+                      const teamMap: Record<string, string> = {
+                        'aguilas-doradas': 'Águilas Doradas', 'alianza-valledupar': 'Alianza Valledupar',
+                        'america-de-cali': 'América de Cali', 'atletico-bucaramanga': 'Atl. Bucaramanga',
+                        'atletico-junior': 'Atl. Junior', 'atletico-nacional': 'Atl. Nacional',
+                        'boyaca-chico': 'Boyacá Chicó', 'cucuta-deportivo': 'Cúcuta Deportivo',
+                        'deportes-tolima': 'Deportes Tolima', 'deportivo-cali': 'Deportivo Cali',
+                        'deportivo-pasto': 'Deportivo Pasto', 'deportivo-pereira': 'Deportivo Pereira',
+                        'fortaleza-ceif': 'Fortaleza CEIF', 'independiente-medellin': 'Ind. Medellín',
+                        'independiente-santa-fe': 'Ind. Santa Fe', 'internacional-de-bogota': 'Internacional',
+                        'jaguares-de-cordoba': 'Jaguares', 'llaneros': 'Llaneros',
+                        'millonarios': 'Millonarios', 'once-caldas': 'Once Caldas',
+                      }
+                      return teamMap[form.teamSlug] || form.teamSlug
+                    })()}
+                  </span>
+                </div>
+              )}
+            </div>
+
             {games.length > 0 && (
               <div>
                 <label className="block text-xs font-bold uppercase tracking-wider mb-2" style={{ color: 'rgba(255,255,255,0.6)' }}>
@@ -593,7 +697,7 @@ export default function RegistrationSection() {
           <button
             onClick={() => {
               setStep('rules')
-              setForm({ name: '', email: '', phone: '', gameId: '' })
+              setForm({ name: '', email: '', phone: '', teamSlug: '', gameId: '' })
               setSocials({ facebook: false, instagram: false, whatsapp: false })
               setRegistrationCode('')
               setShowSection(false)

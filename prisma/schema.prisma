@@ -28,6 +28,7 @@ model Participant {
   email       String
   phone       String
   code        String   @unique
+  teamSlug    String   @default("")     // Equipo hincha - obligatorio al registrarse
   gameId      String?
   game        Game?    @relation(fields: [gameId], references: [id])
   followedFb  Boolean  @default(false)
