@@ -77,6 +77,35 @@ export async function POST(request: Request) {
   }
 }
 
+// PUT update participant (add points by code)
+export async function PUT(request: Request) {
+  try {
+    const body = await request.json()
+    const { code, addPoints } = body
+
+    if (!code) {
+      return NextResponse.json({ error: 'Código requerido' }, { status: 400 })
+    }
+
+    const participant = await db.participant.findUnique({ where: { code } })
+    if (!participant) {
+      return NextResponse.json({ error: 'Participante no encontrado' }, { status: 404 })
+    }
+
+    const updated = await db.participant.update({
+      where: { code },
+      data: {
+        totalPoints: participant.totalPoints + (addPoints || 0),
+      },
+    })
+
+    return NextResponse.json(updated)
+  } catch (error) {
+    console.error('Error updating participant:', error)
+    return NextResponse.json({ error: 'Error al actualizar participante' }, { status: 500 })
+  }
+}
+
 // DELETE a participant
 export async function DELETE(request: Request) {
   try {

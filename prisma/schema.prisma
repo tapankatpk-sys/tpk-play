@@ -286,6 +286,134 @@ model RompecabezasConfig {
 }
 
 // ============================================
+// PENALES FUTBOLEROS - Configuración del juego
+// ============================================
+
+model PenalesConfig {
+  id              String   @id @default(cuid())
+  roundsPerGame   Int      @default(5)      // Penales por ronda
+  pointsGoal      Int      @default(20)     // Puntos por gol
+  pointsHatTrick  Int      @default(50)     // Bonus hat-trick
+  pointsPerfect   Int      @default(100)    // Ronda perfecta
+  timeLimit       Int      @default(60)     // Segundos para cada tiro
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+// ============================================
+// CARTA MAYOR - Configuración del juego
+// ============================================
+
+model CartaMayorConfig {
+  id              String   @id @default(cuid())
+  cardsPerRound   Int      @default(10)     // Cartas por ronda
+  pointsCorrect   Int      @default(10)     // Puntos por acierto
+  pointsStreak5   Int      @default(50)     // Bonus racha x5
+  pointsStreak10  Int      @default(200)    // Bonus racha x10
+  timeLimit       Int      @default(120)    // Tiempo límite en segundos
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+// ============================================
+// DIANA DE ESCUDOS - Configuración del juego
+// ============================================
+
+model DianaConfig {
+  id              String   @id @default(cuid())
+  roundsPerGame   Int      @default(10)     // Tiros por partida
+  pointsCenter    Int      @default(50)     // Puntos centro
+  pointsMiddle    Int      @default(30)     // Puntos medio
+  pointsEdge      Int      @default(10)     // Puntos borde
+  speed           Int      @default(3)      // Velocidad 1-5
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+// ============================================
+// CLASIFICACIÓN HISTÓRICA - Configuración del juego
+// ============================================
+
+model ClasificacionConfig {
+  id              String   @id @default(cuid())
+  teamsPerRound   Int      @default(6)      // Equipos a ordenar
+  pointsPerfect   Int      @default(150)    // Orden perfecto
+  pointsPartial   Int      @default(80)     // 1 error
+  timeLimit       Int      @default(120)    // Tiempo límite
+  timeBonusMax    Int      @default(50)     // Bonus máximo por tiempo
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+// ============================================
+// NÚMERO CAMISETA - Configuración del juego
+// ============================================
+
+model NumeroCamisetaConfig {
+  id              String   @id @default(cuid())
+  questionsPerGame Int     @default(5)      // Preguntas por partida
+  pointsExact     Int      @default(40)     // Puntos número exacto
+  pointsClose     Int      @default(20)     // Puntos ±2
+  noHintMultiplier Int     @default(2)      // Multiplicador sin pista
+  timeLimit       Int      @default(90)     // Tiempo límite
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+// ============================================
+// MINERÍA DE ESCUDOS - Configuración del juego
+// ============================================
+
+model MineriaConfig {
+  id              String   @id @default(cuid())
+  gridSize        Int      @default(8)      // Grid: 6=fácil, 8=medio, 10=complejo
+  mineCount       Int      @default(10)     // Número de minas (rivales)
+  pointsPerCell   Int      @default(5)      // Puntos por casilla segura
+  pointsComplete  Int      @default(100)    // Puntos por completar
+  pointsNoMines   Int      @default(50)     // Bonus sin detonar
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+// ============================================
+// APUESTA FUTBOLERA - Configuración del juego
+// ============================================
+
+model ApuestaConfig {
+  id              String   @id @default(cuid())
+  matchesPerRound Int      @default(3)      // Partidos por ronda
+  pointsExact     Int      @default(60)     // Resultado exacto
+  pointsWinner    Int      @default(20)     // Ganador correcto
+  pointsGoals     Int      @default(30)     // Goles exactos extra
+  timeLimit       Int      @default(180)    // Tiempo límite
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+// ============================================
+// SOPA DE ESCUDOS - Configuración del juego
+// ============================================
+
+model SopaConfig {
+  id              String   @id @default(cuid())
+  gridSize        Int      @default(12)     // Grid: 10=fácil, 12=medio, 14=complejo
+  wordsPerGame    Int      @default(8)      // Palabras por partida
+  pointsPerWord   Int      @default(15)     // Puntos por palabra
+  pointsComplete  Int      @default(100)    // Bonus completar todas
+  timeLimit       Int      @default(180)    // Tiempo límite
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+// ============================================
 // AUDIO PLAYER - Configuración del reproductor
 // ============================================
 

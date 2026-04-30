@@ -73,7 +73,7 @@ interface MatchPredictionData {
   updatedAt: string
 }
 
-type Tab = 'dashboard' | 'games' | 'participants' | 'stats' | 'popup' | 'banners' | 'predictions' | 'loteria' | 'ruleta' | 'circuito' | 'parques' | 'rompecabezas' | 'audio'
+type Tab = 'dashboard' | 'games' | 'participants' | 'stats' | 'popup' | 'banners' | 'predictions' | 'loteria' | 'ruleta' | 'circuito' | 'parques' | 'rompecabezas' | 'penales' | 'carta-mayor' | 'diana' | 'clasificacion' | 'numero-camiseta' | 'mineria' | 'apuesta' | 'sopa' | 'audio'
 
 interface SidebarSection {
   id: string
@@ -104,6 +104,14 @@ const GAME_TYPES: Record<string, { label: string; icon: string; color: string; d
   'circuito-futbolero': { label: 'Circuito Futbolero', icon: '🎮', color: '#00ff80', description: 'Pac-Man con escudos de rivales de la Liga BetPlay' },
   'parques-futbolero': { label: 'Parqués Futbolero', icon: '🎲', color: '#facc15', description: 'Parqués clásico con clásicos rivales de la Liga BetPlay' },
   'rompecabezas-futbolero': { label: 'Rompecabezas de Escudos', icon: '🧩', color: '#00ffc8', description: 'Rompecabezas con escudos de la Liga BetPlay que cambia cada hora' },
+  'penales-futbolero': { label: 'Penales Futboleros', icon: '⚽', color: '#ff4444', description: 'Simulador de tiros penales con escudos de la Liga BetPlay' },
+  'carta-mayor-futbolero': { label: 'Carta Mayor', icon: '🃏', color: '#eab308', description: 'Alto y baja con escudos de la Liga BetPlay' },
+  'diana-futbolera': { label: 'Diana de Escudos', icon: '🎯', color: '#ef4444', description: 'Tiro al blanco con escudos de la Liga BetPlay' },
+  'clasificacion-futbolera': { label: 'Clasificación Histórica', icon: '🏆', color: '#06b6d4', description: 'Ordena los equipos por criterios históricos' },
+  'numero-camiseta': { label: 'Número Camiseta', icon: '🔢', color: '#8b5cf6', description: 'Adivina el dorsal de jugadores históricos' },
+  'mineria-futbolera': { label: 'Minería de Escudos', icon: '💣', color: '#22c55e', description: 'Buscaminas con escudos rivales de la Liga BetPlay' },
+  'apuesta-futbolera': { label: 'Apuesta Futbolera', icon: '📊', color: '#f97316', description: 'Predice resultados de partidos de la Liga BetPlay' },
+  'sopa-futbolera': { label: 'Sopa de Escudos', icon: '🔤', color: '#14b8a6', description: 'Sopa de letras con nombres de la Liga BetPlay' },
   'prediccion': { label: 'Predicción', icon: '🎯', color: '#f97316', description: 'Predice resultados de partidos' },
   'encuesta': { label: 'Encuesta', icon: '📊', color: '#3b82f6', description: 'Vota en encuestas futboleras' },
   'personalizado': { label: 'Personalizado', icon: '🎮', color: '#22c55e', description: 'Juego personalizado' },
@@ -251,6 +259,46 @@ export default function AdminPanel() {
   const [rompecabezasConfig, setRompecabezasConfig] = useState<{ id: string; gridSize: number; pointsComplete: number; timeBonusMax: number; timeLimit: number; showPreview: boolean; isActive: boolean } | null>(null)
   const [rompecabezasForm, setRompecabezasForm] = useState({ gridSize: 6, pointsComplete: 200, timeBonusMax: 100, timeLimit: 300, showPreview: true, isActive: true })
   const [savingRompecabezas, setSavingRompecabezas] = useState(false)
+
+  // Penales state
+  const [penalesConfig, setPenalesConfig] = useState<{ id: string; roundsPerGame: number; pointsGoal: number; pointsHatTrick: number; pointsPerfect: number; timeLimit: number; isActive: boolean } | null>(null)
+  const [penalesForm, setPenalesForm] = useState({ roundsPerGame: 5, pointsGoal: 20, pointsHatTrick: 50, pointsPerfect: 100, timeLimit: 60, isActive: true })
+  const [savingPenales, setSavingPenales] = useState(false)
+
+  // Carta Mayor state
+  const [cartaMayorConfig, setCartaMayorConfig] = useState<{ id: string; cardsPerRound: number; pointsCorrect: number; pointsStreak5: number; pointsStreak10: number; timeLimit: number; isActive: boolean } | null>(null)
+  const [cartaMayorForm, setCartaMayorForm] = useState({ cardsPerRound: 10, pointsCorrect: 10, pointsStreak5: 50, pointsStreak10: 200, timeLimit: 120, isActive: true })
+  const [savingCartaMayor, setSavingCartaMayor] = useState(false)
+
+  // Diana state
+  const [dianaConfig, setDianaConfig] = useState<{ id: string; roundsPerGame: number; pointsCenter: number; pointsMiddle: number; pointsEdge: number; speed: number; isActive: boolean } | null>(null)
+  const [dianaForm, setDianaForm] = useState({ roundsPerGame: 10, pointsCenter: 50, pointsMiddle: 30, pointsEdge: 10, speed: 3, isActive: true })
+  const [savingDiana, setSavingDiana] = useState(false)
+
+  // Clasificacion state
+  const [clasificacionConfig, setClasificacionConfig] = useState<{ id: string; teamsPerRound: number; pointsPerfect: number; pointsPartial: number; timeLimit: number; timeBonusMax: number; isActive: boolean } | null>(null)
+  const [clasificacionForm, setClasificacionForm] = useState({ teamsPerRound: 6, pointsPerfect: 150, pointsPartial: 80, timeLimit: 120, timeBonusMax: 50, isActive: true })
+  const [savingClasificacion, setSavingClasificacion] = useState(false)
+
+  // Numero Camiseta state
+  const [numeroCamisetaConfig, setNumeroCamisetaConfig] = useState<{ id: string; questionsPerGame: number; pointsExact: number; pointsClose: number; noHintMultiplier: number; timeLimit: number; isActive: boolean } | null>(null)
+  const [numeroCamisetaForm, setNumeroCamisetaForm] = useState({ questionsPerGame: 5, pointsExact: 40, pointsClose: 20, noHintMultiplier: 2, timeLimit: 90, isActive: true })
+  const [savingNumeroCamiseta, setSavingNumeroCamiseta] = useState(false)
+
+  // Mineria state
+  const [mineriaConfig, setMineriaConfig] = useState<{ id: string; gridSize: number; mineCount: number; pointsPerCell: number; pointsComplete: number; pointsNoMines: number; isActive: boolean } | null>(null)
+  const [mineriaForm, setMineriaForm] = useState({ gridSize: 8, mineCount: 10, pointsPerCell: 5, pointsComplete: 100, pointsNoMines: 50, isActive: true })
+  const [savingMineria, setSavingMineria] = useState(false)
+
+  // Apuesta state
+  const [apuestaConfig, setApuestaConfig] = useState<{ id: string; matchesPerRound: number; pointsExact: number; pointsWinner: number; pointsGoals: number; timeLimit: number; isActive: boolean } | null>(null)
+  const [apuestaForm, setApuestaForm] = useState({ matchesPerRound: 3, pointsExact: 60, pointsWinner: 20, pointsGoals: 30, timeLimit: 180, isActive: true })
+  const [savingApuesta, setSavingApuesta] = useState(false)
+
+  // Sopa state
+  const [sopaConfig, setSopaConfig] = useState<{ id: string; gridSize: number; wordsPerGame: number; pointsPerWord: number; pointsComplete: number; timeLimit: number; isActive: boolean } | null>(null)
+  const [sopaForm, setSopaForm] = useState({ gridSize: 12, wordsPerGame: 8, pointsPerWord: 15, pointsComplete: 100, timeLimit: 180, isActive: true })
+  const [savingSopa, setSavingSopa] = useState(false)
 
   // Audio config state
   const [audioConfig, setAudioConfig] = useState<{ id: string; audioUrl: string; volume: number; autoPlay: boolean; isActive: boolean; label: string } | null>(null)
@@ -534,6 +582,174 @@ export default function AdminPanel() {
     }
   }, [])
 
+  const fetchPenalesConfig = useCallback(async () => {
+    try {
+      const res = await fetch('/api/penales')
+      if (!res.ok) throw new Error(`Error ${res.status}`)
+      const data = await res.json()
+      if (data && !data.error) {
+        setPenalesConfig(data)
+        setPenalesForm({
+          roundsPerGame: data.roundsPerGame,
+          pointsGoal: data.pointsGoal,
+          pointsHatTrick: data.pointsHatTrick,
+          pointsPerfect: data.pointsPerfect,
+          timeLimit: data.timeLimit,
+          isActive: data.isActive,
+        })
+      }
+    } catch (err) {
+      console.error('Error fetching penales config:', err)
+    }
+  }, [])
+
+  const fetchCartaMayorConfig = useCallback(async () => {
+    try {
+      const res = await fetch('/api/carta-mayor')
+      if (!res.ok) throw new Error(`Error ${res.status}`)
+      const data = await res.json()
+      if (data && !data.error) {
+        setCartaMayorConfig(data)
+        setCartaMayorForm({
+          cardsPerRound: data.cardsPerRound,
+          pointsCorrect: data.pointsCorrect,
+          pointsStreak5: data.pointsStreak5,
+          pointsStreak10: data.pointsStreak10,
+          timeLimit: data.timeLimit,
+          isActive: data.isActive,
+        })
+      }
+    } catch (err) {
+      console.error('Error fetching carta mayor config:', err)
+    }
+  }, [])
+
+  const fetchDianaConfig = useCallback(async () => {
+    try {
+      const res = await fetch('/api/diana')
+      if (!res.ok) throw new Error(`Error ${res.status}`)
+      const data = await res.json()
+      if (data && !data.error) {
+        setDianaConfig(data)
+        setDianaForm({
+          roundsPerGame: data.roundsPerGame,
+          pointsCenter: data.pointsCenter,
+          pointsMiddle: data.pointsMiddle,
+          pointsEdge: data.pointsEdge,
+          speed: data.speed,
+          isActive: data.isActive,
+        })
+      }
+    } catch (err) {
+      console.error('Error fetching diana config:', err)
+    }
+  }, [])
+
+  const fetchClasificacionConfig = useCallback(async () => {
+    try {
+      const res = await fetch('/api/clasificacion')
+      if (!res.ok) throw new Error(`Error ${res.status}`)
+      const data = await res.json()
+      if (data && !data.error) {
+        setClasificacionConfig(data)
+        setClasificacionForm({
+          teamsPerRound: data.teamsPerRound,
+          pointsPerfect: data.pointsPerfect,
+          pointsPartial: data.pointsPartial,
+          timeLimit: data.timeLimit,
+          timeBonusMax: data.timeBonusMax,
+          isActive: data.isActive,
+        })
+      }
+    } catch (err) {
+      console.error('Error fetching clasificacion config:', err)
+    }
+  }, [])
+
+  const fetchNumeroCamisetaConfig = useCallback(async () => {
+    try {
+      const res = await fetch('/api/numero-camiseta')
+      if (!res.ok) throw new Error(`Error ${res.status}`)
+      const data = await res.json()
+      if (data && !data.error) {
+        setNumeroCamisetaConfig(data)
+        setNumeroCamisetaForm({
+          questionsPerGame: data.questionsPerGame,
+          pointsExact: data.pointsExact,
+          pointsClose: data.pointsClose,
+          noHintMultiplier: data.noHintMultiplier,
+          timeLimit: data.timeLimit,
+          isActive: data.isActive,
+        })
+      }
+    } catch (err) {
+      console.error('Error fetching numero camiseta config:', err)
+    }
+  }, [])
+
+  const fetchMineriaConfig = useCallback(async () => {
+    try {
+      const res = await fetch('/api/mineria')
+      if (!res.ok) throw new Error(`Error ${res.status}`)
+      const data = await res.json()
+      if (data && !data.error) {
+        setMineriaConfig(data)
+        setMineriaForm({
+          gridSize: data.gridSize,
+          mineCount: data.mineCount,
+          pointsPerCell: data.pointsPerCell,
+          pointsComplete: data.pointsComplete,
+          pointsNoMines: data.pointsNoMines,
+          isActive: data.isActive,
+        })
+      }
+    } catch (err) {
+      console.error('Error fetching mineria config:', err)
+    }
+  }, [])
+
+  const fetchApuestaConfig = useCallback(async () => {
+    try {
+      const res = await fetch('/api/apuesta')
+      if (!res.ok) throw new Error(`Error ${res.status}`)
+      const data = await res.json()
+      if (data && !data.error) {
+        setApuestaConfig(data)
+        setApuestaForm({
+          matchesPerRound: data.matchesPerRound,
+          pointsExact: data.pointsExact,
+          pointsWinner: data.pointsWinner,
+          pointsGoals: data.pointsGoals,
+          timeLimit: data.timeLimit,
+          isActive: data.isActive,
+        })
+      }
+    } catch (err) {
+      console.error('Error fetching apuesta config:', err)
+    }
+  }, [])
+
+  const fetchSopaConfig = useCallback(async () => {
+    try {
+      const res = await fetch('/api/sopa')
+      if (!res.ok) throw new Error(`Error ${res.status}`)
+      const data = await res.json()
+      if (data && !data.error) {
+        setSopaConfig(data)
+        setSopaForm({
+          gridSize: data.gridSize,
+          wordsPerGame: data.wordsPerGame,
+          pointsPerWord: data.pointsPerWord,
+          pointsComplete: data.pointsComplete,
+          timeLimit: data.timeLimit,
+          isActive: data.isActive,
+        })
+      }
+    } catch (err) {
+      console.error('Error fetching sopa config:', err)
+    }
+  }, [])
+
   const fetchAudioConfig = useCallback(async () => {
     try {
       const res = await fetch('/api/audio')
@@ -558,12 +774,12 @@ export default function AdminPanel() {
     if (isAuthenticated && showPanel) {
       const load = async () => {
         setLoading(true)
-        await Promise.all([fetchGames(), fetchParticipants(), fetchPopups(), fetchBanners(), fetchPredictions(), fetchLoteriaConfig(), fetchRuletaConfig(), fetchCircuitoConfig(), fetchParquesConfig(), fetchRompecabezasConfig(), fetchAudioConfig()])
+        await Promise.all([fetchGames(), fetchParticipants(), fetchPopups(), fetchBanners(), fetchPredictions(), fetchLoteriaConfig(), fetchRuletaConfig(), fetchCircuitoConfig(), fetchParquesConfig(), fetchRompecabezasConfig(), fetchPenalesConfig(), fetchCartaMayorConfig(), fetchDianaConfig(), fetchClasificacionConfig(), fetchNumeroCamisetaConfig(), fetchMineriaConfig(), fetchApuestaConfig(), fetchSopaConfig(), fetchAudioConfig()])
         setLoading(false)
       }
       load()
     }
-  }, [isAuthenticated, showPanel, fetchGames, fetchParticipants, fetchPopups, fetchBanners, fetchPredictions, fetchLoteriaConfig, fetchRuletaConfig, fetchCircuitoConfig, fetchParquesConfig, fetchRompecabezasConfig, fetchAudioConfig])
+  }, [isAuthenticated, showPanel, fetchGames, fetchParticipants, fetchPopups, fetchBanners, fetchPredictions, fetchLoteriaConfig, fetchRuletaConfig, fetchCircuitoConfig, fetchParquesConfig, fetchRompecabezasConfig, fetchPenalesConfig, fetchCartaMayorConfig, fetchDianaConfig, fetchClasificacionConfig, fetchNumeroCamisetaConfig, fetchMineriaConfig, fetchApuestaConfig, fetchSopaConfig, fetchAudioConfig])
 
   // Fetch Parques Rooms
   const fetchParquesRooms = useCallback(async () => {
@@ -1039,6 +1255,198 @@ export default function AdminPanel() {
     }
   }
 
+  const handleSavePenales = async () => {
+    setSavingPenales(true)
+    try {
+      if (penalesConfig) {
+        await fetch('/api/penales', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: penalesConfig.id, ...penalesForm }),
+        })
+      } else {
+        await fetch('/api/penales', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(penalesForm),
+        })
+      }
+      fetchPenalesConfig()
+    } catch (err) {
+      console.error('Error saving penales config:', err)
+    } finally {
+      setSavingPenales(false)
+    }
+  }
+
+  const handleSaveCartaMayor = async () => {
+    setSavingCartaMayor(true)
+    try {
+      if (cartaMayorConfig) {
+        await fetch('/api/carta-mayor', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: cartaMayorConfig.id, ...cartaMayorForm }),
+        })
+      } else {
+        await fetch('/api/carta-mayor', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(cartaMayorForm),
+        })
+      }
+      fetchCartaMayorConfig()
+    } catch (err) {
+      console.error('Error saving carta mayor config:', err)
+    } finally {
+      setSavingCartaMayor(false)
+    }
+  }
+
+  const handleSaveDiana = async () => {
+    setSavingDiana(true)
+    try {
+      if (dianaConfig) {
+        await fetch('/api/diana', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: dianaConfig.id, ...dianaForm }),
+        })
+      } else {
+        await fetch('/api/diana', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(dianaForm),
+        })
+      }
+      fetchDianaConfig()
+    } catch (err) {
+      console.error('Error saving diana config:', err)
+    } finally {
+      setSavingDiana(false)
+    }
+  }
+
+  const handleSaveClasificacion = async () => {
+    setSavingClasificacion(true)
+    try {
+      if (clasificacionConfig) {
+        await fetch('/api/clasificacion', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: clasificacionConfig.id, ...clasificacionForm }),
+        })
+      } else {
+        await fetch('/api/clasificacion', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(clasificacionForm),
+        })
+      }
+      fetchClasificacionConfig()
+    } catch (err) {
+      console.error('Error saving clasificacion config:', err)
+    } finally {
+      setSavingClasificacion(false)
+    }
+  }
+
+  const handleSaveNumeroCamiseta = async () => {
+    setSavingNumeroCamiseta(true)
+    try {
+      if (numeroCamisetaConfig) {
+        await fetch('/api/numero-camiseta', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: numeroCamisetaConfig.id, ...numeroCamisetaForm }),
+        })
+      } else {
+        await fetch('/api/numero-camiseta', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(numeroCamisetaForm),
+        })
+      }
+      fetchNumeroCamisetaConfig()
+    } catch (err) {
+      console.error('Error saving numero camiseta config:', err)
+    } finally {
+      setSavingNumeroCamiseta(false)
+    }
+  }
+
+  const handleSaveMineria = async () => {
+    setSavingMineria(true)
+    try {
+      if (mineriaConfig) {
+        await fetch('/api/mineria', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: mineriaConfig.id, ...mineriaForm }),
+        })
+      } else {
+        await fetch('/api/mineria', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(mineriaForm),
+        })
+      }
+      fetchMineriaConfig()
+    } catch (err) {
+      console.error('Error saving mineria config:', err)
+    } finally {
+      setSavingMineria(false)
+    }
+  }
+
+  const handleSaveApuesta = async () => {
+    setSavingApuesta(true)
+    try {
+      if (apuestaConfig) {
+        await fetch('/api/apuesta', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: apuestaConfig.id, ...apuestaForm }),
+        })
+      } else {
+        await fetch('/api/apuesta', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(apuestaForm),
+        })
+      }
+      fetchApuestaConfig()
+    } catch (err) {
+      console.error('Error saving apuesta config:', err)
+    } finally {
+      setSavingApuesta(false)
+    }
+  }
+
+  const handleSaveSopa = async () => {
+    setSavingSopa(true)
+    try {
+      if (sopaConfig) {
+        await fetch('/api/sopa', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: sopaConfig.id, ...sopaForm }),
+        })
+      } else {
+        await fetch('/api/sopa', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(sopaForm),
+        })
+      }
+      fetchSopaConfig()
+    } catch (err) {
+      console.error('Error saving sopa config:', err)
+    } finally {
+      setSavingSopa(false)
+    }
+  }
+
   const handleSaveAudio = async () => {
     setSavingAudio(true)
     try {
@@ -1094,6 +1502,14 @@ export default function AdminPanel() {
         { id: 'circuito', label: 'Circuito', icon: '🎮', color: '#00ff80' },
         { id: 'parques', label: 'Parqués', icon: '🎲', color: '#facc15' },
         { id: 'rompecabezas', label: 'Rompecabezas', icon: '🧩', color: '#00ffc8' },
+        { id: 'penales', label: 'Penales', icon: '⚽', color: '#ff4444' },
+        { id: 'carta-mayor', label: 'Carta Mayor', icon: '🃏', color: '#eab308' },
+        { id: 'diana', label: 'Diana', icon: '🎯', color: '#ef4444' },
+        { id: 'clasificacion', label: 'Clasificación', icon: '🏆', color: '#06b6d4' },
+        { id: 'numero-camiseta', label: 'N° Camiseta', icon: '🔢', color: '#8b5cf6' },
+        { id: 'mineria', label: 'Minería', icon: '💣', color: '#22c55e' },
+        { id: 'apuesta', label: 'Apuesta', icon: '📊', color: '#f97316' },
+        { id: 'sopa', label: 'Sopa', icon: '🔤', color: '#14b8a6' },
         { id: 'audio', label: 'Audio', icon: '🎵', color: '#a855f7' },
         { id: 'predictions', label: 'Predicciones', icon: '⚽', color: '#00ff80', count: predictions.length },
         { id: 'popup', label: 'Popup', icon: '💬', color: '#eab308', count: popups.length },
@@ -1522,6 +1938,14 @@ export default function AdminPanel() {
                         : activeTab === 'circuito' ? '#00ff80'
                         : activeTab === 'parques' ? '#facc15'
                         : activeTab === 'rompecabezas' ? '#00ffc8'
+                        : activeTab === 'penales' ? '#ff4444'
+                        : activeTab === 'carta-mayor' ? '#eab308'
+                        : activeTab === 'diana' ? '#ef4444'
+                        : activeTab === 'clasificacion' ? '#06b6d4'
+                        : activeTab === 'numero-camiseta' ? '#8b5cf6'
+                        : activeTab === 'mineria' ? '#22c55e'
+                        : activeTab === 'apuesta' ? '#f97316'
+                        : activeTab === 'sopa' ? '#14b8a6'
                         : activeTab === 'audio' ? '#a855f7'
                         : activeTab === 'predictions' ? '#00ff80'
                         : activeTab === 'banners' ? '#00ffff'
@@ -1537,6 +1961,14 @@ export default function AdminPanel() {
                       : activeTab === 'circuito' ? 'Circuito Futbolero'
                       : activeTab === 'parques' ? 'Parqués Futbolero'
                       : activeTab === 'rompecabezas' ? 'Rompecabezas de Escudos'
+                      : activeTab === 'penales' ? 'Penales Futboleros'
+                      : activeTab === 'carta-mayor' ? 'Carta Mayor'
+                      : activeTab === 'diana' ? 'Diana de Escudos'
+                      : activeTab === 'clasificacion' ? 'Clasificación Histórica'
+                      : activeTab === 'numero-camiseta' ? 'Número Camiseta'
+                      : activeTab === 'mineria' ? 'Minería de Escudos'
+                      : activeTab === 'apuesta' ? 'Apuesta Futbolera'
+                      : activeTab === 'sopa' ? 'Sopa de Escudos'
                       : activeTab === 'audio' ? 'Reproductor de Audio'
                       : activeTab === 'predictions' ? 'Predicciones'
                       : activeTab === 'banners' ? 'Banners'
@@ -4096,6 +4528,1341 @@ export default function AdminPanel() {
                         </div>
                         <div className="text-[0.5rem] mt-2 px-2 py-1 rounded" style={{ background: 'rgba(0,255,200,0.06)', color: 'rgba(0,255,200,0.4)' }}>
                           Cambia cada hora entre 20 escudos
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ) : activeTab === 'penales' ? (
+                /* ========== PENALES TAB ========== */
+                <div className="space-y-4">
+                  <div className="p-3 rounded-xl" style={{ background: 'rgba(255,68,68,0.04)', border: '1px solid rgba(255,68,68,0.15)' }}>
+                    <p className="text-[0.65rem]" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                      Configura los <b style={{ color: '#ff4444' }}>Penales Futboleros</b>: rondas por juego, puntos por gol, hat-trick, perfecto, tiempo límite y activación. Simulador de tiros penales con escudos de la Liga BetPlay.
+                    </p>
+                  </div>
+
+                  {penalesConfig && (
+                    <div className="grid grid-cols-6 gap-2">
+                      <div className="p-2 rounded-lg text-center" style={{ background: 'rgba(255,68,68,0.06)' }}>
+                        <div className="text-[0.5rem] uppercase" style={{ color: 'rgba(255,68,68,0.5)' }}>Rondas</div>
+                        <div className="text-lg font-black" style={{ color: '#ff4444' }}>{penalesConfig.roundsPerGame}</div>
+                      </div>
+                      <div className="p-2 rounded-lg text-center" style={{ background: 'rgba(255,100,100,0.06)' }}>
+                        <div className="text-[0.5rem] uppercase" style={{ color: 'rgba(255,100,100,0.5)' }}>Gol</div>
+                        <div className="text-lg font-black" style={{ color: '#ff6464' }}>+{penalesConfig.pointsGoal}</div>
+                      </div>
+                      <div className="p-2 rounded-lg text-center" style={{ background: 'rgba(255,165,0,0.06)' }}>
+                        <div className="text-[0.5rem] uppercase" style={{ color: 'rgba(255,165,0,0.5)' }}>Hat-Trick</div>
+                        <div className="text-lg font-black" style={{ color: '#ffa500' }}>+{penalesConfig.pointsHatTrick}</div>
+                      </div>
+                      <div className="p-2 rounded-lg text-center" style={{ background: 'rgba(255,215,0,0.06)' }}>
+                        <div className="text-[0.5rem] uppercase" style={{ color: 'rgba(255,215,0,0.5)' }}>Perfecto</div>
+                        <div className="text-lg font-black" style={{ color: '#ffd700' }}>+{penalesConfig.pointsPerfect}</div>
+                      </div>
+                      <div className="p-2 rounded-lg text-center" style={{ background: 'rgba(239,68,68,0.06)' }}>
+                        <div className="text-[0.5rem] uppercase" style={{ color: 'rgba(239,68,68,0.5)' }}>Límite</div>
+                        <div className="text-lg font-black" style={{ color: '#ef4444' }}>{penalesConfig.timeLimit || '∞'}</div>
+                      </div>
+                      <div className="p-2 rounded-lg text-center" style={{ background: penalesConfig.isActive ? 'rgba(34,197,94,0.06)' : 'rgba(239,68,68,0.06)' }}>
+                        <div className="text-[0.5rem] uppercase" style={{ color: 'rgba(255,255,255,0.3)' }}>Estado</div>
+                        <div className="text-lg font-black" style={{ color: penalesConfig.isActive ? '#4ade80' : '#ef4444' }}>
+                          {penalesConfig.isActive ? '●' : '○'}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="space-y-3">
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-[0.6rem] font-bold uppercase tracking-wider block mb-1" style={{ color: 'rgba(255,68,68,0.6)' }}>
+                          Rondas por Juego
+                        </label>
+                        <select
+                          value={penalesForm.roundsPerGame}
+                          onChange={(e) => setPenalesForm({ ...penalesForm, roundsPerGame: parseInt(e.target.value) })}
+                          className="w-full px-3 py-2 rounded-lg text-sm font-bold outline-none cursor-pointer"
+                          style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,68,68,0.2)', color: '#ff4444' }}
+                        >
+                          <option value={3} style={{ background: '#1a0a2e' }}>3 - Rápido</option>
+                          <option value={5} style={{ background: '#1a0a2e' }}>5 - Normal</option>
+                          <option value={7} style={{ background: '#1a0a2e' }}>7 - Largo</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="text-[0.6rem] font-bold uppercase tracking-wider block mb-1" style={{ color: 'rgba(255,100,100,0.6)' }}>
+                          Puntos por Gol
+                        </label>
+                        <input type="number" min={5} max={100} step={5}
+                          value={penalesForm.pointsGoal}
+                          onChange={(e) => setPenalesForm({ ...penalesForm, pointsGoal: parseInt(e.target.value) || 20 })}
+                          className="w-full px-3 py-2 rounded-lg text-sm font-bold"
+                          style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,100,100,0.2)', color: '#ff6464' }}
+                        />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-[0.6rem] font-bold uppercase tracking-wider block mb-1" style={{ color: 'rgba(255,165,0,0.6)' }}>
+                          Puntos Hat-Trick
+                        </label>
+                        <input type="number" min={10} max={200} step={10}
+                          value={penalesForm.pointsHatTrick}
+                          onChange={(e) => setPenalesForm({ ...penalesForm, pointsHatTrick: parseInt(e.target.value) || 50 })}
+                          className="w-full px-3 py-2 rounded-lg text-sm font-bold"
+                          style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,165,0,0.2)', color: '#ffa500' }}
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[0.6rem] font-bold uppercase tracking-wider block mb-1" style={{ color: 'rgba(255,215,0,0.6)' }}>
+                          Puntos Perfecto
+                        </label>
+                        <input type="number" min={50} max={500} step={25}
+                          value={penalesForm.pointsPerfect}
+                          onChange={(e) => setPenalesForm({ ...penalesForm, pointsPerfect: parseInt(e.target.value) || 100 })}
+                          className="w-full px-3 py-2 rounded-lg text-sm font-bold"
+                          style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,215,0,0.2)', color: '#ffd700' }}
+                        />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-[0.6rem] font-bold uppercase tracking-wider block mb-1" style={{ color: 'rgba(239,68,68,0.6)' }}>
+                          Tiempo Límite (segundos)
+                        </label>
+                        <input type="number" min={0} max={300} step={10}
+                          value={penalesForm.timeLimit}
+                          onChange={(e) => setPenalesForm({ ...penalesForm, timeLimit: parseInt(e.target.value) || 0 })}
+                          className="w-full px-3 py-2 rounded-lg text-sm font-bold"
+                          style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(239,68,68,0.2)', color: '#ef4444' }}
+                        />
+                        <p className="text-[0.5rem] mt-1" style={{ color: 'rgba(255,255,255,0.25)' }}>0 = sin límite de tiempo</p>
+                      </div>
+                      <div>
+                        <label className="text-[0.6rem] font-bold uppercase tracking-wider block mb-1" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                          Estado del Juego
+                        </label>
+                        <p className="text-[0.5rem] mb-2" style={{ color: 'rgba(255,255,255,0.25)' }}>
+                          Desactiva para ocultar el juego del sitio
+                        </p>
+                        <button
+                          onClick={() => setPenalesForm({ ...penalesForm, isActive: !penalesForm.isActive })}
+                          className="px-4 py-2 rounded-lg text-xs font-bold cursor-pointer transition-all"
+                          style={{
+                            background: penalesForm.isActive ? 'rgba(34,197,94,0.15)' : 'rgba(239,68,68,0.15)',
+                            color: penalesForm.isActive ? '#4ade80' : '#ef4444',
+                            border: `1px solid ${penalesForm.isActive ? 'rgba(34,197,94,0.3)' : 'rgba(239,68,68,0.3)'}`,
+                            boxShadow: penalesForm.isActive ? '0 0 8px rgba(34,197,94,0.1)' : '0 0 8px rgba(239,68,68,0.1)',
+                          }}
+                        >
+                          {penalesForm.isActive ? '● Activo' : '○ Inactivo'}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end">
+                    <button
+                      onClick={handleSavePenales}
+                      disabled={savingPenales}
+                      className="px-6 py-2.5 rounded-xl font-bold text-sm cursor-pointer transition-all hover:scale-105 disabled:opacity-50"
+                      style={{
+                        background: 'linear-gradient(135deg, #ff4444, #ff6464)',
+                        color: '#fff',
+                        boxShadow: '0 0 12px rgba(255,68,68,0.2)',
+                      }}
+                    >
+                      {savingPenales ? 'Guardando...' : 'Guardar Configuración'}
+                    </button>
+                  </div>
+
+                  {/* Penales Preview */}
+                  <div>
+                    <div className="text-[0.6rem] font-bold uppercase tracking-wider mb-2" style={{ color: 'rgba(255,68,68,0.4)' }}>
+                      Vista Previa de Penales
+                    </div>
+                    <div className="flex items-center gap-4 p-4 rounded-xl" style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,68,68,0.1)' }}>
+                      <div className="flex items-center justify-center" style={{ width: '80px', height: '80px', background: 'rgba(255,68,68,0.1)', borderRadius: '12px', border: '2px solid rgba(255,68,68,0.3)' }}>
+                        <span className="text-4xl">⚽</span>
+                      </div>
+                      <div className="space-y-2">
+                        <div className="text-xs font-black uppercase" style={{ color: '#ff4444', textShadow: '0 0 6px rgba(255,68,68,0.3)' }}>
+                          Penales Futboleros
+                        </div>
+                        <div className="space-y-1 text-[0.55rem]">
+                          <div style={{ color: 'rgba(255,68,68,0.6)' }}>&#x26BD; {penalesForm.roundsPerGame} rondas por juego</div>
+                          <div style={{ color: 'rgba(255,100,100,0.6)' }}>&#x1F3C6; Gol +{penalesForm.pointsGoal}pts | Hat-Trick +{penalesForm.pointsHatTrick}pts</div>
+                          <div style={{ color: 'rgba(255,215,0,0.6)' }}>&#x2B50; Perfecto +{penalesForm.pointsPerfect}pts</div>
+                          <div style={{ color: 'rgba(239,68,68,0.6)' }}>&#x23F1; Límite {penalesForm.timeLimit || '∞'}s</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ) : activeTab === 'carta-mayor' ? (
+                /* ========== CARTA MAYOR TAB ========== */
+                <div className="space-y-4">
+                  <div className="p-3 rounded-xl" style={{ background: 'rgba(234,179,8,0.04)', border: '1px solid rgba(234,179,8,0.15)' }}>
+                    <p className="text-[0.65rem]" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                      Configura <b style={{ color: '#eab308' }}>Carta Mayor</b>: cartas por ronda, puntos por acierto, rachas de 5 y 10, tiempo límite y activación. Alto y baja con escudos de la Liga BetPlay.
+                    </p>
+                  </div>
+
+                  {cartaMayorConfig && (
+                    <div className="grid grid-cols-6 gap-2">
+                      <div className="p-2 rounded-lg text-center" style={{ background: 'rgba(234,179,8,0.06)' }}>
+                        <div className="text-[0.5rem] uppercase" style={{ color: 'rgba(234,179,8,0.5)' }}>Cartas</div>
+                        <div className="text-lg font-black" style={{ color: '#eab308' }}>{cartaMayorConfig.cardsPerRound}</div>
+                      </div>
+                      <div className="p-2 rounded-lg text-center" style={{ background: 'rgba(234,179,8,0.06)' }}>
+                        <div className="text-[0.5rem] uppercase" style={{ color: 'rgba(234,179,8,0.5)' }}>Acierto</div>
+                        <div className="text-lg font-black" style={{ color: '#eab308' }}>+{cartaMayorConfig.pointsCorrect}</div>
+                      </div>
+                      <div className="p-2 rounded-lg text-center" style={{ background: 'rgba(255,165,0,0.06)' }}>
+                        <div className="text-[0.5rem] uppercase" style={{ color: 'rgba(255,165,0,0.5)' }}>Racha 5</div>
+                        <div className="text-lg font-black" style={{ color: '#ffa500' }}>+{cartaMayorConfig.pointsStreak5}</div>
+                      </div>
+                      <div className="p-2 rounded-lg text-center" style={{ background: 'rgba(255,215,0,0.06)' }}>
+                        <div className="text-[0.5rem] uppercase" style={{ color: 'rgba(255,215,0,0.5)' }}>Racha 10</div>
+                        <div className="text-lg font-black" style={{ color: '#ffd700' }}>+{cartaMayorConfig.pointsStreak10}</div>
+                      </div>
+                      <div className="p-2 rounded-lg text-center" style={{ background: 'rgba(239,68,68,0.06)' }}>
+                        <div className="text-[0.5rem] uppercase" style={{ color: 'rgba(239,68,68,0.5)' }}>Límite</div>
+                        <div className="text-lg font-black" style={{ color: '#ef4444' }}>{cartaMayorConfig.timeLimit || '∞'}</div>
+                      </div>
+                      <div className="p-2 rounded-lg text-center" style={{ background: cartaMayorConfig.isActive ? 'rgba(34,197,94,0.06)' : 'rgba(239,68,68,0.06)' }}>
+                        <div className="text-[0.5rem] uppercase" style={{ color: 'rgba(255,255,255,0.3)' }}>Estado</div>
+                        <div className="text-lg font-black" style={{ color: cartaMayorConfig.isActive ? '#4ade80' : '#ef4444' }}>
+                          {cartaMayorConfig.isActive ? '●' : '○'}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="space-y-3">
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-[0.6rem] font-bold uppercase tracking-wider block mb-1" style={{ color: 'rgba(234,179,8,0.6)' }}>
+                          Cartas por Ronda
+                        </label>
+                        <select
+                          value={cartaMayorForm.cardsPerRound}
+                          onChange={(e) => setCartaMayorForm({ ...cartaMayorForm, cardsPerRound: parseInt(e.target.value) })}
+                          className="w-full px-3 py-2 rounded-lg text-sm font-bold outline-none cursor-pointer"
+                          style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(234,179,8,0.2)', color: '#eab308' }}
+                        >
+                          <option value={5} style={{ background: '#1a0a2e' }}>5 - Rápido</option>
+                          <option value={10} style={{ background: '#1a0a2e' }}>10 - Normal</option>
+                          <option value={15} style={{ background: '#1a0a2e' }}>15 - Largo</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="text-[0.6rem] font-bold uppercase tracking-wider block mb-1" style={{ color: 'rgba(234,179,8,0.6)' }}>
+                          Puntos por Acierto
+                        </label>
+                        <input type="number" min={5} max={50} step={5}
+                          value={cartaMayorForm.pointsCorrect}
+                          onChange={(e) => setCartaMayorForm({ ...cartaMayorForm, pointsCorrect: parseInt(e.target.value) || 10 })}
+                          className="w-full px-3 py-2 rounded-lg text-sm font-bold"
+                          style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(234,179,8,0.2)', color: '#eab308' }}
+                        />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-[0.6rem] font-bold uppercase tracking-wider block mb-1" style={{ color: 'rgba(255,165,0,0.6)' }}>
+                          Puntos Racha 5
+                        </label>
+                        <input type="number" min={10} max={200} step={10}
+                          value={cartaMayorForm.pointsStreak5}
+                          onChange={(e) => setCartaMayorForm({ ...cartaMayorForm, pointsStreak5: parseInt(e.target.value) || 50 })}
+                          className="w-full px-3 py-2 rounded-lg text-sm font-bold"
+                          style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,165,0,0.2)', color: '#ffa500' }}
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[0.6rem] font-bold uppercase tracking-wider block mb-1" style={{ color: 'rgba(255,215,0,0.6)' }}>
+                          Puntos Racha 10
+                        </label>
+                        <input type="number" min={50} max={500} step={25}
+                          value={cartaMayorForm.pointsStreak10}
+                          onChange={(e) => setCartaMayorForm({ ...cartaMayorForm, pointsStreak10: parseInt(e.target.value) || 200 })}
+                          className="w-full px-3 py-2 rounded-lg text-sm font-bold"
+                          style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,215,0,0.2)', color: '#ffd700' }}
+                        />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-[0.6rem] font-bold uppercase tracking-wider block mb-1" style={{ color: 'rgba(239,68,68,0.6)' }}>
+                          Tiempo Límite (segundos)
+                        </label>
+                        <input type="number" min={0} max={300} step={10}
+                          value={cartaMayorForm.timeLimit}
+                          onChange={(e) => setCartaMayorForm({ ...cartaMayorForm, timeLimit: parseInt(e.target.value) || 0 })}
+                          className="w-full px-3 py-2 rounded-lg text-sm font-bold"
+                          style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(239,68,68,0.2)', color: '#ef4444' }}
+                        />
+                        <p className="text-[0.5rem] mt-1" style={{ color: 'rgba(255,255,255,0.25)' }}>0 = sin límite de tiempo</p>
+                      </div>
+                      <div>
+                        <label className="text-[0.6rem] font-bold uppercase tracking-wider block mb-1" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                          Estado del Juego
+                        </label>
+                        <p className="text-[0.5rem] mb-2" style={{ color: 'rgba(255,255,255,0.25)' }}>
+                          Desactiva para ocultar el juego del sitio
+                        </p>
+                        <button
+                          onClick={() => setCartaMayorForm({ ...cartaMayorForm, isActive: !cartaMayorForm.isActive })}
+                          className="px-4 py-2 rounded-lg text-xs font-bold cursor-pointer transition-all"
+                          style={{
+                            background: cartaMayorForm.isActive ? 'rgba(34,197,94,0.15)' : 'rgba(239,68,68,0.15)',
+                            color: cartaMayorForm.isActive ? '#4ade80' : '#ef4444',
+                            border: `1px solid ${cartaMayorForm.isActive ? 'rgba(34,197,94,0.3)' : 'rgba(239,68,68,0.3)'}`,
+                            boxShadow: cartaMayorForm.isActive ? '0 0 8px rgba(34,197,94,0.1)' : '0 0 8px rgba(239,68,68,0.1)',
+                          }}
+                        >
+                          {cartaMayorForm.isActive ? '● Activo' : '○ Inactivo'}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end">
+                    <button
+                      onClick={handleSaveCartaMayor}
+                      disabled={savingCartaMayor}
+                      className="px-6 py-2.5 rounded-xl font-bold text-sm cursor-pointer transition-all hover:scale-105 disabled:opacity-50"
+                      style={{
+                        background: 'linear-gradient(135deg, #eab308, #ffd700)',
+                        color: '#000',
+                        boxShadow: '0 0 12px rgba(234,179,8,0.2)',
+                      }}
+                    >
+                      {savingCartaMayor ? 'Guardando...' : 'Guardar Configuración'}
+                    </button>
+                  </div>
+
+                  {/* Carta Mayor Preview */}
+                  <div>
+                    <div className="text-[0.6rem] font-bold uppercase tracking-wider mb-2" style={{ color: 'rgba(234,179,8,0.4)' }}>
+                      Vista Previa de Carta Mayor
+                    </div>
+                    <div className="flex items-center gap-4 p-4 rounded-xl" style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(234,179,8,0.1)' }}>
+                      <div className="flex items-center justify-center" style={{ width: '80px', height: '80px', background: 'rgba(234,179,8,0.1)', borderRadius: '12px', border: '2px solid rgba(234,179,8,0.3)' }}>
+                        <span className="text-4xl">🃏</span>
+                      </div>
+                      <div className="space-y-2">
+                        <div className="text-xs font-black uppercase" style={{ color: '#eab308', textShadow: '0 0 6px rgba(234,179,8,0.3)' }}>
+                          Carta Mayor
+                        </div>
+                        <div className="space-y-1 text-[0.55rem]">
+                          <div style={{ color: 'rgba(234,179,8,0.6)' }}>&#x1F0CF; {cartaMayorForm.cardsPerRound} cartas por ronda</div>
+                          <div style={{ color: 'rgba(255,165,0,0.6)' }}>&#x1F3C6; Acierto +{cartaMayorForm.pointsCorrect}pts | Racha5 +{cartaMayorForm.pointsStreak5}pts</div>
+                          <div style={{ color: 'rgba(255,215,0,0.6)' }}>&#x2B50; Racha10 +{cartaMayorForm.pointsStreak10}pts</div>
+                          <div style={{ color: 'rgba(239,68,68,0.6)' }}>&#x23F1; Límite {cartaMayorForm.timeLimit || '∞'}s</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ) : activeTab === 'diana' ? (
+                /* ========== DIANA TAB ========== */
+                <div className="space-y-4">
+                  <div className="p-3 rounded-xl" style={{ background: 'rgba(239,68,68,0.04)', border: '1px solid rgba(239,68,68,0.15)' }}>
+                    <p className="text-[0.65rem]" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                      Configura la <b style={{ color: '#ef4444' }}>Diana de Escudos</b>: rondas, puntos centro/medio/borde, velocidad y activación. Tiro al blanco con escudos de la Liga BetPlay.
+                    </p>
+                  </div>
+
+                  {dianaConfig && (
+                    <div className="grid grid-cols-6 gap-2">
+                      <div className="p-2 rounded-lg text-center" style={{ background: 'rgba(239,68,68,0.06)' }}>
+                        <div className="text-[0.5rem] uppercase" style={{ color: 'rgba(239,68,68,0.5)' }}>Rondas</div>
+                        <div className="text-lg font-black" style={{ color: '#ef4444' }}>{dianaConfig.roundsPerGame}</div>
+                      </div>
+                      <div className="p-2 rounded-lg text-center" style={{ background: 'rgba(255,0,0,0.06)' }}>
+                        <div className="text-[0.5rem] uppercase" style={{ color: 'rgba(255,0,0,0.5)' }}>Centro</div>
+                        <div className="text-lg font-black" style={{ color: '#ff0000' }}>+{dianaConfig.pointsCenter}</div>
+                      </div>
+                      <div className="p-2 rounded-lg text-center" style={{ background: 'rgba(255,165,0,0.06)' }}>
+                        <div className="text-[0.5rem] uppercase" style={{ color: 'rgba(255,165,0,0.5)' }}>Medio</div>
+                        <div className="text-lg font-black" style={{ color: '#ffa500' }}>+{dianaConfig.pointsMiddle}</div>
+                      </div>
+                      <div className="p-2 rounded-lg text-center" style={{ background: 'rgba(255,215,0,0.06)' }}>
+                        <div className="text-[0.5rem] uppercase" style={{ color: 'rgba(255,215,0,0.5)' }}>Borde</div>
+                        <div className="text-lg font-black" style={{ color: '#ffd700' }}>+{dianaConfig.pointsEdge}</div>
+                      </div>
+                      <div className="p-2 rounded-lg text-center" style={{ background: 'rgba(0,170,255,0.06)' }}>
+                        <div className="text-[0.5rem] uppercase" style={{ color: 'rgba(0,170,255,0.5)' }}>Velocidad</div>
+                        <div className="text-lg font-black" style={{ color: '#00aaff' }}>{dianaConfig.speed}</div>
+                      </div>
+                      <div className="p-2 rounded-lg text-center" style={{ background: dianaConfig.isActive ? 'rgba(34,197,94,0.06)' : 'rgba(239,68,68,0.06)' }}>
+                        <div className="text-[0.5rem] uppercase" style={{ color: 'rgba(255,255,255,0.3)' }}>Estado</div>
+                        <div className="text-lg font-black" style={{ color: dianaConfig.isActive ? '#4ade80' : '#ef4444' }}>
+                          {dianaConfig.isActive ? '●' : '○'}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="space-y-3">
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-[0.6rem] font-bold uppercase tracking-wider block mb-1" style={{ color: 'rgba(239,68,68,0.6)' }}>
+                          Rondas por Juego
+                        </label>
+                        <select
+                          value={dianaForm.roundsPerGame}
+                          onChange={(e) => setDianaForm({ ...dianaForm, roundsPerGame: parseInt(e.target.value) })}
+                          className="w-full px-3 py-2 rounded-lg text-sm font-bold outline-none cursor-pointer"
+                          style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(239,68,68,0.2)', color: '#ef4444' }}
+                        >
+                          <option value={5} style={{ background: '#1a0a2e' }}>5 - Rápido</option>
+                          <option value={10} style={{ background: '#1a0a2e' }}>10 - Normal</option>
+                          <option value={15} style={{ background: '#1a0a2e' }}>15 - Largo</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="text-[0.6rem] font-bold uppercase tracking-wider block mb-1" style={{ color: 'rgba(255,0,0,0.6)' }}>
+                          Puntos Centro
+                        </label>
+                        <input type="number" min={10} max={200} step={10}
+                          value={dianaForm.pointsCenter}
+                          onChange={(e) => setDianaForm({ ...dianaForm, pointsCenter: parseInt(e.target.value) || 50 })}
+                          className="w-full px-3 py-2 rounded-lg text-sm font-bold"
+                          style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,0,0,0.2)', color: '#ff0000' }}
+                        />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-[0.6rem] font-bold uppercase tracking-wider block mb-1" style={{ color: 'rgba(255,165,0,0.6)' }}>
+                          Puntos Medio
+                        </label>
+                        <input type="number" min={5} max={100} step={5}
+                          value={dianaForm.pointsMiddle}
+                          onChange={(e) => setDianaForm({ ...dianaForm, pointsMiddle: parseInt(e.target.value) || 30 })}
+                          className="w-full px-3 py-2 rounded-lg text-sm font-bold"
+                          style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,165,0,0.2)', color: '#ffa500' }}
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[0.6rem] font-bold uppercase tracking-wider block mb-1" style={{ color: 'rgba(255,215,0,0.6)' }}>
+                          Puntos Borde
+                        </label>
+                        <input type="number" min={1} max={50} step={5}
+                          value={dianaForm.pointsEdge}
+                          onChange={(e) => setDianaForm({ ...dianaForm, pointsEdge: parseInt(e.target.value) || 10 })}
+                          className="w-full px-3 py-2 rounded-lg text-sm font-bold"
+                          style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,215,0,0.2)', color: '#ffd700' }}
+                        />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-[0.6rem] font-bold uppercase tracking-wider block mb-1" style={{ color: 'rgba(0,170,255,0.6)' }}>
+                          Velocidad (1-5)
+                        </label>
+                        <input type="range" min={1} max={5} step={1}
+                          value={dianaForm.speed}
+                          onChange={(e) => setDianaForm({ ...dianaForm, speed: parseInt(e.target.value) })}
+                          className="w-full"
+                          style={{ accentColor: '#00aaff' }}
+                        />
+                        <div className="flex justify-between text-[0.5rem]" style={{ color: 'rgba(255,255,255,0.3)' }}>
+                          <span>Lenta</span>
+                          <span>Rápida</span>
+                        </div>
+                      </div>
+                      <div>
+                        <label className="text-[0.6rem] font-bold uppercase tracking-wider block mb-1" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                          Estado del Juego
+                        </label>
+                        <p className="text-[0.5rem] mb-2" style={{ color: 'rgba(255,255,255,0.25)' }}>
+                          Desactiva para ocultar el juego del sitio
+                        </p>
+                        <button
+                          onClick={() => setDianaForm({ ...dianaForm, isActive: !dianaForm.isActive })}
+                          className="px-4 py-2 rounded-lg text-xs font-bold cursor-pointer transition-all"
+                          style={{
+                            background: dianaForm.isActive ? 'rgba(34,197,94,0.15)' : 'rgba(239,68,68,0.15)',
+                            color: dianaForm.isActive ? '#4ade80' : '#ef4444',
+                            border: `1px solid ${dianaForm.isActive ? 'rgba(34,197,94,0.3)' : 'rgba(239,68,68,0.3)'}`,
+                            boxShadow: dianaForm.isActive ? '0 0 8px rgba(34,197,94,0.1)' : '0 0 8px rgba(239,68,68,0.1)',
+                          }}
+                        >
+                          {dianaForm.isActive ? '● Activo' : '○ Inactivo'}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end">
+                    <button
+                      onClick={handleSaveDiana}
+                      disabled={savingDiana}
+                      className="px-6 py-2.5 rounded-xl font-bold text-sm cursor-pointer transition-all hover:scale-105 disabled:opacity-50"
+                      style={{
+                        background: 'linear-gradient(135deg, #ef4444, #ff6464)',
+                        color: '#fff',
+                        boxShadow: '0 0 12px rgba(239,68,68,0.2)',
+                      }}
+                    >
+                      {savingDiana ? 'Guardando...' : 'Guardar Configuración'}
+                    </button>
+                  </div>
+
+                  {/* Diana Preview */}
+                  <div>
+                    <div className="text-[0.6rem] font-bold uppercase tracking-wider mb-2" style={{ color: 'rgba(239,68,68,0.4)' }}>
+                      Vista Previa de Diana
+                    </div>
+                    <div className="flex items-center gap-4 p-4 rounded-xl" style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(239,68,68,0.1)' }}>
+                      <div className="flex items-center justify-center" style={{ width: '80px', height: '80px', background: 'rgba(239,68,68,0.1)', borderRadius: '12px', border: '2px solid rgba(239,68,68,0.3)' }}>
+                        <span className="text-4xl">🎯</span>
+                      </div>
+                      <div className="space-y-2">
+                        <div className="text-xs font-black uppercase" style={{ color: '#ef4444', textShadow: '0 0 6px rgba(239,68,68,0.3)' }}>
+                          Diana de Escudos
+                        </div>
+                        <div className="space-y-1 text-[0.55rem]">
+                          <div style={{ color: 'rgba(239,68,68,0.6)' }}>&#x1F3AF; {dianaForm.roundsPerGame} rondas | Vel. {dianaForm.speed}</div>
+                          <div style={{ color: 'rgba(255,0,0,0.6)' }}>&#x1F534; Centro +{dianaForm.pointsCenter}pts</div>
+                          <div style={{ color: 'rgba(255,165,0,0.6)' }}>&#x1F7E0; Medio +{dianaForm.pointsMiddle}pts | Borde +{dianaForm.pointsEdge}pts</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ) : activeTab === 'clasificacion' ? (
+                /* ========== CLASIFICACION TAB ========== */
+                <div className="space-y-4">
+                  <div className="p-3 rounded-xl" style={{ background: 'rgba(6,182,212,0.04)', border: '1px solid rgba(6,182,212,0.15)' }}>
+                    <p className="text-[0.65rem]" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                      Configura la <b style={{ color: '#06b6d4' }}>Clasificación Histórica</b>: equipos por ronda, puntos perfecto/parcial, tiempo límite, bonus y activación. Ordena los equipos por criterios históricos.
+                    </p>
+                  </div>
+
+                  {clasificacionConfig && (
+                    <div className="grid grid-cols-6 gap-2">
+                      <div className="p-2 rounded-lg text-center" style={{ background: 'rgba(6,182,212,0.06)' }}>
+                        <div className="text-[0.5rem] uppercase" style={{ color: 'rgba(6,182,212,0.5)' }}>Equipos</div>
+                        <div className="text-lg font-black" style={{ color: '#06b6d4' }}>{clasificacionConfig.teamsPerRound}</div>
+                      </div>
+                      <div className="p-2 rounded-lg text-center" style={{ background: 'rgba(0,255,200,0.06)' }}>
+                        <div className="text-[0.5rem] uppercase" style={{ color: 'rgba(0,255,200,0.5)' }}>Perfecto</div>
+                        <div className="text-lg font-black" style={{ color: '#00ffc8' }}>+{clasificacionConfig.pointsPerfect}</div>
+                      </div>
+                      <div className="p-2 rounded-lg text-center" style={{ background: 'rgba(234,179,8,0.06)' }}>
+                        <div className="text-[0.5rem] uppercase" style={{ color: 'rgba(234,179,8,0.5)' }}>Parcial</div>
+                        <div className="text-lg font-black" style={{ color: '#eab308' }}>+{clasificacionConfig.pointsPartial}</div>
+                      </div>
+                      <div className="p-2 rounded-lg text-center" style={{ background: 'rgba(239,68,68,0.06)' }}>
+                        <div className="text-[0.5rem] uppercase" style={{ color: 'rgba(239,68,68,0.5)' }}>Límite</div>
+                        <div className="text-lg font-black" style={{ color: '#ef4444' }}>{clasificacionConfig.timeLimit || '∞'}</div>
+                      </div>
+                      <div className="p-2 rounded-lg text-center" style={{ background: 'rgba(0,170,255,0.06)' }}>
+                        <div className="text-[0.5rem] uppercase" style={{ color: 'rgba(0,170,255,0.5)' }}>Bonus</div>
+                        <div className="text-lg font-black" style={{ color: '#00aaff' }}>+{clasificacionConfig.timeBonusMax}</div>
+                      </div>
+                      <div className="p-2 rounded-lg text-center" style={{ background: clasificacionConfig.isActive ? 'rgba(34,197,94,0.06)' : 'rgba(239,68,68,0.06)' }}>
+                        <div className="text-[0.5rem] uppercase" style={{ color: 'rgba(255,255,255,0.3)' }}>Estado</div>
+                        <div className="text-lg font-black" style={{ color: clasificacionConfig.isActive ? '#4ade80' : '#ef4444' }}>
+                          {clasificacionConfig.isActive ? '●' : '○'}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="space-y-3">
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-[0.6rem] font-bold uppercase tracking-wider block mb-1" style={{ color: 'rgba(6,182,212,0.6)' }}>
+                          Equipos por Ronda
+                        </label>
+                        <select
+                          value={clasificacionForm.teamsPerRound}
+                          onChange={(e) => setClasificacionForm({ ...clasificacionForm, teamsPerRound: parseInt(e.target.value) })}
+                          className="w-full px-3 py-2 rounded-lg text-sm font-bold outline-none cursor-pointer"
+                          style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(6,182,212,0.2)', color: '#06b6d4' }}
+                        >
+                          <option value={4} style={{ background: '#1a0a2e' }}>4 - Fácil</option>
+                          <option value={6} style={{ background: '#1a0a2e' }}>6 - Normal</option>
+                          <option value={8} style={{ background: '#1a0a2e' }}>8 - Difícil</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="text-[0.6rem] font-bold uppercase tracking-wider block mb-1" style={{ color: 'rgba(0,255,200,0.6)' }}>
+                          Puntos Perfecto
+                        </label>
+                        <input type="number" min={50} max={500} step={25}
+                          value={clasificacionForm.pointsPerfect}
+                          onChange={(e) => setClasificacionForm({ ...clasificacionForm, pointsPerfect: parseInt(e.target.value) || 150 })}
+                          className="w-full px-3 py-2 rounded-lg text-sm font-bold"
+                          style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(0,255,200,0.2)', color: '#00ffc8' }}
+                        />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-[0.6rem] font-bold uppercase tracking-wider block mb-1" style={{ color: 'rgba(234,179,8,0.6)' }}>
+                          Puntos Parcial
+                        </label>
+                        <input type="number" min={10} max={200} step={10}
+                          value={clasificacionForm.pointsPartial}
+                          onChange={(e) => setClasificacionForm({ ...clasificacionForm, pointsPartial: parseInt(e.target.value) || 80 })}
+                          className="w-full px-3 py-2 rounded-lg text-sm font-bold"
+                          style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(234,179,8,0.2)', color: '#eab308' }}
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[0.6rem] font-bold uppercase tracking-wider block mb-1" style={{ color: 'rgba(239,68,68,0.6)' }}>
+                          Tiempo Límite (segundos)
+                        </label>
+                        <input type="number" min={0} max={300} step={10}
+                          value={clasificacionForm.timeLimit}
+                          onChange={(e) => setClasificacionForm({ ...clasificacionForm, timeLimit: parseInt(e.target.value) || 0 })}
+                          className="w-full px-3 py-2 rounded-lg text-sm font-bold"
+                          style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(239,68,68,0.2)', color: '#ef4444' }}
+                        />
+                        <p className="text-[0.5rem] mt-1" style={{ color: 'rgba(255,255,255,0.25)' }}>0 = sin límite de tiempo</p>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-[0.6rem] font-bold uppercase tracking-wider block mb-1" style={{ color: 'rgba(0,170,255,0.6)' }}>
+                          Bonus Máx. por Tiempo
+                        </label>
+                        <input type="number" min={0} max={200} step={10}
+                          value={clasificacionForm.timeBonusMax}
+                          onChange={(e) => setClasificacionForm({ ...clasificacionForm, timeBonusMax: parseInt(e.target.value) || 50 })}
+                          className="w-full px-3 py-2 rounded-lg text-sm font-bold"
+                          style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(0,170,255,0.2)', color: '#00aaff' }}
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[0.6rem] font-bold uppercase tracking-wider block mb-1" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                          Estado del Juego
+                        </label>
+                        <p className="text-[0.5rem] mb-2" style={{ color: 'rgba(255,255,255,0.25)' }}>
+                          Desactiva para ocultar el juego del sitio
+                        </p>
+                        <button
+                          onClick={() => setClasificacionForm({ ...clasificacionForm, isActive: !clasificacionForm.isActive })}
+                          className="px-4 py-2 rounded-lg text-xs font-bold cursor-pointer transition-all"
+                          style={{
+                            background: clasificacionForm.isActive ? 'rgba(34,197,94,0.15)' : 'rgba(239,68,68,0.15)',
+                            color: clasificacionForm.isActive ? '#4ade80' : '#ef4444',
+                            border: `1px solid ${clasificacionForm.isActive ? 'rgba(34,197,94,0.3)' : 'rgba(239,68,68,0.3)'}`,
+                            boxShadow: clasificacionForm.isActive ? '0 0 8px rgba(34,197,94,0.1)' : '0 0 8px rgba(239,68,68,0.1)',
+                          }}
+                        >
+                          {clasificacionForm.isActive ? '● Activo' : '○ Inactivo'}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end">
+                    <button
+                      onClick={handleSaveClasificacion}
+                      disabled={savingClasificacion}
+                      className="px-6 py-2.5 rounded-xl font-bold text-sm cursor-pointer transition-all hover:scale-105 disabled:opacity-50"
+                      style={{
+                        background: 'linear-gradient(135deg, #06b6d4, #00aaff)',
+                        color: '#000',
+                        boxShadow: '0 0 12px rgba(6,182,212,0.2)',
+                      }}
+                    >
+                      {savingClasificacion ? 'Guardando...' : 'Guardar Configuración'}
+                    </button>
+                  </div>
+
+                  {/* Clasificacion Preview */}
+                  <div>
+                    <div className="text-[0.6rem] font-bold uppercase tracking-wider mb-2" style={{ color: 'rgba(6,182,212,0.4)' }}>
+                      Vista Previa de Clasificación
+                    </div>
+                    <div className="flex items-center gap-4 p-4 rounded-xl" style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(6,182,212,0.1)' }}>
+                      <div className="flex items-center justify-center" style={{ width: '80px', height: '80px', background: 'rgba(6,182,212,0.1)', borderRadius: '12px', border: '2px solid rgba(6,182,212,0.3)' }}>
+                        <span className="text-4xl">🏆</span>
+                      </div>
+                      <div className="space-y-2">
+                        <div className="text-xs font-black uppercase" style={{ color: '#06b6d4', textShadow: '0 0 6px rgba(6,182,212,0.3)' }}>
+                          Clasificación Histórica
+                        </div>
+                        <div className="space-y-1 text-[0.55rem]">
+                          <div style={{ color: 'rgba(6,182,212,0.6)' }}>&#x1F3C6; {clasificacionForm.teamsPerRound} equipos por ronda</div>
+                          <div style={{ color: 'rgba(0,255,200,0.6)' }}>&#x2B50; Perfecto +{clasificacionForm.pointsPerfect}pts | Parcial +{clasificacionForm.pointsPartial}pts</div>
+                          <div style={{ color: 'rgba(0,170,255,0.6)' }}>&#x26A1; Bonus máx +{clasificacionForm.timeBonusMax}pts</div>
+                          <div style={{ color: 'rgba(239,68,68,0.6)' }}>&#x23F1; Límite {clasificacionForm.timeLimit || '∞'}s</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ) : activeTab === 'numero-camiseta' ? (
+                /* ========== NUMERO CAMISETA TAB ========== */
+                <div className="space-y-4">
+                  <div className="p-3 rounded-xl" style={{ background: 'rgba(139,92,246,0.04)', border: '1px solid rgba(139,92,246,0.15)' }}>
+                    <p className="text-[0.65rem]" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                      Configura <b style={{ color: '#8b5cf6' }}>Número Camiseta</b>: preguntas por juego, puntos exacto/cercano, multiplicador sin pista, tiempo límite y activación. Adivina el dorsal de jugadores históricos.
+                    </p>
+                  </div>
+
+                  {numeroCamisetaConfig && (
+                    <div className="grid grid-cols-6 gap-2">
+                      <div className="p-2 rounded-lg text-center" style={{ background: 'rgba(139,92,246,0.06)' }}>
+                        <div className="text-[0.5rem] uppercase" style={{ color: 'rgba(139,92,246,0.5)' }}>Preguntas</div>
+                        <div className="text-lg font-black" style={{ color: '#8b5cf6' }}>{numeroCamisetaConfig.questionsPerGame}</div>
+                      </div>
+                      <div className="p-2 rounded-lg text-center" style={{ background: 'rgba(0,255,200,0.06)' }}>
+                        <div className="text-[0.5rem] uppercase" style={{ color: 'rgba(0,255,200,0.5)' }}>Exacto</div>
+                        <div className="text-lg font-black" style={{ color: '#00ffc8' }}>+{numeroCamisetaConfig.pointsExact}</div>
+                      </div>
+                      <div className="p-2 rounded-lg text-center" style={{ background: 'rgba(234,179,8,0.06)' }}>
+                        <div className="text-[0.5rem] uppercase" style={{ color: 'rgba(234,179,8,0.5)' }}>Cercano</div>
+                        <div className="text-lg font-black" style={{ color: '#eab308' }}>+{numeroCamisetaConfig.pointsClose}</div>
+                      </div>
+                      <div className="p-2 rounded-lg text-center" style={{ background: 'rgba(255,68,68,0.06)' }}>
+                        <div className="text-[0.5rem] uppercase" style={{ color: 'rgba(255,68,68,0.5)' }}>No Pista</div>
+                        <div className="text-lg font-black" style={{ color: '#ff4444' }}>x{numeroCamisetaConfig.noHintMultiplier}</div>
+                      </div>
+                      <div className="p-2 rounded-lg text-center" style={{ background: 'rgba(239,68,68,0.06)' }}>
+                        <div className="text-[0.5rem] uppercase" style={{ color: 'rgba(239,68,68,0.5)' }}>Límite</div>
+                        <div className="text-lg font-black" style={{ color: '#ef4444' }}>{numeroCamisetaConfig.timeLimit || '∞'}</div>
+                      </div>
+                      <div className="p-2 rounded-lg text-center" style={{ background: numeroCamisetaConfig.isActive ? 'rgba(34,197,94,0.06)' : 'rgba(239,68,68,0.06)' }}>
+                        <div className="text-[0.5rem] uppercase" style={{ color: 'rgba(255,255,255,0.3)' }}>Estado</div>
+                        <div className="text-lg font-black" style={{ color: numeroCamisetaConfig.isActive ? '#4ade80' : '#ef4444' }}>
+                          {numeroCamisetaConfig.isActive ? '●' : '○'}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="space-y-3">
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-[0.6rem] font-bold uppercase tracking-wider block mb-1" style={{ color: 'rgba(139,92,246,0.6)' }}>
+                          Preguntas por Juego
+                        </label>
+                        <select
+                          value={numeroCamisetaForm.questionsPerGame}
+                          onChange={(e) => setNumeroCamisetaForm({ ...numeroCamisetaForm, questionsPerGame: parseInt(e.target.value) })}
+                          className="w-full px-3 py-2 rounded-lg text-sm font-bold outline-none cursor-pointer"
+                          style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(139,92,246,0.2)', color: '#8b5cf6' }}
+                        >
+                          <option value={3} style={{ background: '#1a0a2e' }}>3 - Rápido</option>
+                          <option value={5} style={{ background: '#1a0a2e' }}>5 - Normal</option>
+                          <option value={8} style={{ background: '#1a0a2e' }}>8 - Largo</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="text-[0.6rem] font-bold uppercase tracking-wider block mb-1" style={{ color: 'rgba(0,255,200,0.6)' }}>
+                          Puntos Exacto
+                        </label>
+                        <input type="number" min={10} max={100} step={5}
+                          value={numeroCamisetaForm.pointsExact}
+                          onChange={(e) => setNumeroCamisetaForm({ ...numeroCamisetaForm, pointsExact: parseInt(e.target.value) || 40 })}
+                          className="w-full px-3 py-2 rounded-lg text-sm font-bold"
+                          style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(0,255,200,0.2)', color: '#00ffc8' }}
+                        />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-[0.6rem] font-bold uppercase tracking-wider block mb-1" style={{ color: 'rgba(234,179,8,0.6)' }}>
+                          Puntos Cercano
+                        </label>
+                        <input type="number" min={5} max={50} step={5}
+                          value={numeroCamisetaForm.pointsClose}
+                          onChange={(e) => setNumeroCamisetaForm({ ...numeroCamisetaForm, pointsClose: parseInt(e.target.value) || 20 })}
+                          className="w-full px-3 py-2 rounded-lg text-sm font-bold"
+                          style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(234,179,8,0.2)', color: '#eab308' }}
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[0.6rem] font-bold uppercase tracking-wider block mb-1" style={{ color: 'rgba(255,68,68,0.6)' }}>
+                          Multiplicador Sin Pista
+                        </label>
+                        <input type="number" min={1} max={5} step={0.5}
+                          value={numeroCamisetaForm.noHintMultiplier}
+                          onChange={(e) => setNumeroCamisetaForm({ ...numeroCamisetaForm, noHintMultiplier: parseFloat(e.target.value) || 2 })}
+                          className="w-full px-3 py-2 rounded-lg text-sm font-bold"
+                          style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,68,68,0.2)', color: '#ff4444' }}
+                        />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-[0.6rem] font-bold uppercase tracking-wider block mb-1" style={{ color: 'rgba(239,68,68,0.6)' }}>
+                          Tiempo Límite (segundos)
+                        </label>
+                        <input type="number" min={0} max={300} step={10}
+                          value={numeroCamisetaForm.timeLimit}
+                          onChange={(e) => setNumeroCamisetaForm({ ...numeroCamisetaForm, timeLimit: parseInt(e.target.value) || 0 })}
+                          className="w-full px-3 py-2 rounded-lg text-sm font-bold"
+                          style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(239,68,68,0.2)', color: '#ef4444' }}
+                        />
+                        <p className="text-[0.5rem] mt-1" style={{ color: 'rgba(255,255,255,0.25)' }}>0 = sin límite de tiempo</p>
+                      </div>
+                      <div>
+                        <label className="text-[0.6rem] font-bold uppercase tracking-wider block mb-1" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                          Estado del Juego
+                        </label>
+                        <p className="text-[0.5rem] mb-2" style={{ color: 'rgba(255,255,255,0.25)' }}>
+                          Desactiva para ocultar el juego del sitio
+                        </p>
+                        <button
+                          onClick={() => setNumeroCamisetaForm({ ...numeroCamisetaForm, isActive: !numeroCamisetaForm.isActive })}
+                          className="px-4 py-2 rounded-lg text-xs font-bold cursor-pointer transition-all"
+                          style={{
+                            background: numeroCamisetaForm.isActive ? 'rgba(34,197,94,0.15)' : 'rgba(239,68,68,0.15)',
+                            color: numeroCamisetaForm.isActive ? '#4ade80' : '#ef4444',
+                            border: `1px solid ${numeroCamisetaForm.isActive ? 'rgba(34,197,94,0.3)' : 'rgba(239,68,68,0.3)'}`,
+                            boxShadow: numeroCamisetaForm.isActive ? '0 0 8px rgba(34,197,94,0.1)' : '0 0 8px rgba(239,68,68,0.1)',
+                          }}
+                        >
+                          {numeroCamisetaForm.isActive ? '● Activo' : '○ Inactivo'}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end">
+                    <button
+                      onClick={handleSaveNumeroCamiseta}
+                      disabled={savingNumeroCamiseta}
+                      className="px-6 py-2.5 rounded-xl font-bold text-sm cursor-pointer transition-all hover:scale-105 disabled:opacity-50"
+                      style={{
+                        background: 'linear-gradient(135deg, #8b5cf6, #a78bfa)',
+                        color: '#fff',
+                        boxShadow: '0 0 12px rgba(139,92,246,0.2)',
+                      }}
+                    >
+                      {savingNumeroCamiseta ? 'Guardando...' : 'Guardar Configuración'}
+                    </button>
+                  </div>
+
+                  {/* Numero Camiseta Preview */}
+                  <div>
+                    <div className="text-[0.6rem] font-bold uppercase tracking-wider mb-2" style={{ color: 'rgba(139,92,246,0.4)' }}>
+                      Vista Previa de Número Camiseta
+                    </div>
+                    <div className="flex items-center gap-4 p-4 rounded-xl" style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(139,92,246,0.1)' }}>
+                      <div className="flex items-center justify-center" style={{ width: '80px', height: '80px', background: 'rgba(139,92,246,0.1)', borderRadius: '12px', border: '2px solid rgba(139,92,246,0.3)' }}>
+                        <span className="text-4xl">🔢</span>
+                      </div>
+                      <div className="space-y-2">
+                        <div className="text-xs font-black uppercase" style={{ color: '#8b5cf6', textShadow: '0 0 6px rgba(139,92,246,0.3)' }}>
+                          Número Camiseta
+                        </div>
+                        <div className="space-y-1 text-[0.55rem]">
+                          <div style={{ color: 'rgba(139,92,246,0.6)' }}>&#x1F522; {numeroCamisetaForm.questionsPerGame} preguntas por juego</div>
+                          <div style={{ color: 'rgba(0,255,200,0.6)' }}>&#x1F3C6; Exacto +{numeroCamisetaForm.pointsExact}pts | Cercano +{numeroCamisetaForm.pointsClose}pts</div>
+                          <div style={{ color: 'rgba(255,68,68,0.6)' }}>&#x2B50; Sin pista x{numeroCamisetaForm.noHintMultiplier}</div>
+                          <div style={{ color: 'rgba(239,68,68,0.6)' }}>&#x23F1; Límite {numeroCamisetaForm.timeLimit || '∞'}s</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ) : activeTab === 'mineria' ? (
+                /* ========== MINERIA TAB ========== */
+                <div className="space-y-4">
+                  <div className="p-3 rounded-xl" style={{ background: 'rgba(34,197,94,0.04)', border: '1px solid rgba(34,197,94,0.15)' }}>
+                    <p className="text-[0.65rem]" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                      Configura la <b style={{ color: '#22c55e' }}>Minería de Escudos</b>: tamaño de grilla, minas, puntos por celda/completar/sin minas y activación. Buscaminas con escudos rivales de la Liga BetPlay.
+                    </p>
+                  </div>
+
+                  {mineriaConfig && (
+                    <div className="grid grid-cols-6 gap-2">
+                      <div className="p-2 rounded-lg text-center" style={{ background: 'rgba(34,197,94,0.06)' }}>
+                        <div className="text-[0.5rem] uppercase" style={{ color: 'rgba(34,197,94,0.5)' }}>Grilla</div>
+                        <div className="text-lg font-black" style={{ color: '#22c55e' }}>{mineriaConfig.gridSize}x{mineriaConfig.gridSize}</div>
+                      </div>
+                      <div className="p-2 rounded-lg text-center" style={{ background: 'rgba(239,68,68,0.06)' }}>
+                        <div className="text-[0.5rem] uppercase" style={{ color: 'rgba(239,68,68,0.5)' }}>Minas</div>
+                        <div className="text-lg font-black" style={{ color: '#ef4444' }}>{mineriaConfig.mineCount}</div>
+                      </div>
+                      <div className="p-2 rounded-lg text-center" style={{ background: 'rgba(0,255,200,0.06)' }}>
+                        <div className="text-[0.5rem] uppercase" style={{ color: 'rgba(0,255,200,0.5)' }}>Celda</div>
+                        <div className="text-lg font-black" style={{ color: '#00ffc8' }}>+{mineriaConfig.pointsPerCell}</div>
+                      </div>
+                      <div className="p-2 rounded-lg text-center" style={{ background: 'rgba(234,179,8,0.06)' }}>
+                        <div className="text-[0.5rem] uppercase" style={{ color: 'rgba(234,179,8,0.5)' }}>Completo</div>
+                        <div className="text-lg font-black" style={{ color: '#eab308' }}>+{mineriaConfig.pointsComplete}</div>
+                      </div>
+                      <div className="p-2 rounded-lg text-center" style={{ background: 'rgba(0,170,255,0.06)' }}>
+                        <div className="text-[0.5rem] uppercase" style={{ color: 'rgba(0,170,255,0.5)' }}>0 Minas</div>
+                        <div className="text-lg font-black" style={{ color: '#00aaff' }}>+{mineriaConfig.pointsNoMines}</div>
+                      </div>
+                      <div className="p-2 rounded-lg text-center" style={{ background: mineriaConfig.isActive ? 'rgba(34,197,94,0.06)' : 'rgba(239,68,68,0.06)' }}>
+                        <div className="text-[0.5rem] uppercase" style={{ color: 'rgba(255,255,255,0.3)' }}>Estado</div>
+                        <div className="text-lg font-black" style={{ color: mineriaConfig.isActive ? '#4ade80' : '#ef4444' }}>
+                          {mineriaConfig.isActive ? '●' : '○'}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="space-y-3">
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-[0.6rem] font-bold uppercase tracking-wider block mb-1" style={{ color: 'rgba(34,197,94,0.6)' }}>
+                          Tamaño de Grilla
+                        </label>
+                        <select
+                          value={mineriaForm.gridSize}
+                          onChange={(e) => setMineriaForm({ ...mineriaForm, gridSize: parseInt(e.target.value) })}
+                          className="w-full px-3 py-2 rounded-lg text-sm font-bold outline-none cursor-pointer"
+                          style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(34,197,94,0.2)', color: '#22c55e' }}
+                        >
+                          <option value={6} style={{ background: '#1a0a2e' }}>6x6 - Fácil</option>
+                          <option value={8} style={{ background: '#1a0a2e' }}>8x8 - Normal</option>
+                          <option value={10} style={{ background: '#1a0a2e' }}>10x10 - Difícil</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="text-[0.6rem] font-bold uppercase tracking-wider block mb-1" style={{ color: 'rgba(239,68,68,0.6)' }}>
+                          Cantidad de Minas
+                        </label>
+                        <input type="number" min={5} max={30} step={1}
+                          value={mineriaForm.mineCount}
+                          onChange={(e) => setMineriaForm({ ...mineriaForm, mineCount: parseInt(e.target.value) || 10 })}
+                          className="w-full px-3 py-2 rounded-lg text-sm font-bold"
+                          style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(239,68,68,0.2)', color: '#ef4444' }}
+                        />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-[0.6rem] font-bold uppercase tracking-wider block mb-1" style={{ color: 'rgba(0,255,200,0.6)' }}>
+                          Puntos por Celda
+                        </label>
+                        <input type="number" min={1} max={20} step={1}
+                          value={mineriaForm.pointsPerCell}
+                          onChange={(e) => setMineriaForm({ ...mineriaForm, pointsPerCell: parseInt(e.target.value) || 5 })}
+                          className="w-full px-3 py-2 rounded-lg text-sm font-bold"
+                          style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(0,255,200,0.2)', color: '#00ffc8' }}
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[0.6rem] font-bold uppercase tracking-wider block mb-1" style={{ color: 'rgba(234,179,8,0.6)' }}>
+                          Puntos Completar
+                        </label>
+                        <input type="number" min={50} max={500} step={25}
+                          value={mineriaForm.pointsComplete}
+                          onChange={(e) => setMineriaForm({ ...mineriaForm, pointsComplete: parseInt(e.target.value) || 100 })}
+                          className="w-full px-3 py-2 rounded-lg text-sm font-bold"
+                          style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(234,179,8,0.2)', color: '#eab308' }}
+                        />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-[0.6rem] font-bold uppercase tracking-wider block mb-1" style={{ color: 'rgba(0,170,255,0.6)' }}>
+                          Puntos Sin Minas
+                        </label>
+                        <input type="number" min={10} max={200} step={10}
+                          value={mineriaForm.pointsNoMines}
+                          onChange={(e) => setMineriaForm({ ...mineriaForm, pointsNoMines: parseInt(e.target.value) || 50 })}
+                          className="w-full px-3 py-2 rounded-lg text-sm font-bold"
+                          style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(0,170,255,0.2)', color: '#00aaff' }}
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[0.6rem] font-bold uppercase tracking-wider block mb-1" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                          Estado del Juego
+                        </label>
+                        <p className="text-[0.5rem] mb-2" style={{ color: 'rgba(255,255,255,0.25)' }}>
+                          Desactiva para ocultar el juego del sitio
+                        </p>
+                        <button
+                          onClick={() => setMineriaForm({ ...mineriaForm, isActive: !mineriaForm.isActive })}
+                          className="px-4 py-2 rounded-lg text-xs font-bold cursor-pointer transition-all"
+                          style={{
+                            background: mineriaForm.isActive ? 'rgba(34,197,94,0.15)' : 'rgba(239,68,68,0.15)',
+                            color: mineriaForm.isActive ? '#4ade80' : '#ef4444',
+                            border: `1px solid ${mineriaForm.isActive ? 'rgba(34,197,94,0.3)' : 'rgba(239,68,68,0.3)'}`,
+                            boxShadow: mineriaForm.isActive ? '0 0 8px rgba(34,197,94,0.1)' : '0 0 8px rgba(239,68,68,0.1)',
+                          }}
+                        >
+                          {mineriaForm.isActive ? '● Activo' : '○ Inactivo'}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end">
+                    <button
+                      onClick={handleSaveMineria}
+                      disabled={savingMineria}
+                      className="px-6 py-2.5 rounded-xl font-bold text-sm cursor-pointer transition-all hover:scale-105 disabled:opacity-50"
+                      style={{
+                        background: 'linear-gradient(135deg, #22c55e, #4ade80)',
+                        color: '#000',
+                        boxShadow: '0 0 12px rgba(34,197,94,0.2)',
+                      }}
+                    >
+                      {savingMineria ? 'Guardando...' : 'Guardar Configuración'}
+                    </button>
+                  </div>
+
+                  {/* Mineria Preview */}
+                  <div>
+                    <div className="text-[0.6rem] font-bold uppercase tracking-wider mb-2" style={{ color: 'rgba(34,197,94,0.4)' }}>
+                      Vista Previa de Minería
+                    </div>
+                    <div className="flex items-center gap-4 p-4 rounded-xl" style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(34,197,94,0.1)' }}>
+                      <div className="flex items-center justify-center" style={{ width: '80px', height: '80px', background: 'rgba(34,197,94,0.1)', borderRadius: '12px', border: '2px solid rgba(34,197,94,0.3)' }}>
+                        <span className="text-4xl">💣</span>
+                      </div>
+                      <div className="space-y-2">
+                        <div className="text-xs font-black uppercase" style={{ color: '#22c55e', textShadow: '0 0 6px rgba(34,197,94,0.3)' }}>
+                          Minería de Escudos
+                        </div>
+                        <div className="space-y-1 text-[0.55rem]">
+                          <div style={{ color: 'rgba(34,197,94,0.6)' }}>&#x1F4A3; Grilla {mineriaForm.gridSize}x{mineriaForm.gridSize} | {mineriaForm.mineCount} minas</div>
+                          <div style={{ color: 'rgba(0,255,200,0.6)' }}>&#x1F3C6; Celda +{mineriaForm.pointsPerCell}pts | Completo +{mineriaForm.pointsComplete}pts</div>
+                          <div style={{ color: 'rgba(0,170,255,0.6)' }}>&#x2B50; Sin minas +{mineriaForm.pointsNoMines}pts</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ) : activeTab === 'apuesta' ? (
+                /* ========== APUESTA TAB ========== */
+                <div className="space-y-4">
+                  <div className="p-3 rounded-xl" style={{ background: 'rgba(249,115,22,0.04)', border: '1px solid rgba(249,115,22,0.15)' }}>
+                    <p className="text-[0.65rem]" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                      Configura la <b style={{ color: '#f97316' }}>Apuesta Futbolera</b>: partidos por ronda, puntos exacto/ganador/goles, tiempo límite y activación. Predice resultados de partidos de la Liga BetPlay.
+                    </p>
+                  </div>
+
+                  {apuestaConfig && (
+                    <div className="grid grid-cols-6 gap-2">
+                      <div className="p-2 rounded-lg text-center" style={{ background: 'rgba(249,115,22,0.06)' }}>
+                        <div className="text-[0.5rem] uppercase" style={{ color: 'rgba(249,115,22,0.5)' }}>Partidos</div>
+                        <div className="text-lg font-black" style={{ color: '#f97316' }}>{apuestaConfig.matchesPerRound}</div>
+                      </div>
+                      <div className="p-2 rounded-lg text-center" style={{ background: 'rgba(0,255,200,0.06)' }}>
+                        <div className="text-[0.5rem] uppercase" style={{ color: 'rgba(0,255,200,0.5)' }}>Exacto</div>
+                        <div className="text-lg font-black" style={{ color: '#00ffc8' }}>+{apuestaConfig.pointsExact}</div>
+                      </div>
+                      <div className="p-2 rounded-lg text-center" style={{ background: 'rgba(234,179,8,0.06)' }}>
+                        <div className="text-[0.5rem] uppercase" style={{ color: 'rgba(234,179,8,0.5)' }}>Ganador</div>
+                        <div className="text-lg font-black" style={{ color: '#eab308' }}>+{apuestaConfig.pointsWinner}</div>
+                      </div>
+                      <div className="p-2 rounded-lg text-center" style={{ background: 'rgba(0,170,255,0.06)' }}>
+                        <div className="text-[0.5rem] uppercase" style={{ color: 'rgba(0,170,255,0.5)' }}>Goles</div>
+                        <div className="text-lg font-black" style={{ color: '#00aaff' }}>+{apuestaConfig.pointsGoals}</div>
+                      </div>
+                      <div className="p-2 rounded-lg text-center" style={{ background: 'rgba(239,68,68,0.06)' }}>
+                        <div className="text-[0.5rem] uppercase" style={{ color: 'rgba(239,68,68,0.5)' }}>Límite</div>
+                        <div className="text-lg font-black" style={{ color: '#ef4444' }}>{apuestaConfig.timeLimit || '∞'}</div>
+                      </div>
+                      <div className="p-2 rounded-lg text-center" style={{ background: apuestaConfig.isActive ? 'rgba(34,197,94,0.06)' : 'rgba(239,68,68,0.06)' }}>
+                        <div className="text-[0.5rem] uppercase" style={{ color: 'rgba(255,255,255,0.3)' }}>Estado</div>
+                        <div className="text-lg font-black" style={{ color: apuestaConfig.isActive ? '#4ade80' : '#ef4444' }}>
+                          {apuestaConfig.isActive ? '●' : '○'}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="space-y-3">
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-[0.6rem] font-bold uppercase tracking-wider block mb-1" style={{ color: 'rgba(249,115,22,0.6)' }}>
+                          Partidos por Ronda
+                        </label>
+                        <select
+                          value={apuestaForm.matchesPerRound}
+                          onChange={(e) => setApuestaForm({ ...apuestaForm, matchesPerRound: parseInt(e.target.value) })}
+                          className="w-full px-3 py-2 rounded-lg text-sm font-bold outline-none cursor-pointer"
+                          style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(249,115,22,0.2)', color: '#f97316' }}
+                        >
+                          <option value={2} style={{ background: '#1a0a2e' }}>2 - Rápido</option>
+                          <option value={3} style={{ background: '#1a0a2e' }}>3 - Normal</option>
+                          <option value={5} style={{ background: '#1a0a2e' }}>5 - Largo</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="text-[0.6rem] font-bold uppercase tracking-wider block mb-1" style={{ color: 'rgba(0,255,200,0.6)' }}>
+                          Puntos Exacto
+                        </label>
+                        <input type="number" min={10} max={200} step={10}
+                          value={apuestaForm.pointsExact}
+                          onChange={(e) => setApuestaForm({ ...apuestaForm, pointsExact: parseInt(e.target.value) || 60 })}
+                          className="w-full px-3 py-2 rounded-lg text-sm font-bold"
+                          style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(0,255,200,0.2)', color: '#00ffc8' }}
+                        />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-[0.6rem] font-bold uppercase tracking-wider block mb-1" style={{ color: 'rgba(234,179,8,0.6)' }}>
+                          Puntos Ganador
+                        </label>
+                        <input type="number" min={5} max={100} step={5}
+                          value={apuestaForm.pointsWinner}
+                          onChange={(e) => setApuestaForm({ ...apuestaForm, pointsWinner: parseInt(e.target.value) || 20 })}
+                          className="w-full px-3 py-2 rounded-lg text-sm font-bold"
+                          style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(234,179,8,0.2)', color: '#eab308' }}
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[0.6rem] font-bold uppercase tracking-wider block mb-1" style={{ color: 'rgba(0,170,255,0.6)' }}>
+                          Puntos Goles
+                        </label>
+                        <input type="number" min={5} max={100} step={5}
+                          value={apuestaForm.pointsGoals}
+                          onChange={(e) => setApuestaForm({ ...apuestaForm, pointsGoals: parseInt(e.target.value) || 30 })}
+                          className="w-full px-3 py-2 rounded-lg text-sm font-bold"
+                          style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(0,170,255,0.2)', color: '#00aaff' }}
+                        />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-[0.6rem] font-bold uppercase tracking-wider block mb-1" style={{ color: 'rgba(239,68,68,0.6)' }}>
+                          Tiempo Límite (segundos)
+                        </label>
+                        <input type="number" min={0} max={600} step={30}
+                          value={apuestaForm.timeLimit}
+                          onChange={(e) => setApuestaForm({ ...apuestaForm, timeLimit: parseInt(e.target.value) || 0 })}
+                          className="w-full px-3 py-2 rounded-lg text-sm font-bold"
+                          style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(239,68,68,0.2)', color: '#ef4444' }}
+                        />
+                        <p className="text-[0.5rem] mt-1" style={{ color: 'rgba(255,255,255,0.25)' }}>0 = sin límite de tiempo</p>
+                      </div>
+                      <div>
+                        <label className="text-[0.6rem] font-bold uppercase tracking-wider block mb-1" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                          Estado del Juego
+                        </label>
+                        <p className="text-[0.5rem] mb-2" style={{ color: 'rgba(255,255,255,0.25)' }}>
+                          Desactiva para ocultar el juego del sitio
+                        </p>
+                        <button
+                          onClick={() => setApuestaForm({ ...apuestaForm, isActive: !apuestaForm.isActive })}
+                          className="px-4 py-2 rounded-lg text-xs font-bold cursor-pointer transition-all"
+                          style={{
+                            background: apuestaForm.isActive ? 'rgba(34,197,94,0.15)' : 'rgba(239,68,68,0.15)',
+                            color: apuestaForm.isActive ? '#4ade80' : '#ef4444',
+                            border: `1px solid ${apuestaForm.isActive ? 'rgba(34,197,94,0.3)' : 'rgba(239,68,68,0.3)'}`,
+                            boxShadow: apuestaForm.isActive ? '0 0 8px rgba(34,197,94,0.1)' : '0 0 8px rgba(239,68,68,0.1)',
+                          }}
+                        >
+                          {apuestaForm.isActive ? '● Activo' : '○ Inactivo'}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end">
+                    <button
+                      onClick={handleSaveApuesta}
+                      disabled={savingApuesta}
+                      className="px-6 py-2.5 rounded-xl font-bold text-sm cursor-pointer transition-all hover:scale-105 disabled:opacity-50"
+                      style={{
+                        background: 'linear-gradient(135deg, #f97316, #fdba74)',
+                        color: '#000',
+                        boxShadow: '0 0 12px rgba(249,115,22,0.2)',
+                      }}
+                    >
+                      {savingApuesta ? 'Guardando...' : 'Guardar Configuración'}
+                    </button>
+                  </div>
+
+                  {/* Apuesta Preview */}
+                  <div>
+                    <div className="text-[0.6rem] font-bold uppercase tracking-wider mb-2" style={{ color: 'rgba(249,115,22,0.4)' }}>
+                      Vista Previa de Apuesta
+                    </div>
+                    <div className="flex items-center gap-4 p-4 rounded-xl" style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(249,115,22,0.1)' }}>
+                      <div className="flex items-center justify-center" style={{ width: '80px', height: '80px', background: 'rgba(249,115,22,0.1)', borderRadius: '12px', border: '2px solid rgba(249,115,22,0.3)' }}>
+                        <span className="text-4xl">📊</span>
+                      </div>
+                      <div className="space-y-2">
+                        <div className="text-xs font-black uppercase" style={{ color: '#f97316', textShadow: '0 0 6px rgba(249,115,22,0.3)' }}>
+                          Apuesta Futbolera
+                        </div>
+                        <div className="space-y-1 text-[0.55rem]">
+                          <div style={{ color: 'rgba(249,115,22,0.6)' }}>&#x26BD; {apuestaForm.matchesPerRound} partidos por ronda</div>
+                          <div style={{ color: 'rgba(0,255,200,0.6)' }}>&#x1F3C6; Exacto +{apuestaForm.pointsExact}pts | Ganador +{apuestaForm.pointsWinner}pts</div>
+                          <div style={{ color: 'rgba(0,170,255,0.6)' }}>&#x2B50; Goles +{apuestaForm.pointsGoals}pts</div>
+                          <div style={{ color: 'rgba(239,68,68,0.6)' }}>&#x23F1; Límite {apuestaForm.timeLimit || '∞'}s</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ) : activeTab === 'sopa' ? (
+                /* ========== SOPA TAB ========== */
+                <div className="space-y-4">
+                  <div className="p-3 rounded-xl" style={{ background: 'rgba(20,184,166,0.04)', border: '1px solid rgba(20,184,166,0.15)' }}>
+                    <p className="text-[0.65rem]" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                      Configura la <b style={{ color: '#14b8a6' }}>Sopa de Escudos</b>: tamaño de grilla, palabras por juego, puntos por palabra/completar, tiempo límite y activación. Sopa de letras con nombres de la Liga BetPlay.
+                    </p>
+                  </div>
+
+                  {sopaConfig && (
+                    <div className="grid grid-cols-6 gap-2">
+                      <div className="p-2 rounded-lg text-center" style={{ background: 'rgba(20,184,166,0.06)' }}>
+                        <div className="text-[0.5rem] uppercase" style={{ color: 'rgba(20,184,166,0.5)' }}>Grilla</div>
+                        <div className="text-lg font-black" style={{ color: '#14b8a6' }}>{sopaConfig.gridSize}x{sopaConfig.gridSize}</div>
+                      </div>
+                      <div className="p-2 rounded-lg text-center" style={{ background: 'rgba(20,184,166,0.06)' }}>
+                        <div className="text-[0.5rem] uppercase" style={{ color: 'rgba(20,184,166,0.5)' }}>Palabras</div>
+                        <div className="text-lg font-black" style={{ color: '#14b8a6' }}>{sopaConfig.wordsPerGame}</div>
+                      </div>
+                      <div className="p-2 rounded-lg text-center" style={{ background: 'rgba(0,255,200,0.06)' }}>
+                        <div className="text-[0.5rem] uppercase" style={{ color: 'rgba(0,255,200,0.5)' }}>Palabra</div>
+                        <div className="text-lg font-black" style={{ color: '#00ffc8' }}>+{sopaConfig.pointsPerWord}</div>
+                      </div>
+                      <div className="p-2 rounded-lg text-center" style={{ background: 'rgba(234,179,8,0.06)' }}>
+                        <div className="text-[0.5rem] uppercase" style={{ color: 'rgba(234,179,8,0.5)' }}>Completo</div>
+                        <div className="text-lg font-black" style={{ color: '#eab308' }}>+{sopaConfig.pointsComplete}</div>
+                      </div>
+                      <div className="p-2 rounded-lg text-center" style={{ background: 'rgba(239,68,68,0.06)' }}>
+                        <div className="text-[0.5rem] uppercase" style={{ color: 'rgba(239,68,68,0.5)' }}>Límite</div>
+                        <div className="text-lg font-black" style={{ color: '#ef4444' }}>{sopaConfig.timeLimit || '∞'}</div>
+                      </div>
+                      <div className="p-2 rounded-lg text-center" style={{ background: sopaConfig.isActive ? 'rgba(34,197,94,0.06)' : 'rgba(239,68,68,0.06)' }}>
+                        <div className="text-[0.5rem] uppercase" style={{ color: 'rgba(255,255,255,0.3)' }}>Estado</div>
+                        <div className="text-lg font-black" style={{ color: sopaConfig.isActive ? '#4ade80' : '#ef4444' }}>
+                          {sopaConfig.isActive ? '●' : '○'}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="space-y-3">
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-[0.6rem] font-bold uppercase tracking-wider block mb-1" style={{ color: 'rgba(20,184,166,0.6)' }}>
+                          Tamaño de Grilla
+                        </label>
+                        <select
+                          value={sopaForm.gridSize}
+                          onChange={(e) => setSopaForm({ ...sopaForm, gridSize: parseInt(e.target.value) })}
+                          className="w-full px-3 py-2 rounded-lg text-sm font-bold outline-none cursor-pointer"
+                          style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(20,184,166,0.2)', color: '#14b8a6' }}
+                        >
+                          <option value={10} style={{ background: '#1a0a2e' }}>10x10 - Fácil</option>
+                          <option value={12} style={{ background: '#1a0a2e' }}>12x12 - Normal</option>
+                          <option value={14} style={{ background: '#1a0a2e' }}>14x14 - Difícil</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="text-[0.6rem] font-bold uppercase tracking-wider block mb-1" style={{ color: 'rgba(20,184,166,0.6)' }}>
+                          Palabras por Juego
+                        </label>
+                        <input type="number" min={3} max={15} step={1}
+                          value={sopaForm.wordsPerGame}
+                          onChange={(e) => setSopaForm({ ...sopaForm, wordsPerGame: parseInt(e.target.value) || 8 })}
+                          className="w-full px-3 py-2 rounded-lg text-sm font-bold"
+                          style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(20,184,166,0.2)', color: '#14b8a6' }}
+                        />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-[0.6rem] font-bold uppercase tracking-wider block mb-1" style={{ color: 'rgba(0,255,200,0.6)' }}>
+                          Puntos por Palabra
+                        </label>
+                        <input type="number" min={5} max={50} step={5}
+                          value={sopaForm.pointsPerWord}
+                          onChange={(e) => setSopaForm({ ...sopaForm, pointsPerWord: parseInt(e.target.value) || 15 })}
+                          className="w-full px-3 py-2 rounded-lg text-sm font-bold"
+                          style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(0,255,200,0.2)', color: '#00ffc8' }}
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[0.6rem] font-bold uppercase tracking-wider block mb-1" style={{ color: 'rgba(234,179,8,0.6)' }}>
+                          Puntos Completar
+                        </label>
+                        <input type="number" min={50} max={500} step={25}
+                          value={sopaForm.pointsComplete}
+                          onChange={(e) => setSopaForm({ ...sopaForm, pointsComplete: parseInt(e.target.value) || 100 })}
+                          className="w-full px-3 py-2 rounded-lg text-sm font-bold"
+                          style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(234,179,8,0.2)', color: '#eab308' }}
+                        />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-[0.6rem] font-bold uppercase tracking-wider block mb-1" style={{ color: 'rgba(239,68,68,0.6)' }}>
+                          Tiempo Límite (segundos)
+                        </label>
+                        <input type="number" min={0} max={600} step={30}
+                          value={sopaForm.timeLimit}
+                          onChange={(e) => setSopaForm({ ...sopaForm, timeLimit: parseInt(e.target.value) || 0 })}
+                          className="w-full px-3 py-2 rounded-lg text-sm font-bold"
+                          style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(239,68,68,0.2)', color: '#ef4444' }}
+                        />
+                        <p className="text-[0.5rem] mt-1" style={{ color: 'rgba(255,255,255,0.25)' }}>0 = sin límite de tiempo</p>
+                      </div>
+                      <div>
+                        <label className="text-[0.6rem] font-bold uppercase tracking-wider block mb-1" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                          Estado del Juego
+                        </label>
+                        <p className="text-[0.5rem] mb-2" style={{ color: 'rgba(255,255,255,0.25)' }}>
+                          Desactiva para ocultar el juego del sitio
+                        </p>
+                        <button
+                          onClick={() => setSopaForm({ ...sopaForm, isActive: !sopaForm.isActive })}
+                          className="px-4 py-2 rounded-lg text-xs font-bold cursor-pointer transition-all"
+                          style={{
+                            background: sopaForm.isActive ? 'rgba(34,197,94,0.15)' : 'rgba(239,68,68,0.15)',
+                            color: sopaForm.isActive ? '#4ade80' : '#ef4444',
+                            border: `1px solid ${sopaForm.isActive ? 'rgba(34,197,94,0.3)' : 'rgba(239,68,68,0.3)'}`,
+                            boxShadow: sopaForm.isActive ? '0 0 8px rgba(34,197,94,0.1)' : '0 0 8px rgba(239,68,68,0.1)',
+                          }}
+                        >
+                          {sopaForm.isActive ? '● Activo' : '○ Inactivo'}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end">
+                    <button
+                      onClick={handleSaveSopa}
+                      disabled={savingSopa}
+                      className="px-6 py-2.5 rounded-xl font-bold text-sm cursor-pointer transition-all hover:scale-105 disabled:opacity-50"
+                      style={{
+                        background: 'linear-gradient(135deg, #14b8a6, #2dd4bf)',
+                        color: '#000',
+                        boxShadow: '0 0 12px rgba(20,184,166,0.2)',
+                      }}
+                    >
+                      {savingSopa ? 'Guardando...' : 'Guardar Configuración'}
+                    </button>
+                  </div>
+
+                  {/* Sopa Preview */}
+                  <div>
+                    <div className="text-[0.6rem] font-bold uppercase tracking-wider mb-2" style={{ color: 'rgba(20,184,166,0.4)' }}>
+                      Vista Previa de Sopa de Escudos
+                    </div>
+                    <div className="flex items-center gap-4 p-4 rounded-xl" style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(20,184,166,0.1)' }}>
+                      <div className="flex items-center justify-center" style={{ width: '80px', height: '80px', background: 'rgba(20,184,166,0.1)', borderRadius: '12px', border: '2px solid rgba(20,184,166,0.3)' }}>
+                        <span className="text-4xl">🔤</span>
+                      </div>
+                      <div className="space-y-2">
+                        <div className="text-xs font-black uppercase" style={{ color: '#14b8a6', textShadow: '0 0 6px rgba(20,184,166,0.3)' }}>
+                          Sopa de Escudos
+                        </div>
+                        <div className="space-y-1 text-[0.55rem]">
+                          <div style={{ color: 'rgba(20,184,166,0.6)' }}>&#x1F524; Grilla {sopaForm.gridSize}x{sopaForm.gridSize} | {sopaForm.wordsPerGame} palabras</div>
+                          <div style={{ color: 'rgba(0,255,200,0.6)' }}>&#x1F3C6; Palabra +{sopaForm.pointsPerWord}pts | Completo +{sopaForm.pointsComplete}pts</div>
+                          <div style={{ color: 'rgba(239,68,68,0.6)' }}>&#x23F1; Límite {sopaForm.timeLimit || '∞'}s</div>
                         </div>
                       </div>
                     </div>

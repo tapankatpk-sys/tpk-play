@@ -12,6 +12,14 @@ import RuletaEquipos from '@/components/ruleta/RuletaEquipos'
 import CircuitoFutbolero from '@/components/circuito/CircuitoFutbolero'
 import ParquesGame from '@/components/parques/ParquesGame'
 import RompecabezasGame from '@/components/rompecabezas/RompecabezasGame'
+import PenalesFutboleros from '@/components/penales/PenalesFutboleros'
+import CartaMayor from '@/components/carta-mayor/CartaMayor'
+import DianaEscudos from '@/components/diana/DianaEscudos'
+import ClasificacionHistorica from '@/components/clasificacion/ClasificacionHistorica'
+import NumeroCamiseta from '@/components/numero-camiseta/NumeroCamiseta'
+import MineriaEscudos from '@/components/mineria/MineriaEscudos'
+import ApuestaFutbolera from '@/components/apuesta/ApuestaFutbolera'
+import SopaEscudos from '@/components/sopa/SopaEscudos'
 import GameGuard from '@/components/gameguard/GameGuard'
 import AdminPanel from '@/components/admin/AdminPanel'
 import CircularPopup from '@/components/popup/CircularPopup'
@@ -277,9 +285,153 @@ export default function Home() {
         </div>
 
         {/* Rompecabezas de Escudos */}
-        <div className="relative z-10">
+        <div className="relative z-10 mb-10">
           <GameGuard gameName="Rompecabezas de Escudos" gameIcon="🧩" accentColor="#00ffc8">
             <RompecabezasGame />
+          </GameGuard>
+        </div>
+
+        {/* Separator before Penales */}
+        <div className="flex items-center justify-center gap-3 py-6">
+          <div className="h-px flex-1 max-w-32" style={{ background: 'linear-gradient(to right, transparent, rgba(255,68,68,0.4))' }} />
+          <div className="flex items-center gap-2">
+            <span style={{ color: '#ff4444', textShadow: '0 0 8px rgba(255,68,68,0.6)', fontSize: '0.75rem' }}>⚽</span>
+            <span className="text-[0.6rem] uppercase tracking-[0.3em] font-bold" style={{ color: 'rgba(255,68,68,0.5)' }}>Nuevo juego</span>
+            <span style={{ color: '#ff4444', textShadow: '0 0 8px rgba(255,68,68,0.6)', fontSize: '0.75rem' }}>⚽</span>
+          </div>
+          <div className="h-px flex-1 max-w-32" style={{ background: 'linear-gradient(to left, transparent, rgba(255,68,68,0.4))' }} />
+        </div>
+
+        {/* Penales Futboleros */}
+        <div className="relative z-10 mb-10">
+          <GameGuard gameName="Penales Futboleros" gameIcon="⚽" accentColor="#ff4444">
+            <PenalesFutboleros />
+          </GameGuard>
+        </div>
+
+        {/* Separator before Carta Mayor */}
+        <div className="flex items-center justify-center gap-3 py-6">
+          <div className="h-px flex-1 max-w-32" style={{ background: 'linear-gradient(to right, transparent, rgba(234,179,8,0.4))' }} />
+          <div className="flex items-center gap-2">
+            <span style={{ color: '#eab308', textShadow: '0 0 8px rgba(234,179,8,0.6)', fontSize: '0.75rem' }}>🃏</span>
+            <span className="text-[0.6rem] uppercase tracking-[0.3em] font-bold" style={{ color: 'rgba(234,179,8,0.5)' }}>Nuevo juego</span>
+            <span style={{ color: '#eab308', textShadow: '0 0 8px rgba(234,179,8,0.6)', fontSize: '0.75rem' }}>🃏</span>
+          </div>
+          <div className="h-px flex-1 max-w-32" style={{ background: 'linear-gradient(to left, transparent, rgba(234,179,8,0.4))' }} />
+        </div>
+
+        {/* Carta Mayor */}
+        <div className="relative z-10 mb-10">
+          <GameGuard gameName="Carta Mayor" gameIcon="🃏" accentColor="#eab308">
+            <CartaMayor />
+          </GameGuard>
+        </div>
+
+        {/* Separator before Diana */}
+        <div className="flex items-center justify-center gap-3 py-6">
+          <div className="h-px flex-1 max-w-32" style={{ background: 'linear-gradient(to right, transparent, rgba(239,68,68,0.4))' }} />
+          <div className="flex items-center gap-2">
+            <span style={{ color: '#ef4444', textShadow: '0 0 8px rgba(239,68,68,0.6)', fontSize: '0.75rem' }}>🎯</span>
+            <span className="text-[0.6rem] uppercase tracking-[0.3em] font-bold" style={{ color: 'rgba(239,68,68,0.5)' }}>Nuevo juego</span>
+            <span style={{ color: '#ef4444', textShadow: '0 0 8px rgba(239,68,68,0.6)', fontSize: '0.75rem' }}>🎯</span>
+          </div>
+          <div className="h-px flex-1 max-w-32" style={{ background: 'linear-gradient(to left, transparent, rgba(239,68,68,0.4))' }} />
+        </div>
+
+        {/* Diana de Escudos */}
+        <div className="relative z-10 mb-10">
+          <GameGuard gameName="Diana de Escudos" gameIcon="🎯" accentColor="#ef4444">
+            <DianaEscudos />
+          </GameGuard>
+        </div>
+
+        {/* Separator before Clasificación */}
+        <div className="flex items-center justify-center gap-3 py-6">
+          <div className="h-px flex-1 max-w-32" style={{ background: 'linear-gradient(to right, transparent, rgba(6,182,212,0.4))' }} />
+          <div className="flex items-center gap-2">
+            <span style={{ color: '#06b6d4', textShadow: '0 0 8px rgba(6,182,212,0.6)', fontSize: '0.75rem' }}>🏆</span>
+            <span className="text-[0.6rem] uppercase tracking-[0.3em] font-bold" style={{ color: 'rgba(6,182,212,0.5)' }}>Nuevo juego</span>
+            <span style={{ color: '#06b6d4', textShadow: '0 0 8px rgba(6,182,212,0.6)', fontSize: '0.75rem' }}>🏆</span>
+          </div>
+          <div className="h-px flex-1 max-w-32" style={{ background: 'linear-gradient(to left, transparent, rgba(6,182,212,0.4))' }} />
+        </div>
+
+        {/* Clasificación Histórica */}
+        <div className="relative z-10 mb-10">
+          <GameGuard gameName="Clasificación Histórica" gameIcon="🏆" accentColor="#06b6d4">
+            <ClasificacionHistorica />
+          </GameGuard>
+        </div>
+
+        {/* Separator before Número Camiseta */}
+        <div className="flex items-center justify-center gap-3 py-6">
+          <div className="h-px flex-1 max-w-32" style={{ background: 'linear-gradient(to right, transparent, rgba(139,92,246,0.4))' }} />
+          <div className="flex items-center gap-2">
+            <span style={{ color: '#8b5cf6', textShadow: '0 0 8px rgba(139,92,246,0.6)', fontSize: '0.75rem' }}>🔢</span>
+            <span className="text-[0.6rem] uppercase tracking-[0.3em] font-bold" style={{ color: 'rgba(139,92,246,0.5)' }}>Nuevo juego</span>
+            <span style={{ color: '#8b5cf6', textShadow: '0 0 8px rgba(139,92,246,0.6)', fontSize: '0.75rem' }}>🔢</span>
+          </div>
+          <div className="h-px flex-1 max-w-32" style={{ background: 'linear-gradient(to left, transparent, rgba(139,92,246,0.4))' }} />
+        </div>
+
+        {/* Número Camiseta */}
+        <div className="relative z-10 mb-10">
+          <GameGuard gameName="Número Camiseta" gameIcon="🔢" accentColor="#8b5cf6">
+            <NumeroCamiseta />
+          </GameGuard>
+        </div>
+
+        {/* Separator before Minería */}
+        <div className="flex items-center justify-center gap-3 py-6">
+          <div className="h-px flex-1 max-w-32" style={{ background: 'linear-gradient(to right, transparent, rgba(34,197,94,0.4))' }} />
+          <div className="flex items-center gap-2">
+            <span style={{ color: '#22c55e', textShadow: '0 0 8px rgba(34,197,94,0.6)', fontSize: '0.75rem' }}>💣</span>
+            <span className="text-[0.6rem] uppercase tracking-[0.3em] font-bold" style={{ color: 'rgba(34,197,94,0.5)' }}>Nuevo juego</span>
+            <span style={{ color: '#22c55e', textShadow: '0 0 8px rgba(34,197,94,0.6)', fontSize: '0.75rem' }}>💣</span>
+          </div>
+          <div className="h-px flex-1 max-w-32" style={{ background: 'linear-gradient(to left, transparent, rgba(34,197,94,0.4))' }} />
+        </div>
+
+        {/* Minería de Escudos */}
+        <div className="relative z-10 mb-10">
+          <GameGuard gameName="Minería de Escudos" gameIcon="💣" accentColor="#22c55e">
+            <MineriaEscudos />
+          </GameGuard>
+        </div>
+
+        {/* Separator before Apuesta */}
+        <div className="flex items-center justify-center gap-3 py-6">
+          <div className="h-px flex-1 max-w-32" style={{ background: 'linear-gradient(to right, transparent, rgba(249,115,22,0.4))' }} />
+          <div className="flex items-center gap-2">
+            <span style={{ color: '#f97316', textShadow: '0 0 8px rgba(249,115,22,0.6)', fontSize: '0.75rem' }}>📊</span>
+            <span className="text-[0.6rem] uppercase tracking-[0.3em] font-bold" style={{ color: 'rgba(249,115,22,0.5)' }}>Nuevo juego</span>
+            <span style={{ color: '#f97316', textShadow: '0 0 8px rgba(249,115,22,0.6)', fontSize: '0.75rem' }}>📊</span>
+          </div>
+          <div className="h-px flex-1 max-w-32" style={{ background: 'linear-gradient(to left, transparent, rgba(249,115,22,0.4))' }} />
+        </div>
+
+        {/* Apuesta Futbolera */}
+        <div className="relative z-10 mb-10">
+          <GameGuard gameName="Apuesta Futbolera" gameIcon="📊" accentColor="#f97316">
+            <ApuestaFutbolera />
+          </GameGuard>
+        </div>
+
+        {/* Separator before Sopa */}
+        <div className="flex items-center justify-center gap-3 py-6">
+          <div className="h-px flex-1 max-w-32" style={{ background: 'linear-gradient(to right, transparent, rgba(20,184,166,0.4))' }} />
+          <div className="flex items-center gap-2">
+            <span style={{ color: '#14b8a6', textShadow: '0 0 8px rgba(20,184,166,0.6)', fontSize: '0.75rem' }}>🔤</span>
+            <span className="text-[0.6rem] uppercase tracking-[0.3em] font-bold" style={{ color: 'rgba(20,184,166,0.5)' }}>Nuevo juego</span>
+            <span style={{ color: '#14b8a6', textShadow: '0 0 8px rgba(20,184,166,0.6)', fontSize: '0.75rem' }}>🔤</span>
+          </div>
+          <div className="h-px flex-1 max-w-32" style={{ background: 'linear-gradient(to left, transparent, rgba(20,184,166,0.4))' }} />
+        </div>
+
+        {/* Sopa de Escudos */}
+        <div className="relative z-10">
+          <GameGuard gameName="Sopa de Escudos" gameIcon="🔤" accentColor="#14b8a6">
+            <SopaEscudos />
           </GameGuard>
         </div>
       </section>
