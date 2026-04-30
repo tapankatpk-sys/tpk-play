@@ -87,3 +87,34 @@ Stage Summary:
 - Banner Admin: Already working from previous fix, confirmed functional
 - Lightning Trivia: Lint error fixed
 - Site deployed and verified
+---
+Task ID: 4
+Agent: Main Agent
+Task: Fix SlotMachineGame component not rendering on production site (tpkplay.vercel.app)
+
+Work Log:
+- Investigated the SlotMachineGame component that was building fine but not rendering on production
+- Identified root causes:
+  1. **NodeJS.Timeout type** - The component used `useRef<(NodeJS.Timeout | null)[]>` which references Node.js types not available in the browser. Replaced with `ReturnType<typeof setInterval>` which works in both Node and browser environments.
+  2. **styled-jsx blocks** - The component had 3 `<style jsx>` blocks (in splash screen, main game, and SlotReel sub-component). In Next.js 16 with App Router, styled-jsx can cause runtime issues in client components, especially with scoped animations referenced via inline styles. The animations defined in `<style jsx>` get hashed class names, but the inline `style={{ animation: 'slot-float ...' }}` references the original unhashed names, causing animations to silently fail and potentially crash the component.
+  3. **Wrong Vercel project** - Initial deployments went to `my-project` project instead of `tpkplay` project. The `tpkplay.vercel.app` domain is served by the `tpkplay` Vercel project, not the `my-project` project.
+- Fixes applied:
+  1. Replaced `NodeJS.Timeout` with `ReturnType<typeof setInterval>` on line 66
+  2. Removed all 3 `<style jsx>` blocks from SlotMachineGame.tsx
+  3. Added all 8 slot machine animations to globals.css as global CSS keyframes:
+     - slot-float, slot-light-blink, slot-jackpot-flash, slot-result-pop
+     - slot-light-chase, slot-reel-blur, slot-shield-glow, slot-glow-pulse
+  4. Linked Vercel project to `tpkplay` (not `my-project`) using `vercel link --project tpkplay`
+  5. Deployed to correct Vercel project: `tapankatpk-sys-projects/tpkplay`
+- Build succeeded locally with `npx next build`
+- Pushed to GitHub: `git push origin main`
+- Deployed to Vercel production: https://tpkplay.vercel.app
+- Verified: `curl -s "https://tpkplay.vercel.app/" | rg "Tragamonedas"` returns match count of 1
+- Verified: Browser confirms `document.body.innerText.toLowerCase().includes('tragamonedas')` returns true
+
+Stage Summary:
+- SlotMachineGame now renders on production site
+- Root cause was styled-jsx incompatibility in Next.js 16 client components
+- All animations moved to globals.css for reliable global availability
+- NodeJS.Timeout replaced with browser-compatible type
+- Deployed to correct Vercel project (tpkplay, not my-project)
