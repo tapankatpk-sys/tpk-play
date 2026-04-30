@@ -690,210 +690,159 @@ export default function MemoryGame() {
 
 // ============================================
 // MEMORY CARD COMPONENT - Solo escudos luminosos
-// FIXED: Proper 3D flip with correct sizing and click handling
-// Key fix: outer container gets aspect-ratio, flip container is absolute fill
+// ROBUST FIX: Simplified flip using CSS classes + will-change
+// No z-index hacks, no padding trick - uses aspect-ratio + proper 3D
+// Touch-friendly with explicit touch handling
 // ============================================
 function MemoryCard({ card, onClick }: { card: Card; onClick: () => void }) {
-  const [isAnimating, setIsAnimating] = useState(false)
+  const isRevealed = card.isFlipped || card.isMatched
 
-  const handleClick = (e: React.MouseEvent) => {
+  const handleInteraction = (e: React.MouseEvent | React.TouchEvent) => {
     e.preventDefault()
     e.stopPropagation()
-    if (card.isFlipped || card.isMatched || isAnimating) return
-    setIsAnimating(true)
+    if (card.isFlipped || card.isMatched) return
     onClick()
-    setTimeout(() => setIsAnimating(false), 300)
   }
-
-  const isRevealed = card.isFlipped || card.isMatched
 
   return (
     <div
       className="cursor-pointer select-none"
-      style={{
-        width: '100%',
-        paddingBottom: '100%', // 1:1 aspect ratio via padding trick (most compatible)
-        position: 'relative',
-      }}
-      onClick={handleClick}
+      style={{ aspectRatio: '1 / 1', perspective: '800px', WebkitPerspective: '800px' }}
+      onClick={handleInteraction}
+      onTouchEnd={handleInteraction}
     >
-      {/* Perspective wrapper */}
+      {/* Flip container */}
       <div
         style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          perspective: '1000px',
+          width: '100%',
+          height: '100%',
+          transition: 'transform 0.4s ease-out',
+          transformStyle: 'preserve-3d',
+          WebkitTransformStyle: 'preserve-3d',
+          transform: isRevealed ? 'rotateY(180deg)' : 'rotateY(0deg)',
+          willChange: 'transform',
+          position: 'relative',
         }}
       >
-        {/* Flip container */}
+        {/* Front - Hidden card (neon card back) */}
         <div
           style={{
-            width: '100%',
-            height: '100%',
-            transition: 'transform 0.5s',
-            transformStyle: 'preserve-3d',
-            transform: isRevealed ? 'rotateY(180deg)' : 'rotateY(0)',
-            position: 'relative',
+            position: 'absolute',
+            inset: 0,
+            backfaceVisibility: 'hidden',
+            WebkitBackfaceVisibility: 'hidden',
+            background: '#000',
+            border: '2px solid rgba(236, 72, 153, 0.4)',
+            boxShadow: '0 0 12px rgba(236, 72, 153, 0.2), inset 0 0 8px rgba(236, 72, 153, 0.05)',
+            borderRadius: '0.75rem',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            overflow: 'hidden',
           }}
         >
-          {/* Front - Hidden card (neon card back) - visible when NOT revealed */}
-          <div
+          {/* Neon pattern */}
+          <div style={{
+            position: 'absolute',
+            inset: 0,
+            borderRadius: '0.75rem',
+            pointerEvents: 'none',
+            background: 'repeating-linear-gradient(45deg, transparent, transparent 4px, rgba(236, 72, 153, 0.06) 4px, rgba(236, 72, 153, 0.06) 8px)',
+          }} />
+          <div style={{
+            position: 'absolute',
+            top: '6px', left: '6px', right: '6px', bottom: '6px',
+            borderRadius: '0.5rem',
+            pointerEvents: 'none',
+            border: '1px solid rgba(236, 72, 153, 0.15)',
+          }} />
+          <span
+            className="text-2xl md:text-3xl"
             style={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              backfaceVisibility: 'hidden',
-              WebkitBackfaceVisibility: 'hidden',
-              background: '#000',
-              border: '2px solid rgba(236, 72, 153, 0.4)',
-              boxShadow: '0 0 12px rgba(236, 72, 153, 0.2), inset 0 0 8px rgba(236, 72, 153, 0.05)',
-              borderRadius: '0.75rem',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              zIndex: isRevealed ? 1 : 2,
+              position: 'relative',
+              zIndex: 1,
+              filter: 'drop-shadow(0 0 8px rgba(236, 72, 153, 0.7))',
+              animation: 'mem-glow 2s ease-in-out infinite',
             }}
           >
-            {/* Neon border glow effect */}
-            <div style={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              borderRadius: '0.75rem',
-              pointerEvents: 'none',
-              background: 'repeating-linear-gradient(45deg, transparent, transparent 4px, rgba(236, 72, 153, 0.06) 4px, rgba(236, 72, 153, 0.06) 8px)',
-            }} />
-            <div style={{
-              position: 'absolute',
-              top: '6px',
-              left: '6px',
-              right: '6px',
-              bottom: '6px',
-              borderRadius: '0.5rem',
-              pointerEvents: 'none',
-              border: '1px solid rgba(236, 72, 153, 0.15)',
-            }} />
-            {/* Center icon */}
-            <span
-              className="text-2xl md:text-3xl"
-              style={{
-                position: 'relative',
-                zIndex: 10,
-                filter: 'drop-shadow(0 0 8px rgba(236, 72, 153, 0.7))',
-                animation: 'mem-glow 2s ease-in-out infinite',
-              }}
-            >
-              {'\u26BD'}
-            </span>
-          </div>
+            {'\u26BD'}
+          </span>
+        </div>
 
-          {/* Back - Team shield ONLY on black background - visible when revealed */}
-          <div
+        {/* Back - Team shield */}
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            backfaceVisibility: 'hidden',
+            WebkitBackfaceVisibility: 'hidden',
+            transform: 'rotateY(180deg)',
+            background: '#000',
+            border: `2px solid ${card.isMatched ? 'rgba(34, 197, 94, 0.8)' : 'rgba(249, 115, 22, 0.6)'}`,
+            boxShadow: card.isMatched
+              ? '0 0 20px rgba(34, 197, 94, 0.4), inset 0 0 10px rgba(34, 197, 94, 0.05)'
+              : '0 0 15px rgba(249, 115, 22, 0.25), inset 0 0 8px rgba(249, 115, 22, 0.03)',
+            borderRadius: '0.75rem',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            transition: 'border-color 0.3s, box-shadow 0.3s',
+            overflow: 'hidden',
+          }}
+        >
+          <img
+            src={getTeamImagePath(card.teamId)}
+            alt=""
+            loading="lazy"
             style={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              backfaceVisibility: 'hidden',
-              WebkitBackfaceVisibility: 'hidden',
-              transform: 'rotateY(180deg)',
-              background: '#000',
-              border: `2px solid ${card.isMatched ? 'rgba(34, 197, 94, 0.8)' : 'rgba(249, 115, 22, 0.6)'}`,
-              boxShadow: card.isMatched
-                ? '0 0 20px rgba(34, 197, 94, 0.4), 0 0 40px rgba(34, 197, 94, 0.15), inset 0 0 10px rgba(34, 197, 94, 0.05)'
-                : '0 0 15px rgba(249, 115, 22, 0.25), inset 0 0 8px rgba(249, 115, 22, 0.03)',
-              borderRadius: '0.75rem',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              transition: 'border-color 0.3s, box-shadow 0.3s',
-              zIndex: isRevealed ? 2 : 1,
-              pointerEvents: 'none',
+              width: '80%',
+              height: '80%',
+              objectFit: 'contain',
+              filter: card.isMatched
+                ? 'drop-shadow(0 0 8px rgba(34,197,94,0.6)) brightness(1.1)'
+                : 'drop-shadow(0 0 6px rgba(255,255,255,0.25))',
+              transition: 'filter 0.3s',
             }}
-          >
-            {/* Team shield - large, centered, no name */}
-            <img
-              src={getTeamImagePath(card.teamId)}
-              alt=""
+          />
+
+          {card.isMatched && (
+            <div
               style={{
-                width: '80%',
-                height: '80%',
-                objectFit: 'contain',
-                filter: card.isMatched
-                  ? 'drop-shadow(0 0 8px rgba(34,197,94,0.6)) brightness(1.1)'
-                  : 'drop-shadow(0 0 6px rgba(255,255,255,0.25))',
-                transition: 'filter 0.3s',
+                position: 'absolute',
+                inset: 0,
+                borderRadius: '0.75rem',
+                pointerEvents: 'none',
+                background: 'radial-gradient(circle, rgba(34,197,94,0.1), transparent 70%)',
+                animation: 'mem-match-glow 1s ease-in-out infinite alternate',
               }}
             />
+          )}
 
-            {/* Matched glow overlay */}
-            {card.isMatched && (
-              <div
-                style={{
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  borderRadius: '0.75rem',
-                  pointerEvents: 'none',
-                  background: 'radial-gradient(circle, rgba(34,197,94,0.1), transparent 70%)',
-                  animation: 'mem-match-glow 1s ease-in-out infinite alternate',
-                }}
-              />
-            )}
-
-            {/* Matched indicator */}
-            {card.isMatched && (
-              <div
-                style={{
-                  position: 'absolute',
-                  top: '4px',
-                  right: '4px',
-                  width: '20px',
-                  height: '20px',
-                  borderRadius: '50%',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  pointerEvents: 'none',
-                  background: 'rgba(34, 197, 94, 0.8)',
-                  boxShadow: '0 0 8px rgba(34, 197, 94, 0.6)',
-                  animation: 'mem-check-pop 0.3s ease-out',
-                }}
-              >
-                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="20 6 9 17 4 12" />
-                </svg>
-              </div>
-            )}
-          </div>
+          {card.isMatched && (
+            <div
+              style={{
+                position: 'absolute',
+                top: '4px',
+                right: '4px',
+                width: '18px',
+                height: '18px',
+                borderRadius: '50%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                pointerEvents: 'none',
+                background: 'rgba(34, 197, 94, 0.8)',
+                boxShadow: '0 0 8px rgba(34, 197, 94, 0.6)',
+                animation: 'mem-check-pop 0.3s ease-out',
+              }}
+            >
+              <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+            </div>
+          )}
         </div>
       </div>
-
-      <style jsx>{`
-        @keyframes mem-glow {
-          0%, 100% { opacity: 0.7; }
-          50% { opacity: 1; }
-        }
-        @keyframes mem-match-glow {
-          0% { opacity: 0.3; }
-          100% { opacity: 0.8; }
-        }
-        @keyframes mem-check-pop {
-          0% { transform: scale(0); }
-          50% { transform: scale(1.3); }
-          100% { transform: scale(1); }
-        }
-      `}</style>
     </div>
   )
 }
