@@ -1,28 +1,25 @@
 ---
 Task ID: 1
 Agent: Main Agent
-Task: Build Parqués Futbolero invite-only multiplayer system
+Task: Optimización completa del sitio TPK PLAY
 
 Work Log:
-- Analyzed existing Parqués game codebase (single-player vs AI, 1147 lines)
-- Added ParquesRoom and ParquesRoomPlayer models to prisma/schema.prisma
-- Created /api/parques-room API route with actions: create, join, start, roll, move, updateState, leave
-- Rewrote ParquesGame component for invite-only multiplayer:
-  - Login with TPK code required to play
-  - Create room (choose clásico + team) → get room code
-  - Join room (enter room code + choose team)
-  - Lobby with live polling for player joining
-  - Game with turn-based play, dice rolling via server, move sync
-  - WhatsApp invite + clipboard copy for room code sharing
-  - Leave room / abandon game
-- Updated AdminPanel with rooms management section (list rooms, delete rooms, refresh)
-- Added Image import from next/image to AdminPanel
-- Pushed schema to Neon database via Vercel build (prisma db push)
-- Deployed to production at tpkplay.vercel.app
+- Analizado todo el proyecto: 18 juegos, 6400+ líneas AdminPanel, page.tsx con imports estáticos
+- Convertido page.tsx de imports estáticos a dynamic imports con ssr:false (code splitting masivo)
+- Agregado GameSkeleton como loading state para cada juego
+- Creado componente reutilizable GameSeparator (elimina código duplicado)
+- Optimizado GameGuard: ya NO renderiza juegos completos cuando están bloqueados (placeholder ligero)
+- Corregido Memory Game flip bug: aspect-ratio CSS + backfaceVisibility sin z-index hacks + touch events
+- Optimizado layout.tsx: Viewport metadata, preconnect fonts, SEO, safe-area
+- Optimizado next.config.ts: cache headers para imágenes/estáticos, image optimization, compression
+- Agregadas optimizaciones CSS: prefers-reduced-motion, smooth scroll, touch-action, GPU acceleration, content-visibility, safe-area, text-size-adjust
+- Responsive: mobile-first spacing, touch-friendly targets
+- Deploy a Vercel: https://tpkplay.vercel.app - HTTP 200, ~155KB initial load
 
 Stage Summary:
-- All files committed and deployed successfully
-- New API route: /api/parques-room
-- New DB tables: ParquesRoom, ParquesRoomPlayer
-- Parqués game now requires TPK code login and invitation to play
-- Admin panel shows active rooms with ability to delete them
+- Bundle inicial reducido drásticamente (dynamic imports = solo carga lo que se ve)
+- GameGuard ya no renderiza 18 juegos completos cuando están bloqueados
+- Memory Game: flip corregido con aspect-ratio + touch handling
+- CSS: soporte para reduced motion, GPU acceleration, safe-area móvil
+- next.config: cache headers, image optimization, compression
+- Deploy exitoso en Vercel
