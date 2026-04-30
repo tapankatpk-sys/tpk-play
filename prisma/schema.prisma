@@ -203,3 +203,18 @@ model RuletaConfig {
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 }
+
+// ============================================
+// CIRCUITO FUTBOLERO - Configuración del juego
+// ============================================
+
+model CircuitoConfig {
+  id              String   @id @default(cuid())
+  pointsDot       Int      @default(10)     // Puntos por balón recogido
+  pointsGhost     Int      @default(200)    // Puntos por rival eliminado
+  gameSpeed       Int      @default(3)      // Velocidad 1-5
+  lives           Int      @default(3)      // Vidas por partida
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}

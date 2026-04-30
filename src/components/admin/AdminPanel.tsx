@@ -71,7 +71,7 @@ interface MatchPredictionData {
   updatedAt: string
 }
 
-type Tab = 'dashboard' | 'games' | 'participants' | 'stats' | 'popup' | 'banners' | 'predictions' | 'loteria' | 'ruleta'
+type Tab = 'dashboard' | 'games' | 'participants' | 'stats' | 'popup' | 'banners' | 'predictions' | 'loteria' | 'ruleta' | 'circuito'
 
 interface SidebarSection {
   id: string
@@ -99,6 +99,7 @@ const GAME_TYPES: Record<string, { label: string; icon: string; color: string; d
   'tragamonedas-futbolera': { label: 'Tragamonedas Futbolera', icon: '🎰', color: '#fbbf24', description: 'Slot machine con escudos de la Liga BetPlay' },
   'loteria-futbolera': { label: 'Lotería de Equipos', icon: '🃏', color: '#ff00ff', description: 'Lotería con escudos de la Liga BetPlay' },
   'ruleta-futbolera': { label: 'Ruleta de Equipos', icon: '🎰', color: '#ffc800', description: 'Ruleta casino con escudos de la Liga BetPlay' },
+  'circuito-futbolero': { label: 'Circuito Futbolero', icon: '🎮', color: '#00ff80', description: 'Pac-Man con escudos de rivales de la Liga BetPlay' },
   'prediccion': { label: 'Predicción', icon: '🎯', color: '#f97316', description: 'Predice resultados de partidos' },
   'encuesta': { label: 'Encuesta', icon: '📊', color: '#3b82f6', description: 'Vota en encuestas futboleras' },
   'personalizado': { label: 'Personalizado', icon: '🎮', color: '#22c55e', description: 'Juego personalizado' },
@@ -134,6 +135,27 @@ const PNG_ONLY = ['internacional-de-bogota']
 const TEAM_OPTIONS = Object.entries(TEAM_NAMES_MAP).map(([value, label]) => ({ value, label }))
 
 const RULETA_TEAMS = Object.entries(TEAM_NAMES_MAP).map(([slug, name]) => ({ slug, name }))
+
+// Maze for Circuito preview
+const MAZE_L1 = [
+  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+  [1,0,0,0,0,0,0,1,0,0,0,0,0,0,1],
+  [1,0,1,1,0,1,0,0,0,1,0,1,1,0,1],
+  [1,2,0,0,0,0,0,1,0,0,0,0,0,2,1],
+  [1,0,1,0,1,1,0,0,0,1,1,0,1,0,1],
+  [1,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+  [1,1,1,0,1,0,1,1,1,0,1,0,1,1,1],
+  [1,0,0,0,1,0,3,3,3,0,1,0,0,0,1],
+  [1,0,1,0,0,0,1,3,1,0,0,0,1,0,1],
+  [1,0,1,0,1,0,3,3,3,0,1,0,1,0,1],
+  [1,0,0,0,1,0,1,1,1,0,1,0,0,0,1],
+  [1,0,1,0,0,0,0,0,0,0,0,0,1,0,1],
+  [1,2,0,0,1,1,0,1,0,1,1,0,0,2,1],
+  [1,0,1,1,0,0,0,0,0,0,0,1,1,0,1],
+  [1,0,0,0,0,0,0,1,0,0,0,0,0,0,1],
+  [1,0,0,0,0,1,0,0,0,1,0,0,0,0,1],
+  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+]
 
 interface GameFormData {
   name: string
@@ -210,6 +232,11 @@ export default function AdminPanel() {
   const [ruletaConfig, setRuletaConfig] = useState<{ id: string; pointsExact: number; pointsRegion: number; spinDuration: number; isActive: boolean } | null>(null)
   const [ruletaForm, setRuletaForm] = useState({ pointsExact: 50, pointsRegion: 10, spinDuration: 4, isActive: true })
   const [savingRuleta, setSavingRuleta] = useState(false)
+
+  // Circuito state
+  const [circuitoConfig, setCircuitoConfig] = useState<{ id: string; pointsDot: number; pointsGhost: number; gameSpeed: number; lives: number; isActive: boolean } | null>(null)
+  const [circuitoForm, setCircuitoForm] = useState({ pointsDot: 10, pointsGhost: 200, gameSpeed: 3, lives: 3, isActive: true })
+  const [savingCircuito, setSavingCircuito] = useState(false)
 
   // Auth state
   const [isAuthenticated, setIsAuthenticated] = useState(false)
@@ -422,16 +449,36 @@ export default function AdminPanel() {
     }
   }, [])
 
+  const fetchCircuitoConfig = useCallback(async () => {
+    try {
+      const res = await fetch('/api/circuito')
+      if (!res.ok) throw new Error(`Error ${res.status}`)
+      const data = await res.json()
+      if (data && !data.error) {
+        setCircuitoConfig(data)
+        setCircuitoForm({
+          pointsDot: data.pointsDot,
+          pointsGhost: data.pointsGhost,
+          gameSpeed: data.gameSpeed,
+          lives: data.lives,
+          isActive: data.isActive,
+        })
+      }
+    } catch (err) {
+      console.error('Error fetching circuito config:', err)
+    }
+  }, [])
+
   useEffect(() => {
     if (isAuthenticated && showPanel) {
       const load = async () => {
         setLoading(true)
-        await Promise.all([fetchGames(), fetchParticipants(), fetchPopups(), fetchBanners(), fetchPredictions(), fetchLoteriaConfig(), fetchRuletaConfig()])
+        await Promise.all([fetchGames(), fetchParticipants(), fetchPopups(), fetchBanners(), fetchPredictions(), fetchLoteriaConfig(), fetchRuletaConfig(), fetchCircuitoConfig()])
         setLoading(false)
       }
       load()
     }
-  }, [isAuthenticated, showPanel, fetchGames, fetchParticipants, fetchPopups, fetchBanners, fetchPredictions, fetchLoteriaConfig, fetchRuletaConfig])
+  }, [isAuthenticated, showPanel, fetchGames, fetchParticipants, fetchPopups, fetchBanners, fetchPredictions, fetchLoteriaConfig, fetchRuletaConfig, fetchCircuitoConfig])
 
   // Game CRUD
   const handleOpenAddGame = () => {
@@ -808,6 +855,31 @@ export default function AdminPanel() {
     }
   }
 
+  // Circuito save handler
+  const handleSaveCircuito = async () => {
+    setSavingCircuito(true)
+    try {
+      if (circuitoConfig) {
+        await fetch('/api/circuito', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: circuitoConfig.id, ...circuitoForm }),
+        })
+      } else {
+        await fetch('/api/circuito', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(circuitoForm),
+        })
+      }
+      fetchCircuitoConfig()
+    } catch (err) {
+      console.error('Error saving circuito config:', err)
+    } finally {
+      setSavingCircuito(false)
+    }
+  }
+
   // Stats calculations
   const totalParticipants = participants.length
   const totalPoints = participants.reduce((sum, p) => sum + p.totalPoints, 0)
@@ -828,6 +900,7 @@ export default function AdminPanel() {
         { id: 'games', label: 'Juegos', icon: '⚽', color: '#a855f7', count: games.length },
         { id: 'loteria', label: 'Lotería', icon: '🃏', color: '#ff00ff' },
         { id: 'ruleta', label: 'Ruleta', icon: '🎰', color: '#ffc800' },
+        { id: 'circuito', label: 'Circuito', icon: '🎮', color: '#00ff80' },
         { id: 'predictions', label: 'Predicciones', icon: '⚽', color: '#00ff80', count: predictions.length },
         { id: 'popup', label: 'Popup', icon: '💬', color: '#eab308', count: popups.length },
       ],
@@ -1252,6 +1325,7 @@ export default function AdminPanel() {
                         : activeTab === 'games' ? '#a855f7'
                         : activeTab === 'loteria' ? '#ff00ff'
                         : activeTab === 'ruleta' ? '#ffc800'
+                        : activeTab === 'circuito' ? '#00ff80'
                         : activeTab === 'predictions' ? '#00ff80'
                         : activeTab === 'banners' ? '#00ffff'
                         : activeTab === 'popup' ? '#eab308'
@@ -1263,6 +1337,7 @@ export default function AdminPanel() {
                       : activeTab === 'games' ? 'Juegos'
                       : activeTab === 'loteria' ? 'Lotería de Equipos'
                       : activeTab === 'ruleta' ? 'Ruleta de Equipos'
+                      : activeTab === 'circuito' ? 'Circuito Futbolero'
                       : activeTab === 'predictions' ? 'Predicciones'
                       : activeTab === 'banners' ? 'Banners'
                       : activeTab === 'popup' ? 'Popup'
@@ -3181,6 +3256,162 @@ export default function AdminPanel() {
                       </div>
                       <div className="px-2 py-1 rounded text-[0.55rem] font-bold" style={{ background: 'rgba(0,255,255,0.1)', color: '#00ffff', border: '1px solid rgba(0,255,255,0.2)' }}>
                         Región +{ruletaForm.pointsRegion}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ) : activeTab === 'circuito' ? (
+                /* ========== CIRCUITO TAB ========== */
+                <div className="space-y-4">
+                  <div className="p-3 rounded-xl" style={{ background: 'rgba(0,255,128,0.04)', border: '1px solid rgba(0,255,128,0.15)' }}>
+                    <p className="text-[0.65rem]" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                      Configura el <b style={{ color: '#00ff80' }}>Circuito Futbolero</b>: puntos por balón, puntos por rival eliminado, velocidad del juego y vidas. Los cambios se reflejan en tiempo real.
+                    </p>
+                  </div>
+
+                  {circuitoConfig && (
+                    <div className="grid grid-cols-5 gap-2">
+                      <div className="p-2 rounded-lg text-center" style={{ background: 'rgba(0,255,128,0.06)' }}>
+                        <div className="text-[0.5rem] uppercase" style={{ color: 'rgba(0,255,128,0.5)' }}>Balón</div>
+                        <div className="text-lg font-black" style={{ color: '#00ff80' }}>+{circuitoConfig.pointsDot}</div>
+                      </div>
+                      <div className="p-2 rounded-lg text-center" style={{ background: 'rgba(255,200,0,0.06)' }}>
+                        <div className="text-[0.5rem] uppercase" style={{ color: 'rgba(255,200,0,0.5)' }}>Rival</div>
+                        <div className="text-lg font-black" style={{ color: '#ffc800' }}>+{circuitoConfig.pointsGhost}</div>
+                      </div>
+                      <div className="p-2 rounded-lg text-center" style={{ background: 'rgba(168,85,247,0.06)' }}>
+                        <div className="text-[0.5rem] uppercase" style={{ color: 'rgba(168,85,247,0.5)' }}>Velocidad</div>
+                        <div className="text-lg font-black" style={{ color: '#d8b4fe' }}>{circuitoConfig.gameSpeed}</div>
+                      </div>
+                      <div className="p-2 rounded-lg text-center" style={{ background: 'rgba(239,68,68,0.06)' }}>
+                        <div className="text-[0.5rem] uppercase" style={{ color: 'rgba(239,68,68,0.5)' }}>Vidas</div>
+                        <div className="text-lg font-black" style={{ color: '#ef4444' }}>x{circuitoConfig.lives}</div>
+                      </div>
+                      <div className="p-2 rounded-lg text-center" style={{ background: circuitoConfig.isActive ? 'rgba(34,197,94,0.06)' : 'rgba(239,68,68,0.06)' }}>
+                        <div className="text-[0.5rem] uppercase" style={{ color: 'rgba(255,255,255,0.3)' }}>Estado</div>
+                        <div className="text-lg font-black" style={{ color: circuitoConfig.isActive ? '#4ade80' : '#ef4444' }}>
+                          {circuitoConfig.isActive ? '●' : '○'}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="space-y-3">
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-[0.6rem] font-bold uppercase tracking-wider block mb-1" style={{ color: 'rgba(0,255,128,0.6)' }}>
+                          Puntos por Balón
+                        </label>
+                        <input type="number" min={1} max={100}
+                          value={circuitoForm.pointsDot}
+                          onChange={(e) => setCircuitoForm({ ...circuitoForm, pointsDot: parseInt(e.target.value) || 10 })}
+                          className="w-full px-3 py-2 rounded-lg text-sm font-bold"
+                          style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(0,255,128,0.2)', color: '#00ff80' }}
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[0.6rem] font-bold uppercase tracking-wider block mb-1" style={{ color: 'rgba(255,200,0,0.6)' }}>
+                          Puntos por Rival
+                        </label>
+                        <input type="number" min={50} max={1000} step={50}
+                          value={circuitoForm.pointsGhost}
+                          onChange={(e) => setCircuitoForm({ ...circuitoForm, pointsGhost: parseInt(e.target.value) || 200 })}
+                          className="w-full px-3 py-2 rounded-lg text-sm font-bold"
+                          style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,200,0,0.2)', color: '#ffc800' }}
+                        />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-[0.6rem] font-bold uppercase tracking-wider block mb-1" style={{ color: 'rgba(168,85,247,0.6)' }}>
+                          Velocidad (1-5)
+                        </label>
+                        <input type="range" min={1} max={5}
+                          value={circuitoForm.gameSpeed}
+                          onChange={(e) => setCircuitoForm({ ...circuitoForm, gameSpeed: parseInt(e.target.value) })}
+                          className="w-full"
+                        />
+                        <div className="text-center text-xs font-bold mt-1" style={{ color: '#d8b4fe' }}>
+                          {circuitoForm.gameSpeed}
+                        </div>
+                      </div>
+                      <div>
+                        <label className="text-[0.6rem] font-bold uppercase tracking-wider block mb-1" style={{ color: 'rgba(239,68,68,0.6)' }}>
+                          Vidas
+                        </label>
+                        <input type="number" min={1} max={5}
+                          value={circuitoForm.lives}
+                          onChange={(e) => setCircuitoForm({ ...circuitoForm, lives: parseInt(e.target.value) || 3 })}
+                          className="w-full px-3 py-2 rounded-lg text-sm font-bold"
+                          style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(239,68,68,0.2)', color: '#ef4444' }}
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="text-[0.6rem] font-bold uppercase tracking-wider block mb-1" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                        Estado del Juego
+                      </label>
+                      <p className="text-[0.55rem] mb-2" style={{ color: 'rgba(255,255,255,0.25)' }}>
+                        Desactiva para ocultar el circuito del sitio
+                      </p>
+                      <button
+                        onClick={() => setCircuitoForm({ ...circuitoForm, isActive: !circuitoForm.isActive })}
+                        className="px-4 py-2 rounded-lg text-xs font-bold cursor-pointer transition-all"
+                        style={{
+                          background: circuitoForm.isActive ? 'rgba(34,197,94,0.15)' : 'rgba(239,68,68,0.15)',
+                          color: circuitoForm.isActive ? '#4ade80' : '#ef4444',
+                          border: `1px solid ${circuitoForm.isActive ? 'rgba(34,197,94,0.3)' : 'rgba(239,68,68,0.3)'}`,
+                          boxShadow: circuitoForm.isActive ? '0 0 8px rgba(34,197,94,0.1)' : '0 0 8px rgba(239,68,68,0.1)',
+                        }}
+                      >
+                        {circuitoForm.isActive ? '● Activo' : '○ Inactivo'}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end">
+                    <button
+                      onClick={handleSaveCircuito}
+                      disabled={savingCircuito}
+                      className="px-6 py-2.5 rounded-xl font-bold text-sm cursor-pointer transition-all hover:scale-105 disabled:opacity-50"
+                      style={{
+                        background: 'linear-gradient(135deg, #00ff80, #ffc800)',
+                        color: '#000',
+                        boxShadow: '0 0 12px rgba(0,255,128,0.2)',
+                      }}
+                    >
+                      {savingCircuito ? 'Guardando...' : 'Guardar Configuración'}
+                    </button>
+                  </div>
+
+                  {/* Preview */}
+                  <div>
+                    <div className="text-[0.6rem] font-bold uppercase tracking-wider mb-2" style={{ color: 'rgba(0,255,128,0.4)' }}>
+                      Vista Previa del Circuito
+                    </div>
+                    <div className="flex items-center gap-4 p-4 rounded-xl" style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(0,255,128,0.1)' }}>
+                      <div className="relative" style={{ width: '160px', height: '180px' }}>
+                        <div className="w-full h-full" style={{ display: 'grid', gridTemplateColumns: 'repeat(15, 1fr)', gridTemplateRows: 'repeat(17, 1fr)' }}>
+                          {MAZE_L1.map((row, y) => row.map((cell, x) => (
+                            <div key={`prev-${x}-${y}`} className="flex items-center justify-center"
+                              style={{ background: cell === 1 ? 'rgba(0,255,128,0.1)' : 'transparent' }}>
+                              {cell === 1 && <div className="w-[90%] h-[90%] rounded-[1px]" style={{ background: 'rgba(0,255,128,0.12)', border: '0.5px solid rgba(0,255,128,0.2)' }} />}
+                              {cell === 0 && <div className="w-[2px] h-[2px] rounded-full" style={{ backgroundColor: 'rgba(255,200,0,0.4)' }} />}
+                              {cell === 2 && <div className="w-[4px] h-[4px] rounded-full" style={{ backgroundColor: '#ffc800', boxShadow: '0 0 3px rgba(255,200,0,0.4)' }} />}
+                            </div>
+                          )))}
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <div className="text-xs font-black uppercase" style={{ color: '#00ff80', textShadow: '0 0 6px rgba(0,255,128,0.3)' }}>
+                          Circuito Futbolero
+                        </div>
+                        <div className="space-y-1 text-[0.55rem]">
+                          <div style={{ color: 'rgba(0,255,128,0.6)' }}>&#x26BD; Balón +{circuitoForm.pointsDot}pts</div>
+                          <div style={{ color: 'rgba(255,200,0,0.6)' }}>&#x1F97E; Rival +{circuitoForm.pointsGhost}pts</div>
+                          <div style={{ color: 'rgba(168,85,247,0.6)' }}>&#x1F3AE; Velocidad {circuitoForm.gameSpeed}</div>
+                          <div style={{ color: 'rgba(239,68,68,0.6)' }}>&#x2764;&#xFE0F; Vidas x{circuitoForm.lives}</div>
+                        </div>
                       </div>
                     </div>
                   </div>
