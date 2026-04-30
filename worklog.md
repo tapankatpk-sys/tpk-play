@@ -140,3 +140,41 @@ Stage Summary:
 - Admin panel has dedicated Ruleta tab with full configuration management
 - Dynamic config from API: points, spin duration, active/inactive
 - Roulette preview in admin panel shows live layout
+---
+Task ID: 1
+Agent: Main
+Task: Build Parqués Futbolero game for TPK PLAY
+
+Work Log:
+- Explored full codebase structure (Prisma schema, API routes, components, AdminPanel, homepage)
+- Designed Parqués game concept: Colombian board game with Liga BetPlay teams, classic rivalries, 4-player board, LED/neon visuals
+- Added ParquesConfig model to prisma/schema.prisma (tokensPerPlayer, pointsCapture, pointsFinish, pointsWin, diceSpeed, isActive)
+- Created API route at /api/parques/route.ts (GET/POST/PUT singleton config pattern)
+- Created ParquesGame.tsx component with:
+  - 15x15 grid Parqués board (cross-shaped track, 4 home bases, corridors, center goal)
+  - 5 classic rivalry modes (Clásico Capitalino, Paisa, Vallecaucano, Costeño, Rivales Históricos)
+  - 20 Liga BetPlay teams with escudo selection
+  - Dice rolling with configurable animation speed
+  - AI opponents with priority-based move selection (finish > capture > corridor > advance)
+  - Token capture mechanic (landing on opponent sends them home)
+  - Safe entry points on track
+  - Invite/share functionality (WhatsApp + copy link)
+  - Hourly play limit (one game per hour per user)
+  - LED/neon visual theme matching site aesthetic
+- Integrated Parqués in AdminPanel.tsx:
+  - Added 'parques' to Tab type union
+  - Added parques-futbolero to GAME_TYPES registry
+  - Added Parques state, fetch, and save handlers
+  - Added Parqués sidebar item in Contenido section
+  - Added full Parqués config tab with form fields and board preview
+  - Added header title/color mapping
+- Integrated Parqués in page.tsx (homepage) with separator
+- Generated Prisma client, built successfully, deployed to Vercel
+- Database synced on Vercel build (ParquesConfig table created)
+
+Stage Summary:
+- Parqués Futbolero game fully implemented and deployed at tpkplay.vercel.app
+- All 5 game modes (classic rivalries) working
+- Admin panel has full Parqués configuration tab
+- LED/neon visual theme consistent with site
+- API endpoint: /api/parques (GET/POST/PUT)
