@@ -216,43 +216,115 @@ export default function HeroSection() {
           />
         </div>
 
-        {/* CTA area - placeholder for future games */}
+        {/* TAPANKA TPK Brand Frame */}
         <div className="mt-10 flex flex-col items-center gap-4">
-          <button
-            className="relative px-8 py-3 rounded-full font-bold text-base md:text-lg tracking-wider uppercase overflow-hidden group cursor-pointer"
+          {/* Neon frame container */}
+          <div
+            className="relative px-8 py-5 md:px-12 md:py-6 rounded-xl"
             style={{
-              background: 'linear-gradient(135deg, #a855f7 0%, #f97316 50%, #22c55e 100%)',
-              color: '#fff',
-              boxShadow: '0 0 15px rgba(168, 85, 247, 0.5), 0 0 30px rgba(249, 115, 22, 0.3), 0 0 45px rgba(34, 197, 94, 0.2)',
-              transition: 'all 0.3s ease-in-out',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'scale(1.05)'
-              e.currentTarget.style.boxShadow = '0 0 20px rgba(168, 85, 247, 0.7), 0 0 40px rgba(249, 115, 22, 0.5), 0 0 60px rgba(34, 197, 94, 0.3)'
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'scale(1)'
-              e.currentTarget.style.boxShadow = '0 0 15px rgba(168, 85, 247, 0.5), 0 0 30px rgba(249, 115, 22, 0.3), 0 0 45px rgba(34, 197, 94, 0.2)'
+              border: '2px solid rgba(168, 85, 247, 0.6)',
+              boxShadow: '0 0 15px rgba(168, 85, 247, 0.4), 0 0 30px rgba(249, 115, 22, 0.25), 0 0 50px rgba(168, 85, 247, 0.15), inset 0 0 15px rgba(168, 85, 247, 0.1), inset 0 0 30px rgba(249, 115, 22, 0.05)',
+              background: 'linear-gradient(135deg, rgba(168, 85, 247, 0.08) 0%, rgba(0, 0, 0, 0.6) 30%, rgba(249, 115, 22, 0.08) 100%)',
             }}
           >
-            <span className="relative z-10">Próximamente</span>
-            {/* Shimmer overlay */}
+            {/* Corner accents - top left */}
             <div
-              className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+              className="absolute top-[-1px] left-[-1px] w-5 h-5 md:w-7 md:h-7"
               style={{
-                background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.2) 50%, transparent 100%)',
-                animation: 'shimmer 2s ease-in-out infinite',
+                borderTop: '3px solid #f97316',
+                borderLeft: '3px solid #f97316',
+                borderTopLeftRadius: '12px',
+                boxShadow: '0 0 8px rgba(249, 115, 22, 0.8), 0 0 15px rgba(249, 115, 22, 0.4)',
               }}
             />
-          </button>
-          <span
-            className="text-xs tracking-widest uppercase"
-            style={{
-              color: 'rgba(255, 255, 255, 0.3)',
-            }}
-          >
-            Los juegos están por llegar
-          </span>
+            {/* Corner accents - top right */}
+            <div
+              className="absolute top-[-1px] right-[-1px] w-5 h-5 md:w-7 md:h-7"
+              style={{
+                borderTop: '3px solid #a855f7',
+                borderRight: '3px solid #a855f7',
+                borderTopRightRadius: '12px',
+                boxShadow: '0 0 8px rgba(168, 85, 247, 0.8), 0 0 15px rgba(168, 85, 247, 0.4)',
+              }}
+            />
+            {/* Corner accents - bottom left */}
+            <div
+              className="absolute bottom-[-1px] left-[-1px] w-5 h-5 md:w-7 md:h-7"
+              style={{
+                borderBottom: '3px solid #a855f7',
+                borderLeft: '3px solid #a855f7',
+                borderBottomLeftRadius: '12px',
+                boxShadow: '0 0 8px rgba(168, 85, 247, 0.8), 0 0 15px rgba(168, 85, 247, 0.4)',
+              }}
+            />
+            {/* Corner accents - bottom right */}
+            <div
+              className="absolute bottom-[-1px] right-[-1px] w-5 h-5 md:w-7 md:h-7"
+              style={{
+                borderBottom: '3px solid #f97316',
+                borderRight: '3px solid #f97316',
+                borderBottomRightRadius: '12px',
+                boxShadow: '0 0 8px rgba(249, 115, 22, 0.8), 0 0 15px rgba(249, 115, 22, 0.4)',
+              }}
+            />
+
+            {/* Title: TAPANKA TPK */}
+            <h1
+              className="font-black uppercase tracking-[0.12em] md:tracking-[0.2em] text-center"
+              style={{
+                fontSize: 'clamp(1.8rem, 6vw, 3.5rem)',
+                lineHeight: '1.2',
+                color: '#fff',
+                textShadow: '0 0 10px rgba(168, 85, 247, 0.9), 0 0 20px rgba(168, 85, 247, 0.6), 0 0 40px rgba(249, 115, 22, 0.4), 0 0 60px rgba(168, 85, 247, 0.3), 0 0 80px rgba(249, 115, 22, 0.2)',
+                filter: 'brightness(1.1)',
+              }}
+            >
+              TAPANKA TPK
+            </h1>
+
+            {/* Decorative divider inside frame */}
+            <div className="flex items-center justify-center gap-2 my-2 md:my-3">
+              <div
+                className="h-[1px] w-8 md:w-14"
+                style={{
+                  background: 'linear-gradient(to right, transparent, #f97316, transparent)',
+                  boxShadow: '0 0 6px rgba(249, 115, 22, 0.6)',
+                }}
+              />
+              <span
+                style={{
+                  color: '#fbbf24',
+                  fontSize: '0.5rem',
+                  textShadow: '0 0 8px rgba(251, 191, 36, 0.9), 0 0 15px rgba(251, 191, 36, 0.5)',
+                }}
+              >
+                ◆
+              </span>
+              <div
+                className="h-[1px] w-8 md:w-14"
+                style={{
+                  background: 'linear-gradient(to right, transparent, #a855f7, transparent)',
+                  boxShadow: '0 0 6px rgba(168, 85, 247, 0.6)',
+                }}
+              />
+            </div>
+
+            {/* Subtitle */}
+            <p
+              className="font-bold uppercase tracking-[0.08em] md:tracking-[0.14em] text-center"
+              style={{
+                fontSize: 'clamp(0.55rem, 2vw, 0.95rem)',
+                lineHeight: '1.6',
+                color: '#fbbf24',
+                textShadow: '0 0 8px rgba(251, 191, 36, 0.8), 0 0 16px rgba(251, 191, 36, 0.5), 0 0 30px rgba(251, 191, 36, 0.3)',
+                filter: 'brightness(1.05)',
+              }}
+            >
+              ZAPATILLAS, PRENDAS Y COMPLEMENTOS
+              <br />
+              DEPORTIVOS PERSONALIZADOS
+            </p>
+          </div>
         </div>
       </div>
 
