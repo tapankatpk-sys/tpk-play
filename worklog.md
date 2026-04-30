@@ -58,3 +58,37 @@ Stage Summary:
 - Primary streaming: Win Sports YouTube live embed (UCZjpA3YBPXvJv3pg4SPEjfw)
 - Entry requires TPK code (GameGuard)
 - Admin can configure all aspects from AdminPanel
+
+---
+Task ID: 2
+Agent: Main Agent
+Task: Configure Win Play as primary stream source with internal playback
+
+Work Log:
+- Investigated Win Play (winplay.co) - full OTT platform with React SPA
+- Found 3 live signals: Win Sports, Win Audio, Win+Fútbol
+- Found "Señales en vivo" section with "En Vivo" badges
+- Found "Próximos eventos en vivo" with Liga BetPlay matches scheduled
+- Updated Prisma model CanalVivoConfig with new fields: primarySource, winplayEmail, winplayPassword, winplayUrl, alwaysActive
+- Updated API route /api/canal-vivo to handle all new fields
+- Rewrote CanalEnVivo component:
+  - Win Play as PRIMARY source (iframe embedded directly, no redirect)
+  - YouTube as secondary tab (free alternative)
+  - Login overlay for Win Play credentials (email + password)
+  - Always-active signal (configurable toggle)
+  - Credentials saved to database via API
+  - Tab navigation: Win Play / YouTube Live / Programación
+- Updated AdminPanel Canal Vivo tab:
+  - Source selector (Win Play vs YouTube)
+  - Win Play credentials section (email, password, URL)
+  - YouTube config (fallback)
+  - Toggle for "Siempre Activo" (always-active signal)
+  - Quick links to Win Play, Plans, YouTube
+- Built and deployed to tpkplay.vercel.app
+
+Stage Summary:
+- Win Play is now the primary stream source, embedded inside tpkplay.vercel.app
+- Users can enter Win Play subscription credentials
+- Signal stays always active (24/7)
+- YouTube available as free alternative
+- All configurable from Admin Panel
