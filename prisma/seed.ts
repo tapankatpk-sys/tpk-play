@@ -91,6 +91,42 @@ async function main() {
 
   console.log('✅ Created game:', memoriaFutbolera.name)
 
+  // Create Crucigrama Futbolero game
+  const crucigramaFutbolero = await prisma.game.upsert({
+    where: { id: 'game-crucigrama-futbolero' },
+    update: {},
+    create: {
+      id: 'game-crucigrama-futbolero',
+      name: 'Crucigrama Futbolero',
+      description: 'Resuelve crucigramas temáticos de cada equipo de la Liga BetPlay. 3 niveles de dificultad y un desafío especial. ¡Completa el crucigrama y gana puntos!',
+      type: 'crucigrama-futbolero',
+      imageUrl: null,
+      config: JSON.stringify({
+        mode: 'crossword',
+        levels: {
+          bajo: { words: 10, timeLimitSeconds: 600 },
+          medio: { words: 20, timeLimitSeconds: 900 },
+          dificil: { words: 30, timeLimitSeconds: 1200 },
+        },
+        specialCrossword: {
+          name: 'LIGA BETPLAY',
+          words: 40,
+          timeLimitSeconds: 1500,
+          points: 50,
+          riskLoseAll: true,
+        },
+        totalPoints: 30,
+        rotationMode: 'hourly',
+        totalTeams: 20,
+        questionSource: 'crossword-questions-bank',
+      }),
+      isActive: true,
+      order: 3,
+    },
+  })
+
+  console.log('✅ Created game:', crucigramaFutbolero.name)
+
   // Create GANADOR TPK banner
   const ganadorBanner = await prisma.tpkBanner.upsert({
     where: { type: 'ganador' },
