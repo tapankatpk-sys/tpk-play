@@ -23,3 +23,38 @@ Stage Summary:
 - CSS: soporte para reduced motion, GPU acceleration, safe-area móvil
 - next.config: cache headers, image optimization, compression
 - Deploy exitoso en Vercel
+---
+Task ID: 1
+Agent: Main Agent
+Task: Create Canal en Vivo - Live streaming channel for Liga BetPlay
+
+Work Log:
+- Searched web exhaustively for Liga BetPlay streaming sources
+- Found Win Sports YouTube channel (ID: UCZjpA3YBPXvJv3pg4SPEjfw) as primary source with live streams
+- Found alternative sources: Win Play (winplay.co), Fanatiz, Fubo TV, Win Sports+
+- Created Prisma model CanalVivoConfig with YouTube channel ID, video ID, stream title, subtitles, alt stream URL, chat/schedule/autoplay toggles
+- Created API route /api/canal-vivo with GET/POST/PUT handlers
+- Created CanalEnVivo component with:
+  - YouTube live stream embed (auto-detects channel live stream)
+  - YouTube live chat embed (side panel on desktop)
+  - Offline overlay with link to recent YouTube streams
+  - Schedule tab with upcoming Liga BetPlay matches
+  - "Más Señales" tab with links to Win Play, Fanatiz, Fubo TV, Win Sports+, and configurable alternative
+  - Live indicator with pulse animation
+  - Viewer count simulation
+- Integrated Canal en Vivo on homepage after Match Predictions, before Games section
+- Wrapped with GameGuard (TPK code required)
+- Added Canal Vivo tab in AdminPanel with full configuration:
+  - YouTube Channel ID, Video ID fields
+  - Title, subtitle configuration
+  - Alternative stream URL
+  - Chat, schedule, autoplay, active toggles
+  - Preview card
+  - Quick links to YouTube Streams, Win Play, Programación
+- Built and deployed successfully to tpkplay.vercel.app
+
+Stage Summary:
+- Canal en Vivo feature fully implemented and deployed
+- Primary streaming: Win Sports YouTube live embed (UCZjpA3YBPXvJv3pg4SPEjfw)
+- Entry requires TPK code (GameGuard)
+- Admin can configure all aspects from AdminPanel
