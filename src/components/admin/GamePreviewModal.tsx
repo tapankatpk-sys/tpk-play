@@ -1,6 +1,10 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import dynamic from 'next/dynamic'
+
+// Dynamic import of MemoryGame to avoid SSR issues and reduce initial load
+const MemoryGame = dynamic(() => import('@/components/memory/MemoryGame'), { ssr: false })
 
 interface Game {
   id: string
@@ -28,32 +32,10 @@ const GAME_TYPES: Record<string, { label: string; icon: string; color: string }>
   'personalizado': { label: 'Personalizado', icon: '🎮', color: '#22c55e' },
 }
 
-// Teams data for Memoria Futbolera preview
-const MEMORY_TEAMS = [
-  { id: 'atletico-nacional', name: 'Atlético Nacional', color: '#00953b', city: 'Medellín' },
-  { id: 'millonarios', name: 'Millonarios', color: '#0033a0', city: 'Bogotá' },
-  { id: 'america-de-cali', name: 'América de Cali', color: '#e31937', city: 'Cali' },
-  { id: 'deportivo-cali', name: 'Deportivo Cali', color: '#007a33', city: 'Cali' },
-  { id: 'atletico-junior', name: 'Junior FC', color: '#c8102e', city: 'Barranquilla' },
-  { id: 'independiente-santa-fe', name: 'Santa Fe', color: '#c8102e', city: 'Bogotá' },
-  { id: 'independiente-medellin', name: 'Independiente Medellín', color: '#e31937', city: 'Medellín' },
-  { id: 'once-caldas', name: 'Once Caldas', color: '#0033a0', city: 'Manizales' },
-  { id: 'deportes-tolima', name: 'Deportes Tolima', color: '#fdd835', city: 'Ibagué' },
-  { id: 'atletico-bucaramanga', name: 'Atlético Bucaramanga', color: '#fdd835', city: 'Bucaramanga' },
-  { id: 'fortaleza-ceif', name: 'Fortaleza CEIF', color: '#e31937', city: 'Bogotá' },
-  { id: 'deportivo-pereira', name: 'Deportivo Pereira', color: '#c8102e', city: 'Pereira' },
-  { id: 'deportivo-pasto', name: 'Deportivo Pasto', color: '#1a237e', city: 'Pasto' },
-  { id: 'la-equidad', name: 'La Equidad', color: '#2e7d32', city: 'Bogotá' },
-  { id: 'jaguares-de-cordoba', name: 'Jaguares de Córdoba', color: '#f57f17', city: 'Montería' },
-  { id: 'cucuta-deportivo', name: 'Cúcuta Deportivo', color: '#b71c1c', city: 'Cúcuta' },
-  { id: 'internacional-de-bogota', name: 'Internacional de Bogotá', color: '#1565c0', city: 'Bogotá' },
-  { id: 'alianza-valledupar', name: 'Alianza Valledupar', color: '#00838f', city: 'Valledupar' },
-  { id: 'boyaca-chico', name: 'Boyacá Chicó', color: '#e65100', city: 'Tunja' },
-  { id: 'llaneros', name: 'Llaneros', color: '#4e342e', city: 'Villavicencio' },
-]
-
-// Preview component for Trivia Futbolera
-function TriviaFutboleraPreview() {
+// ============================================
+// INTERACTIVE Trivia Futbolera Preview
+// ============================================
+function TriviaFutboleraInteractive() {
   const [loading, setLoading] = useState(true)
   const [data, setData] = useState<{
     round: { roundId: string; startedAt: string; endsAt: string }
@@ -72,6 +54,8 @@ function TriviaFutboleraPreview() {
     totalQuestions: number
   } | null>(null)
   const [error, setError] = useState('')
+  const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null)
+  const [showResult, setShowResult] = useState(false)
 
   useEffect(() => {
     const fetchTrivia = async () => {
@@ -81,7 +65,7 @@ function TriviaFutboleraPreview() {
         const json = await res.json()
         setData(json)
       } catch (err) {
-        setError('No se pudo cargar la vista previa de la trivia')
+        setError('No se pudo cargar la trivia')
         console.error(err)
       } finally {
         setLoading(false)
@@ -120,8 +104,22 @@ function TriviaFutboleraPreview() {
     hard: '#ef4444',
   }
 
+  const handleAnswer = (key: string) => {
+    if (showResult) return
+    setSelectedAnswer(key)
+    setShowResult(true)
+  }
+
   return (
     <div className="space-y-4">
+      {/* Admin notice */}
+      <div
+        className="p-3 rounded-xl text-center text-xs"
+        style={{ background: 'rgba(168, 85, 247, 0.08)', border: '1px solid rgba(168, 85, 247, 0.2)', color: '#d8b4fe' }}
+      >
+        👁 Vista previa interactiva — Puedes responder sin código TPK
+      </div>
+
       {/* Round info */}
       <div className="flex items-center gap-2 flex-wrap">
         <span
@@ -159,44 +157,95 @@ function TriviaFutboleraPreview() {
         </p>
       </div>
 
-      {/* Options */}
+      {/* Options - Interactive */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-        {options.map((opt) => (
-          <div
-            key={opt.key}
-            className="p-3 rounded-xl flex items-center gap-3 transition-all"
-            style={{
-              background: opt.key === q.correctAnswer
-                ? 'rgba(34, 197, 94, 0.15)'
-                : 'rgba(255,255,255,0.03)',
-              border: opt.key === q.correctAnswer
-                ? '1px solid rgba(34, 197, 94, 0.5)'
-                : '1px solid rgba(255,255,255,0.1)',
-            }}
-          >
-            <span
-              className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-black flex-shrink-0"
-              style={{
-                background: opt.key === q.correctAnswer
-                  ? 'rgba(34, 197, 94, 0.3)'
-                  : 'rgba(168, 85, 247, 0.2)',
-                color: opt.key === q.correctAnswer ? '#4ade80' : '#d8b4fe',
-                border: `1px solid ${opt.key === q.correctAnswer ? 'rgba(34, 197, 94, 0.4)' : 'rgba(168, 85, 247, 0.3)'}`,
-              }}
+        {options.map((opt) => {
+          const isCorrect = opt.key === q.correctAnswer
+          const isSelected = opt.key === selectedAnswer
+          let bg = 'rgba(255,255,255,0.03)'
+          let borderColor = 'rgba(255,255,255,0.1)'
+          let textColor = 'rgba(255,255,255,0.7)'
+          let letterBg = 'rgba(168, 85, 247, 0.2)'
+          let letterColor = '#d8b4fe'
+          let letterBorder = 'rgba(168, 85, 247, 0.3)'
+
+          if (showResult) {
+            if (isCorrect) {
+              bg = 'rgba(34, 197, 94, 0.15)'
+              borderColor = 'rgba(34, 197, 94, 0.5)'
+              textColor = '#4ade80'
+              letterBg = 'rgba(34, 197, 94, 0.3)'
+              letterColor = '#4ade80'
+              letterBorder = 'rgba(34, 197, 94, 0.4)'
+            } else if (isSelected && !isCorrect) {
+              bg = 'rgba(239, 68, 68, 0.15)'
+              borderColor = 'rgba(239, 68, 68, 0.5)'
+              textColor = '#f87171'
+              letterBg = 'rgba(239, 68, 68, 0.3)'
+              letterColor = '#f87171'
+              letterBorder = 'rgba(239, 68, 68, 0.4)'
+            }
+          } else if (isSelected) {
+            bg = 'rgba(168, 85, 247, 0.15)'
+            borderColor = 'rgba(168, 85, 247, 0.5)'
+          }
+
+          return (
+            <button
+              key={opt.key}
+              onClick={() => handleAnswer(opt.key)}
+              className="p-3 rounded-xl flex items-center gap-3 transition-all cursor-pointer hover:scale-[1.02] active:scale-[0.98]"
+              style={{ background: bg, border: `1px solid ${borderColor}` }}
             >
-              {opt.key}
-            </span>
-            <span className="text-sm" style={{ color: opt.key === q.correctAnswer ? '#4ade80' : 'rgba(255,255,255,0.7)' }}>
-              {opt.text}
-            </span>
-            {opt.key === q.correctAnswer && (
-              <span className="ml-auto text-xs font-bold" style={{ color: '#4ade80' }}>
-                ✓ Correcta
+              <span
+                className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-black flex-shrink-0"
+                style={{ background: letterBg, color: letterColor, border: `1px solid ${letterBorder}` }}
+              >
+                {opt.key}
               </span>
-            )}
-          </div>
-        ))}
+              <span className="text-sm text-left" style={{ color: textColor }}>
+                {opt.text}
+              </span>
+              {showResult && isCorrect && (
+                <span className="ml-auto text-xs font-bold" style={{ color: '#4ade80' }}>
+                  ✓ Correcta
+                </span>
+              )}
+              {showResult && isSelected && !isCorrect && (
+                <span className="ml-auto text-xs font-bold" style={{ color: '#f87171' }}>
+                  ✗ Incorrecta
+                </span>
+              )}
+            </button>
+          )
+        })}
       </div>
+
+      {/* Result message */}
+      {showResult && (
+        <div
+          className="p-4 rounded-xl text-center"
+          style={{
+            background: selectedAnswer === q.correctAnswer
+              ? 'linear-gradient(135deg, rgba(34,197,94,0.1), rgba(34,197,94,0.05))'
+              : 'linear-gradient(135deg, rgba(239,68,68,0.1), rgba(239,68,68,0.05))',
+            border: `1px solid ${selectedAnswer === q.correctAnswer ? 'rgba(34,197,94,0.3)' : 'rgba(239,68,68,0.3)'}`,
+          }}
+        >
+          <div className="text-3xl mb-2">{selectedAnswer === q.correctAnswer ? '🎉' : '😔'}</div>
+          <p className="font-black text-sm" style={{ color: selectedAnswer === q.correctAnswer ? '#4ade80' : '#f87171' }}>
+            {selectedAnswer === q.correctAnswer ? '¡CORRECTO! +10 puntos' : '¡INCORRECTO!'}
+          </p>
+          {selectedAnswer !== q.correctAnswer && (
+            <p className="text-xs mt-1" style={{ color: 'rgba(255,255,255,0.5)' }}>
+              La respuesta correcta es la opción {q.correctAnswer}
+            </p>
+          )}
+          <p className="text-[0.6rem] mt-2 uppercase tracking-wider" style={{ color: 'rgba(255,255,255,0.3)' }}>
+            Vista previa admin — No se registran puntos
+          </p>
+        </div>
+      )}
 
       {/* Total questions info */}
       <div className="text-xs text-center" style={{ color: 'rgba(255,255,255,0.3)' }}>
@@ -206,8 +255,10 @@ function TriviaFutboleraPreview() {
   )
 }
 
-// Preview component for Trivia Relámpago
-function TriviaRelampagoPreview() {
+// ============================================
+// INTERACTIVE Trivia Relámpago Preview
+// ============================================
+function TriviaRelampagoInteractive() {
   const [loading, setLoading] = useState(true)
   const [data, setData] = useState<{
     round: { roundId: string; startedAt: string; endsAt: string }
@@ -224,6 +275,11 @@ function TriviaRelampagoPreview() {
     totalQuestions: number
   } | null>(null)
   const [error, setError] = useState('')
+  const [currentQ, setCurrentQ] = useState(0)
+  const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null)
+  const [results, setResults] = useState<Array<{ isCorrect: boolean; selected: string }>>([])
+  const [gameFinished, setGameFinished] = useState(false)
+  const [timeLeft, setTimeLeft] = useState(60)
 
   useEffect(() => {
     const fetchLightning = async () => {
@@ -233,7 +289,7 @@ function TriviaRelampagoPreview() {
         const json = await res.json()
         setData(json)
       } catch (err) {
-        setError('No se pudo cargar la vista previa de la trivia relámpago')
+        setError('No se pudo cargar la trivia relámpago')
         console.error(err)
       } finally {
         setLoading(false)
@@ -241,6 +297,17 @@ function TriviaRelampagoPreview() {
     }
     fetchLightning()
   }, [])
+
+  // Timer
+  useEffect(() => {
+    if (!data || gameFinished || selectedAnswer !== null) return
+    if (timeLeft <= 0) {
+      setGameFinished(true)
+      return
+    }
+    const interval = setInterval(() => setTimeLeft((t) => t - 1), 1000)
+    return () => clearInterval(interval)
+  }, [data, gameFinished, selectedAnswer, timeLeft])
 
   if (loading) {
     return (
@@ -258,9 +325,100 @@ function TriviaRelampagoPreview() {
     )
   }
 
+  // Finished state
+  if (gameFinished || (results.length === data.questions.length)) {
+    const correctCount = results.filter(r => r.isCorrect).length
+    return (
+      <div className="space-y-4">
+        <div
+          className="p-5 rounded-xl text-center"
+          style={{
+            background: 'linear-gradient(135deg, rgba(234,179,8,0.1), rgba(168,85,247,0.05))',
+            border: '1px solid rgba(234,179,8,0.3)',
+          }}
+        >
+          <div className="text-4xl mb-2">{correctCount >= 4 ? '🏆' : correctCount >= 2 ? '⚡' : '💪'}</div>
+          <p className="text-2xl font-black" style={{ color: '#fde047' }}>
+            {correctCount}/{data.questions.length}
+          </p>
+          <p className="text-xs uppercase tracking-wider mt-1" style={{ color: 'rgba(255,255,255,0.4)' }}>
+            Respuestas correctas
+          </p>
+          <p className="text-[0.6rem] mt-3 uppercase tracking-wider" style={{ color: 'rgba(255,255,255,0.3)' }}>
+            Vista previa admin — No se registran puntos
+          </p>
+        </div>
+
+        {/* Review answers */}
+        <div className="space-y-2">
+          {data.questions.map((q, i) => {
+            const r = results[i]
+            return (
+              <div
+                key={i}
+                className="p-3 rounded-xl"
+                style={{
+                  background: r?.isCorrect ? 'rgba(34,197,94,0.06)' : 'rgba(239,68,68,0.06)',
+                  border: `1px solid ${r?.isCorrect ? 'rgba(34,197,94,0.2)' : 'rgba(239,68,68,0.2)'}`,
+                }}
+              >
+                <div className="flex items-center gap-2 mb-1">
+                  <span style={{ color: r?.isCorrect ? '#4ade80' : '#f87171' }}>
+                    {r?.isCorrect ? '✓' : '✗'}
+                  </span>
+                  <span className="text-xs font-bold" style={{ color: 'rgba(255,255,255,0.7)' }}>
+                    Pregunta {i + 1}: {q.question}
+                  </span>
+                </div>
+                {!r?.isCorrect && (
+                  <p className="text-[0.65rem] ml-6" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                    Correcta: {q.correctAnswer} | Tu respuesta: {r?.selected || 'Sin respuesta'}
+                  </p>
+                )}
+              </div>
+            )
+          })}
+        </div>
+      </div>
+    )
+  }
+
+  const q = data.questions[currentQ]
+  const options = [
+    { key: 'A', text: q.optionA },
+    { key: 'B', text: q.optionB },
+    { key: 'C', text: q.optionC },
+    { key: 'D', text: q.optionD },
+  ]
+
+  const handleAnswer = (key: string) => {
+    if (selectedAnswer !== null) return
+    setSelectedAnswer(key)
+    const isCorrect = key === q.correctAnswer
+    const newResults = [...results, { isCorrect, selected: key }]
+    setResults(newResults)
+
+    setTimeout(() => {
+      if (newResults.length === data.questions.length) {
+        setGameFinished(true)
+      } else {
+        setCurrentQ(currentQ + 1)
+        setSelectedAnswer(null)
+      }
+    }, 1200)
+  }
+
   return (
     <div className="space-y-3">
-      {/* Round info */}
+      {/* Admin notice */}
+      <div
+        className="p-2 rounded-xl text-center text-xs"
+        style={{ background: 'rgba(234, 179, 8, 0.08)', border: '1px solid rgba(234, 179, 8, 0.2)', color: '#fde047' }}
+      >
+        ⚡ Vista previa interactiva — Juega sin código TPK
+      </div>
+
+      {/* Round + timer + progress */}
       <div className="flex items-center gap-2 flex-wrap">
         <span
           className="px-2 py-1 rounded text-xs font-bold uppercase"
@@ -270,77 +428,94 @@ function TriviaRelampagoPreview() {
         </span>
         <span
           className="px-2 py-1 rounded text-xs font-bold"
-          style={{ background: 'rgba(234, 179, 8, 0.15)', color: '#fde047', border: '1px solid rgba(234, 179, 8, 0.3)' }}
+          style={{
+            background: timeLeft <= 10 ? 'rgba(239,68,68,0.2)' : 'rgba(234, 179, 8, 0.15)',
+            color: timeLeft <= 10 ? '#ef4444' : '#fde047',
+            border: `1px solid ${timeLeft <= 10 ? 'rgba(239,68,68,0.4)' : 'rgba(234, 179, 8, 0.3)'}`,
+          }}
         >
-          ⏱ 60 segundos
+          ⏱ {timeLeft}s
         </span>
         <span
           className="px-2 py-1 rounded text-xs font-bold"
           style={{ background: 'rgba(234, 179, 8, 0.15)', color: '#fde047', border: '1px solid rgba(234, 179, 8, 0.3)' }}
         >
-          {data.questions.length} preguntas
+          {currentQ + 1}/{data.questions.length}
+        </span>
+        <span
+          className="px-2 py-1 rounded text-xs font-bold"
+          style={{ background: 'rgba(34,197,94,0.1)', color: '#4ade80', border: '1px solid rgba(34,197,94,0.3)' }}
+        >
+          ✓ {results.filter(r => r.isCorrect).length}
         </span>
       </div>
 
-      {/* Questions */}
-      {data.questions.map((q, i) => {
-        const options = [
-          { key: 'A', text: q.optionA },
-          { key: 'B', text: q.optionB },
-          { key: 'C', text: q.optionC },
-          { key: 'D', text: q.optionD },
-        ]
-
-        return (
+      {/* Progress bar */}
+      <div className="flex gap-1.5">
+        {data.questions.map((_, i) => (
           <div
             key={i}
-            className="p-3 rounded-xl"
+            className="h-1.5 rounded-full transition-all duration-300"
             style={{
-              background: 'rgba(234, 179, 8, 0.05)',
-              border: '1px solid rgba(234, 179, 8, 0.2)',
+              flex: 1,
+              background: i < currentQ
+                ? results[i]?.isCorrect ? '#22c55e' : '#ef4444'
+                : i === currentQ ? '#eab308' : 'rgba(255,255,255,0.1)',
             }}
-          >
-            <div className="flex items-center gap-2 mb-2">
-              <span
-                className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-black"
-                style={{ background: 'rgba(234, 179, 8, 0.2)', color: '#fde047', border: '1px solid rgba(234, 179, 8, 0.4)' }}
-              >
-                {i + 1}
-              </span>
-              <span className="text-sm font-bold" style={{ color: '#fef3c7' }}>
-                {q.question}
-              </span>
-              {q.category && (
-                <span className="text-xs ml-auto" style={{ color: 'rgba(234, 179, 8, 0.5)' }}>
-                  {q.category}
-                </span>
-              )}
-            </div>
-            <div className="grid grid-cols-2 gap-1.5 ml-8">
-              {options.map((opt) => (
-                <div
-                  key={opt.key}
-                  className="px-2 py-1.5 rounded text-xs flex items-center gap-1.5"
-                  style={{
-                    background: opt.key === q.correctAnswer
-                      ? 'rgba(34, 197, 94, 0.12)'
-                      : 'rgba(255,255,255,0.03)',
-                    border: opt.key === q.correctAnswer
-                      ? '1px solid rgba(34, 197, 94, 0.4)'
-                      : '1px solid rgba(255,255,255,0.06)',
-                    color: opt.key === q.correctAnswer ? '#4ade80' : 'rgba(255,255,255,0.6)',
-                  }}
-                >
-                  <span className="font-bold">{opt.key}.</span> {opt.text}
-                  {opt.key === q.correctAnswer && <span className="ml-auto">✓</span>}
-                </div>
-              ))}
-            </div>
-          </div>
-        )
-      })}
+          />
+        ))}
+      </div>
 
-      {/* Total questions info */}
+      {/* Question */}
+      <div
+        className="p-4 rounded-xl"
+        style={{ background: 'rgba(234, 179, 8, 0.06)', border: '1px solid rgba(234, 179, 8, 0.2)' }}
+      >
+        <p className="text-sm font-bold" style={{ color: '#fef3c7' }}>{q.question}</p>
+        {q.category && (
+          <span className="text-[0.6rem] uppercase mt-1 inline-block" style={{ color: 'rgba(234,179,8,0.5)' }}>
+            {q.category}
+          </span>
+        )}
+      </div>
+
+      {/* Options */}
+      <div className="grid grid-cols-2 gap-2">
+        {options.map((opt) => {
+          const isCorrect = opt.key === q.correctAnswer
+          const isSelected = opt.key === selectedAnswer
+          let bg = 'rgba(255,255,255,0.03)'
+          let border = '1px solid rgba(255,255,255,0.08)'
+          let color = 'rgba(255,255,255,0.7)'
+
+          if (selectedAnswer !== null) {
+            if (isCorrect) {
+              bg = 'rgba(34, 197, 94, 0.15)'
+              border = '1px solid rgba(34, 197, 94, 0.5)'
+              color = '#4ade80'
+            } else if (isSelected && !isCorrect) {
+              bg = 'rgba(239, 68, 68, 0.15)'
+              border = '1px solid rgba(239, 68, 68, 0.5)'
+              color = '#f87171'
+            }
+          }
+
+          return (
+            <button
+              key={opt.key}
+              onClick={() => handleAnswer(opt.key)}
+              className="p-2.5 rounded-lg text-xs flex items-center gap-1.5 transition-all cursor-pointer hover:scale-[1.02] active:scale-[0.98] text-left"
+              style={{ background: bg, border, color }}
+              disabled={selectedAnswer !== null}
+            >
+              <span className="font-bold">{opt.key}.</span> {opt.text}
+              {selectedAnswer !== null && isCorrect && <span className="ml-auto">✓</span>}
+              {selectedAnswer !== null && isSelected && !isCorrect && <span className="ml-auto">✗</span>}
+            </button>
+          )
+        })}
+      </div>
+
       <div className="text-xs text-center" style={{ color: 'rgba(255,255,255,0.3)' }}>
         Banco de {data.totalQuestions} preguntas relámpago disponibles
       </div>
@@ -348,151 +523,9 @@ function TriviaRelampagoPreview() {
   )
 }
 
-// Preview component for Memoria Futbolera
-function MemoriaFutboleraPreview() {
-  const difficultyConfig = [
-    { key: 'easy', label: 'Fácil', emoji: '🟢', pairs: 4, cols: 4 },
-    { key: 'medium', label: 'Medio', emoji: '🟡', pairs: 6, cols: 4 },
-    { key: 'hard', label: 'Difícil', emoji: '🔴', pairs: 10, cols: 5 },
-  ]
-
-  return (
-    <div className="space-y-4">
-      {/* Game info card */}
-      <div
-        className="p-4 rounded-xl text-center"
-        style={{
-          background: 'rgba(236, 72, 153, 0.08)',
-          border: '1px solid rgba(236, 72, 153, 0.3)',
-        }}
-      >
-        <div className="text-4xl mb-2">🧠</div>
-        <h3 className="text-lg font-bold" style={{ color: '#ec4899' }}>Memoria Futbolera</h3>
-        <p className="text-sm mt-1" style={{ color: 'rgba(255,255,255,0.5)' }}>
-          Encuentra los pares de escudos de la Liga BetPlay
-        </p>
-      </div>
-
-      {/* Difficulty levels */}
-      <div>
-        <div className="text-xs font-bold uppercase mb-2" style={{ color: 'rgba(255,255,255,0.4)' }}>
-          Niveles de dificultad
-        </div>
-        <div className="grid grid-cols-3 gap-2">
-          {difficultyConfig.map((d) => (
-            <div
-              key={d.key}
-              className="p-3 rounded-xl text-center"
-              style={{ background: 'rgba(236, 72, 153, 0.06)', border: '1px solid rgba(236, 72, 153, 0.2)' }}
-            >
-              <div className="text-xl mb-1">{d.emoji}</div>
-              <div className="text-xs font-bold" style={{ color: '#f9a8d4' }}>{d.label}</div>
-              <div className="text-[0.65rem]" style={{ color: 'rgba(255,255,255,0.4)' }}>{d.pairs} pares</div>
-              <div className="text-[0.6rem]" style={{ color: 'rgba(255,255,255,0.3)' }}>{d.cols} columnas</div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* How to play */}
-      <div>
-        <div className="text-xs font-bold uppercase mb-2" style={{ color: 'rgba(255,255,255,0.4)' }}>
-          Cómo jugar
-        </div>
-        <div className="space-y-1.5">
-          {[
-            { icon: '🃏', text: 'Voltea 2 cartas por turno' },
-            { icon: '⚽', text: 'Encuentra los escudos iguales' },
-            { icon: '🏆', text: 'Menos movimientos = más estrellas' },
-            { icon: '⏱', text: 'Cronómetro y contador de movimientos' },
-            { icon: '💾', text: 'Mejores puntuaciones guardadas' },
-          ].map((item, i) => (
-            <div
-              key={i}
-              className="px-3 py-2 rounded-lg flex items-center gap-2 text-xs"
-              style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}
-            >
-              <span>{item.icon}</span>
-              <span style={{ color: 'rgba(255,255,255,0.6)' }}>{item.text}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Team shields gallery */}
-      <div>
-        <div className="text-xs font-bold uppercase mb-2" style={{ color: 'rgba(255,255,255,0.4)' }}>
-          Equipos disponibles ({MEMORY_TEAMS.length})
-        </div>
-        <div className="grid grid-cols-4 sm:grid-cols-5 gap-2">
-          {MEMORY_TEAMS.map((team) => (
-            <div
-              key={team.id}
-              className="p-2 rounded-lg text-center"
-              style={{
-                background: 'rgba(0,0,0,0.3)',
-                border: `1px solid ${team.color}30`,
-              }}
-            >
-              <div
-                className="w-10 h-10 mx-auto rounded-full flex items-center justify-center mb-1"
-                style={{
-                  background: `linear-gradient(135deg, ${team.color}15, ${team.color}30)`,
-                  border: `1px solid ${team.color}40`,
-                  boxShadow: `0 0 6px ${team.color}20`,
-                }}
-              >
-                <img
-                  src={`/images/teams/${team.id}.svg`}
-                  alt={team.name}
-                  className="w-7 h-7 object-contain"
-                  style={{ filter: 'drop-shadow(0 0 2px rgba(255,255,255,0.2))' }}
-                  onError={(e) => {
-                    const target = e.target as HTMLImageElement
-                    if (!target.src.endsWith('.png')) {
-                      target.src = `/images/teams/${team.id}.png`
-                    }
-                  }}
-                />
-              </div>
-              <div
-                className="text-[0.5rem] font-bold truncate"
-                style={{ color: team.color, textShadow: `0 0 4px ${team.color}40` }}
-              >
-                {team.name}
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Scoring system */}
-      <div>
-        <div className="text-xs font-bold uppercase mb-2" style={{ color: 'rgba(255,255,255,0.4)' }}>
-          Sistema de estrellas
-        </div>
-        <div className="space-y-1.5">
-          {[
-            { stars: 3, condition: 'Hasta 1.5x el número de pares en movimientos', color: '#fbbf24' },
-            { stars: 2, condition: 'Hasta 2x el número de pares en movimientos', color: '#a855f7' },
-            { stars: 1, condition: 'Más de 2x el número de pares', color: '#f97316' },
-          ].map((level, i) => (
-            <div
-              key={i}
-              className="px-3 py-2 rounded-lg flex items-center gap-3 text-xs"
-              style={{ background: `${level.color}08`, border: `1px solid ${level.color}20` }}
-            >
-              <span className="text-sm">{'⭐'.repeat(level.stars)}</span>
-              <span style={{ color: 'rgba(255,255,255,0.5)' }}>{level.condition}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  )
-}
-
-// Generic placeholder preview for other game types
+// ============================================
+// GENERIC Preview for other game types
+// ============================================
 function GenericGamePreview({ game }: { game: Game }) {
   const gameType = GAME_TYPES[game.type] || GAME_TYPES['personalizado']
   let configData: Record<string, unknown> | null = null
@@ -506,67 +539,31 @@ function GenericGamePreview({ game }: { game: Game }) {
 
   return (
     <div className="space-y-4">
-      {/* Game info card */}
       <div
         className="p-4 rounded-xl text-center"
-        style={{
-          background: `${gameType.color}10`,
-          border: `1px solid ${gameType.color}30`,
-        }}
+        style={{ background: `${gameType.color}10`, border: `1px solid ${gameType.color}30` }}
       >
         <div className="text-4xl mb-2">{gameType.icon}</div>
-        <h3 className="text-lg font-bold" style={{ color: gameType.color }}>
-          {game.name}
-        </h3>
+        <h3 className="text-lg font-bold" style={{ color: gameType.color }}>{game.name}</h3>
         {game.description && (
-          <p className="text-sm mt-1" style={{ color: 'rgba(255,255,255,0.5)' }}>
-            {game.description}
-          </p>
+          <p className="text-sm mt-1" style={{ color: 'rgba(255,255,255,0.5)' }}>{game.description}</p>
         )}
-        <div className="flex items-center justify-center gap-2 mt-3">
-          <span
-            className="px-2 py-1 rounded text-xs font-bold"
-            style={{ background: `${gameType.color}20`, color: gameType.color, border: `1px solid ${gameType.color}40` }}
-          >
-            {gameType.label}
-          </span>
-          <span
-            className="px-2 py-1 rounded text-xs font-bold"
-            style={{
-              background: game.isActive ? 'rgba(34, 197, 94, 0.15)' : 'rgba(239, 68, 68, 0.15)',
-              color: game.isActive ? '#4ade80' : '#ef4444',
-              border: `1px solid ${game.isActive ? 'rgba(34, 197, 94, 0.3)' : 'rgba(239, 68, 68, 0.3)'}`,
-            }}
-          >
-            {game.isActive ? 'Activo' : 'Inactivo'}
-          </span>
-        </div>
       </div>
 
-      {/* Game details */}
       <div className="grid grid-cols-2 gap-2">
-        <div
-          className="p-3 rounded-xl text-center"
-          style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}
-        >
+        <div className="p-3 rounded-xl text-center" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}>
           <div className="text-xs uppercase" style={{ color: 'rgba(255,255,255,0.3)' }}>Orden</div>
           <div className="text-lg font-bold" style={{ color: '#d8b4fe' }}>#{game.order}</div>
         </div>
-        <div
-          className="p-3 rounded-xl text-center"
-          style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}
-        >
+        <div className="p-3 rounded-xl text-center" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}>
           <div className="text-xs uppercase" style={{ color: 'rgba(255,255,255,0.3)' }}>Participantes</div>
           <div className="text-lg font-bold" style={{ color: '#fdba74' }}>{game._count?.participants || 0}</div>
         </div>
       </div>
 
-      {/* Config */}
       {configData && (
         <div>
-          <div className="text-xs font-bold uppercase mb-2" style={{ color: 'rgba(255,255,255,0.4)' }}>
-            Configuración
-          </div>
+          <div className="text-xs font-bold uppercase mb-2" style={{ color: 'rgba(255,255,255,0.4)' }}>Configuración</div>
           <div
             className="p-3 rounded-xl text-xs font-mono overflow-x-auto"
             style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.6)' }}
@@ -576,7 +573,6 @@ function GenericGamePreview({ game }: { game: Game }) {
         </div>
       )}
 
-      {/* Preview notice */}
       <div
         className="p-3 rounded-xl text-center text-xs"
         style={{ background: 'rgba(249, 115, 22, 0.08)', border: '1px solid rgba(249, 115, 22, 0.2)', color: '#fdba74' }}
@@ -587,6 +583,9 @@ function GenericGamePreview({ game }: { game: Game }) {
   )
 }
 
+// ============================================
+// MAIN MODAL COMPONENT
+// ============================================
 export default function GamePreviewModal({ game, onClose }: GamePreviewModalProps) {
   const gameType = GAME_TYPES[game.type] || GAME_TYPES['personalizado']
 
@@ -607,6 +606,48 @@ export default function GamePreviewModal({ game, onClose }: GamePreviewModalProp
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [onClose])
 
+  // Memoria Futbolera gets a full-screen embedded game experience
+  if (game.type === 'memoria-futbolera') {
+    return (
+      <div
+        className="fixed inset-0 z-[60] flex flex-col"
+        style={{ backgroundColor: 'rgba(0,0,0,0.95)' }}
+      >
+        {/* Admin Preview Banner */}
+        <div
+          className="px-4 py-2 flex items-center justify-between flex-shrink-0"
+          style={{
+            background: 'linear-gradient(90deg, rgba(236,72,153,0.15), rgba(249,115,22,0.15), rgba(236,72,153,0.15))',
+            borderBottom: '1px solid rgba(236, 72, 153, 0.3)',
+          }}
+        >
+          <div className="flex items-center gap-2">
+            <span style={{ color: '#ec4899', fontSize: '0.7rem' }}>🧠</span>
+            <span
+              className="text-xs font-black uppercase tracking-widest"
+              style={{ color: '#ec4899', textShadow: '0 0 8px rgba(236, 72, 153, 0.4)' }}
+            >
+              Vista Previa — Memoria Futbolera — Juega sin código TPK
+            </span>
+          </div>
+          <button
+            onClick={onClose}
+            className="px-3 py-1 rounded-lg text-xs font-bold cursor-pointer transition-all"
+            style={{ background: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.6)', border: '1px solid rgba(255,255,255,0.15)' }}
+          >
+            ✕ Cerrar
+          </button>
+        </div>
+
+        {/* Embedded Game - full area */}
+        <div className="flex-1 overflow-y-auto py-4" style={{ scrollbarColor: 'rgba(236,72,153,0.3) transparent' }}>
+          <MemoryGame />
+        </div>
+      </div>
+    )
+  }
+
+  // Trivia games get the standard modal with interactive preview
   return (
     <div
       className="fixed inset-0 z-[60] flex items-center justify-center p-4"
@@ -634,7 +675,7 @@ export default function GamePreviewModal({ game, onClose }: GamePreviewModalProp
             className="text-xs font-black uppercase tracking-widest"
             style={{ color: '#ef4444', textShadow: '0 0 8px rgba(239, 68, 68, 0.4)' }}
           >
-            Modo Vista Previa - Administrador
+            Vista Previa Interactiva — Juega sin código TPK
           </span>
           <span style={{ color: '#ef4444', fontSize: '0.7rem' }}>🔒</span>
         </div>
@@ -670,9 +711,8 @@ export default function GamePreviewModal({ game, onClose }: GamePreviewModalProp
 
         {/* Content */}
         <div className="flex-1 overflow-y-auto p-4" style={{ scrollbarColor: `${gameType.color}30 transparent` }}>
-          {game.type === 'trivia-futbolera' && <TriviaFutboleraPreview />}
-          {game.type === 'trivia-relampago' && <TriviaRelampagoPreview />}
-          {game.type === 'memoria-futbolera' && <MemoriaFutboleraPreview />}
+          {game.type === 'trivia-futbolera' && <TriviaFutboleraInteractive />}
+          {game.type === 'trivia-relampago' && <TriviaRelampagoInteractive />}
           {!['trivia-futbolera', 'trivia-relampago', 'memoria-futbolera'].includes(game.type) && <GenericGamePreview game={game} />}
         </div>
 
@@ -682,7 +722,7 @@ export default function GamePreviewModal({ game, onClose }: GamePreviewModalProp
           style={{ borderTop: `1px solid ${gameType.color}15`, background: 'rgba(0,0,0,0.3)' }}
         >
           <span className="text-xs" style={{ color: 'rgba(255,255,255,0.2)' }}>
-            Vista previa como administrador — No se requiere código TPK
+            Vista previa interactiva — No se requiere código TPK — No se registran puntos
           </span>
         </div>
       </div>
