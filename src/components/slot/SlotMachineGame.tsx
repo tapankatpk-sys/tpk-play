@@ -35,9 +35,14 @@ const SINGLE_BONUS_POINTS = 5
 
 type GameState = 'splash' | 'playing' | 'spinning' | 'result'
 
-interface ReelResult {
-  teamIndex: number
-  team: typeof TEAMS[0]
+// Teams that only have PNG files (no SVG)
+const PNG_ONLY_TEAMS = new Set(['internacional-de-bogota'])
+
+function getTeamImagePath(teamId: string): string {
+  if (PNG_ONLY_TEAMS.has(teamId)) {
+    return `/images/teams/${teamId}.png`
+  }
+  return `/images/teams/${teamId}.svg`
 }
 
 function getRandomTeam(): number {
@@ -58,7 +63,6 @@ export default function SlotMachineGame() {
   const [showWinAnimation, setShowWinAnimation] = useState(false)
   const [dailyTeam, setDailyTeam] = useState(0)
   const [history, setHistory] = useState<Array<{ reels: [number, number, number]; result: string; points: number }>>([])
-  const spinIntervalRef = useRef<NodeJS.Timeout | null>(null)
   const reelIntervalsRef = useRef<(NodeJS.Timeout | null)[]>([null, null, null])
 
   // Set daily team based on date
@@ -71,7 +75,6 @@ export default function SlotMachineGame() {
   // Clean up intervals
   useEffect(() => {
     return () => {
-      if (spinIntervalRef.current) clearInterval(spinIntervalRef.current)
       reelIntervalsRef.current.forEach(interval => {
         if (interval) clearInterval(interval)
       })
@@ -351,16 +354,10 @@ export default function SlotMachineGame() {
                 Equipo del dia:
               </span>
               <img
-                src={`/images/teams/${TEAMS[dailyTeam].id}.svg`}
+                src={getTeamImagePath(TEAMS[dailyTeam].id)}
                 alt={TEAMS[dailyTeam].name}
                 className="w-8 h-8 object-contain"
                 style={{ filter: 'drop-shadow(0 0 6px rgba(251,191,36,0.5))' }}
-                onError={(e) => {
-                  const target = e.target as HTMLImageElement
-                  if (!target.src.endsWith('.png')) {
-                    target.src = `/images/teams/${TEAMS[dailyTeam].id}.png`
-                  }
-                }}
               />
               <span className="text-sm font-bold" style={{ color: TEAMS[dailyTeam].color, textShadow: `0 0 6px ${TEAMS[dailyTeam].color}60` }}>
                 {TEAMS[dailyTeam].name}
@@ -596,16 +593,10 @@ export default function SlotMachineGame() {
         <div className="flex items-center justify-center gap-2 mb-4">
           <span className="text-[0.6rem] uppercase" style={{ color: 'rgba(251,191,36,0.5)' }}>Equipo del dia:</span>
           <img
-            src={`/images/teams/${TEAMS[dailyTeam].id}.svg`}
+            src={getTeamImagePath(TEAMS[dailyTeam].id)}
             alt={TEAMS[dailyTeam].name}
             className="w-5 h-5 object-contain"
             style={{ filter: 'drop-shadow(0 0 4px rgba(251,191,36,0.5))' }}
-            onError={(e) => {
-              const target = e.target as HTMLImageElement
-              if (!target.src.endsWith('.png')) {
-                target.src = `/images/teams/${TEAMS[dailyTeam].id}.png`
-              }
-            }}
           />
           <span className="text-[0.6rem] font-bold" style={{ color: TEAMS[dailyTeam].color }}>
             {TEAMS[dailyTeam].name}
@@ -789,15 +780,9 @@ export default function SlotMachineGame() {
                   {h.reels.map((teamIdx, ri) => (
                     <img
                       key={ri}
-                      src={`/images/teams/${TEAMS[teamIdx].id}.svg`}
+                      src={getTeamImagePath(TEAMS[teamIdx].id)}
                       alt=""
                       className="w-4 h-4 object-contain"
-                      onError={(e) => {
-                        const target = e.target as HTMLImageElement
-                        if (!target.src.endsWith('.png')) {
-                          target.src = `/images/teams/${TEAMS[teamIdx].id}.png`
-                        }
-                      }}
                     />
                   ))}
                   {h.points > 0 && (
@@ -934,7 +919,7 @@ function SlotReel({
           }}
         >
           <img
-            src={`/images/teams/${team.id}.svg`}
+            src={getTeamImagePath(team.id)}
             alt={team.name}
             className="w-full h-full object-contain"
             style={{
@@ -942,12 +927,6 @@ function SlotReel({
                 ? 'drop-shadow(0 0 10px rgba(251,191,36,0.6)) brightness(1.2)'
                 : 'drop-shadow(0 0 4px rgba(255,255,255,0.15))',
               transition: 'filter 0.3s ease-out',
-            }}
-            onError={(e) => {
-              const target = e.target as HTMLImageElement
-              if (!target.src.endsWith('.png')) {
-                target.src = `/images/teams/${team.id}.png`
-              }
             }}
           />
 

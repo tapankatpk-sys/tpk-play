@@ -55,6 +55,16 @@ function shuffleArray<T>(array: T[]): T[] {
   return arr
 }
 
+// Teams that only have PNG files (no SVG)
+const PNG_ONLY_TEAMS = new Set(['internacional-de-bogota'])
+
+function getTeamImagePath(teamId: string): string {
+  if (PNG_ONLY_TEAMS.has(teamId)) {
+    return `/images/teams/${teamId}.png`
+  }
+  return `/images/teams/${teamId}.svg`
+}
+
 function createCards(pairCount: number): Card[] {
   const selectedTeams = shuffleArray(TEAMS).slice(0, pairCount)
   const cards: Card[] = []
@@ -107,18 +117,7 @@ export default function MemoryGame() {
     }
   }, [isPlaying, gameComplete])
 
-  // Check for game completion
-  useEffect(() => {
-    if (matchedPairs > 0 && matchedPairs === config.pairs) {
-      setGameComplete(true)
-      setIsPlaying(false)
-      if (timerRef.current) clearInterval(timerRef.current)
-
-      // Calculate points based on performance
-      const starMultiplier = moves <= config.pairs * 1.5 ? 3 : moves <= config.pairs * 2 ? 2 : 1
-      setEarnedPoints(config.points * starMultiplier)
-    }
-  }, [matchedPairs, config.pairs, moves, difficulty, config.points])
+  // Check for game completion - handled in handleCardClick when match found
 
   const startGame = useCallback((diff?: Difficulty) => {
     const d = diff || difficulty
@@ -159,6 +158,7 @@ export default function MemoryGame() {
         const secondCard = cards.find((c) => c.id === secondId)!
 
         if (firstCard.teamId === secondCard.teamId) {
+          const newMatchedCount = matchedPairs + 1
           setTimeout(() => {
             setCards((prev) =>
               prev.map((c) =>
@@ -167,9 +167,20 @@ export default function MemoryGame() {
                   : c
               )
             )
-            setMatchedPairs((m) => m + 1)
+            setMatchedPairs(newMatchedCount)
             setFlippedIds([])
             setIsLocked(false)
+
+            // Check for game completion directly here
+            if (newMatchedCount === DIFFICULTY_CONFIG[difficulty].pairs) {
+              setGameComplete(true)
+              setIsPlaying(false)
+              if (timerRef.current) clearInterval(timerRef.current)
+              const currentMoves = moves + 1 // this flip counts
+              const pairsCount = DIFFICULTY_CONFIG[difficulty].pairs
+              const starMultiplier = currentMoves <= pairsCount * 1.5 ? 3 : currentMoves <= pairsCount * 2 ? 2 : 1
+              setEarnedPoints(DIFFICULTY_CONFIG[difficulty].points * starMultiplier)
+            }
           }, 600)
         } else {
           setTimeout(() => {
@@ -186,7 +197,7 @@ export default function MemoryGame() {
         }
       }
     },
-    [cards, flippedIds, isLocked]
+    [cards, flippedIds, isLocked, matchedPairs, difficulty, moves]
   )
 
   const formatTime = (seconds: number) => {
@@ -674,7 +685,7 @@ function MemoryCard({ card, onClick }: { card: Card; onClick: () => void }) {
         >
           {/* Team shield - large, centered, no name */}
           <img
-            src={`/images/teams/${card.teamId}.svg`}
+            src={getTeamImagePath(card.teamId)}
             alt=""
             className="w-[85%] h-[85%] object-contain"
             style={{
@@ -682,12 +693,6 @@ function MemoryCard({ card, onClick }: { card: Card; onClick: () => void }) {
                 ? 'drop-shadow(0 0 8px rgba(34,197,94,0.6)) brightness(1.1)'
                 : 'drop-shadow(0 0 6px rgba(255,255,255,0.25))',
               transition: 'filter 0.3s',
-            }}
-            onError={(e) => {
-              const target = e.target as HTMLImageElement
-              if (!target.src.endsWith('.png')) {
-                target.src = `/images/teams/${card.teamId}.png`
-              }
             }}
           />
 

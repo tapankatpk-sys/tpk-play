@@ -138,6 +138,15 @@ export default function LightningTriviaGame() {
 
   useEffect(() => { fetchQuestions() }, [fetchQuestions])
 
+  const handleTimeUp = useCallback(() => {
+    if (gameState !== 'playing') return
+    // If there's no answer selected, submit empty/wrong
+    if (!selectedAnswer) {
+      // Force end the game
+      setGameState('result')
+    }
+  }, [gameState, selectedAnswer])
+
   // Game timer
   useEffect(() => {
     if (gameState !== 'playing' && gameState !== 'feedback') return
@@ -155,16 +164,7 @@ export default function LightningTriviaGame() {
     }, 1000)
 
     return () => clearInterval(interval)
-  }, [gameState])
-
-  const handleTimeUp = () => {
-    if (gameState !== 'playing') return
-    // If there's no answer selected, submit empty/wrong
-    if (!selectedAnswer) {
-      // Force end the game
-      setGameState('result')
-    }
-  }
+  }, [gameState, handleTimeUp])
 
   const handleStart = () => {
     if (!tpkCode.trim()) {
