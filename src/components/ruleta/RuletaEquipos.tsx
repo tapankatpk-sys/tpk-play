@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import Image from 'next/image'
 
 // ============================================
-// TEAM DATA - 22 Liga BetPlay teams with regions
+// TEAM DATA - 20 Liga BetPlay 2026 teams with regions
 // ============================================
 const TEAMS = [
   { slug: 'aguilas-doradas', name: 'Águilas Doradas', region: 'antioquia' },
@@ -19,13 +19,11 @@ const TEAMS = [
   { slug: 'deportivo-cali', name: 'Deportivo Cali', region: 'valle' },
   { slug: 'deportivo-pasto', name: 'Deportivo Pasto', region: 'narino' },
   { slug: 'deportivo-pereira', name: 'Deportivo Pereira', region: 'risaralda' },
-  { slug: 'envigado', name: 'Envigado FC', region: 'antioquia' },
   { slug: 'fortaleza-ceif', name: 'Fortaleza CEIF', region: 'cundinamarca' },
   { slug: 'independiente-medellin', name: 'Ind. Medellín', region: 'antioquia' },
   { slug: 'independiente-santa-fe', name: 'Ind. Santa Fe', region: 'cundinamarca' },
   { slug: 'internacional-de-bogota', name: 'Internacional', region: 'cundinamarca' },
   { slug: 'jaguares-de-cordoba', name: 'Jaguares', region: 'cordoba' },
-  { slug: 'la-equidad', name: 'La Equidad', region: 'cundinamarca' },
   { slug: 'llaneros', name: 'Llaneros', region: 'meta' },
   { slug: 'millonarios', name: 'Millonarios', region: 'cundinamarca' },
   { slug: 'once-caldas', name: 'Once Caldas', region: 'caldas' },

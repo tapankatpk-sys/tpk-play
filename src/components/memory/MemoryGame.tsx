@@ -19,7 +19,7 @@ const TEAMS = [
   { id: 'fortaleza-ceif', name: 'Fortaleza CEIF', color: '#e31937', city: 'Bogotá' },
   { id: 'deportivo-pereira', name: 'Deportivo Pereira', color: '#c8102e', city: 'Pereira' },
   { id: 'deportivo-pasto', name: 'Deportivo Pasto', color: '#1a237e', city: 'Pasto' },
-  { id: 'la-equidad', name: 'La Equidad', color: '#2e7d32', city: 'Bogotá' },
+  { id: 'aguilas-doradas', name: 'Águilas Doradas', color: '#f9a825', city: 'Rionegro' },
   { id: 'jaguares-de-cordoba', name: 'Jaguares de Córdoba', color: '#f57f17', city: 'Montería' },
   { id: 'cucuta-deportivo', name: 'Cúcuta Deportivo', color: '#b71c1c', city: 'Cúcuta' },
   { id: 'internacional-de-bogota', name: 'Internacional de Bogotá', color: '#1565c0', city: 'Bogotá' },

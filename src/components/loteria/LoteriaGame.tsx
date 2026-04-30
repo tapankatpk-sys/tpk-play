@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import Image from 'next/image'
 
 // ============================================
-// TEAM DATA - 22 Liga BetPlay teams
+// TEAM DATA - 20 Liga BetPlay 2026 teams
 // ============================================
 const TEAMS = [
   { slug: 'aguilas-doradas', name: 'Águilas Doradas' },
@@ -19,13 +19,11 @@ const TEAMS = [
   { slug: 'deportivo-cali', name: 'Deportivo Cali' },
   { slug: 'deportivo-pasto', name: 'Deportivo Pasto' },
   { slug: 'deportivo-pereira', name: 'Deportivo Pereira' },
-  { slug: 'envigado', name: 'Envigado FC' },
   { slug: 'fortaleza-ceif', name: 'Fortaleza CEIF' },
   { slug: 'independiente-medellin', name: 'Ind. Medellín' },
   { slug: 'independiente-santa-fe', name: 'Ind. Santa Fe' },
   { slug: 'internacional-de-bogota', name: 'Internacional' },
   { slug: 'jaguares-de-cordoba', name: 'Jaguares' },
-  { slug: 'la-equidad', name: 'La Equidad' },
   { slug: 'llaneros', name: 'Llaneros' },
   { slug: 'millonarios', name: 'Millonarios' },
   { slug: 'once-caldas', name: 'Once Caldas' },

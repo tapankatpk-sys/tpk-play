@@ -119,13 +119,11 @@ const TEAM_NAMES_MAP: Record<string, string> = {
   'deportivo-cali': 'Deportivo Cali',
   'deportivo-pasto': 'Deportivo Pasto',
   'deportivo-pereira': 'Deportivo Pereira',
-  'envigado': 'Envigado FC',
   'fortaleza-ceif': 'Fortaleza CEIF',
   'independiente-medellin': 'Ind. Medellín',
   'independiente-santa-fe': 'Ind. Santa Fe',
   'internacional-de-bogota': 'Internacional',
   'jaguares-de-cordoba': 'Jaguares de Córdoba',
-  'la-equidad': 'La Equidad',
   'llaneros': 'Llaneros',
   'millonarios': 'Millonarios',
   'once-caldas': 'Once Caldas',
@@ -3126,8 +3124,8 @@ export default function AdminPanel() {
                             boxShadow: '0 0 15px rgba(255,200,0,0.15)',
                           }}
                         >
-                          {RULETA_TEAMS.slice(0, 22).map((team, i) => {
-                            const segAngle = 360 / 22
+                          {RULETA_TEAMS.slice(0, 20).map((team, i) => {
+                            const segAngle = 360 / 20
                             const startAngle = i * segAngle
                             const isEven = i % 2 === 0
                             return (
