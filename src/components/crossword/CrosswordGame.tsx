@@ -87,6 +87,34 @@ const LEVELS: Record<string, { label: string; emoji: string; color: string; time
 
 const SPECIAL_LEVEL = { label: 'ESPECIAL', emoji: '🟣', color: '#a855f7', timeLimit: 1500 }
 
+// Check if player already played this hour
+function hasPlayedThisHour(): boolean {
+  try {
+    const key = 'tpk_crucigrama_last_play'
+    const lastPlay = localStorage.getItem(key)
+    if (!lastPlay) return false
+    const lastDate = new Date(lastPlay)
+    const now = new Date()
+    return (
+      lastDate.getFullYear() === now.getFullYear() &&
+      lastDate.getMonth() === now.getMonth() &&
+      lastDate.getDate() === now.getDate() &&
+      lastDate.getHours() === now.getHours()
+    )
+  } catch { return false }
+}
+
+function markPlayedThisHour(): void {
+  try { localStorage.setItem('tpk_crucigrama_last_play', new Date().toISOString()) } catch {}
+}
+
+function getTimeUntilNextHour(): number {
+  const now = new Date()
+  const nextHour = new Date(now)
+  nextHour.setHours(nextHour.getHours() + 1, 0, 0, 0)
+  return nextHour.getTime() - now.getTime()
+}
+
 // ============================================
 // MAIN COMPONENT
 // ============================================
@@ -103,6 +131,8 @@ export default function CrosswordGame() {
   const [teamName, setTeamName] = useState('Atlético Nacional')
   const [teamColor, setTeamColor] = useState('#00953b')
   const [teamCity, setTeamCity] = useState('Medellín')
+  const [alreadyPlayed, setAlreadyPlayed] = useState(false)
+  const [timeRemaining, setTimeRemaining] = useState(0)
   const [totalPoints, setTotalPoints] = useState(0)
   const [isSpecial, setIsSpecial] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -116,6 +146,30 @@ export default function CrosswordGame() {
   const gridRef = useRef<HTMLDivElement>(null)
   const timerRef = useRef<NodeJS.Timeout | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
+  const countdownRef = useRef<NodeJS.Timeout | null>(null)
+
+  // Check if already played this hour
+  useEffect(() => {
+    const check = () => {
+      if (hasPlayedThisHour()) {
+        setAlreadyPlayed(true)
+        setTimeRemaining(getTimeUntilNextHour())
+      } else {
+        setAlreadyPlayed(false)
+      }
+    }
+    check()
+    const interval = setInterval(check, 30000)
+    return () => clearInterval(interval)
+  }, [])
+
+  // Countdown for already played
+  useEffect(() => {
+    if (!alreadyPlayed) return
+    const tick = () => setTimeRemaining(getTimeUntilNextHour())
+    countdownRef.current = setInterval(tick, 1000)
+    return () => { if (countdownRef.current) clearInterval(countdownRef.current) }
+  }, [alreadyPlayed])
 
   // Load saved TPK code
   useEffect(() => {
@@ -205,6 +259,11 @@ export default function CrosswordGame() {
   // GAME FLOW HANDLERS
   // ============================================
   const handleStartLevel = async (diff: 'bajo' | 'medio' | 'dificil') => {
+    if (hasPlayedThisHour()) {
+      setAlreadyPlayed(true)
+      return
+    }
+    markPlayedThisHour()
     setDifficulty(diff)
     setGameState('loading')
     await fetchPuzzle(diff)
@@ -655,10 +714,28 @@ export default function CrosswordGame() {
             </div>
           </div>
 
+          {/* Already played this hour */}
+          {alreadyPlayed && (
+            <div
+              className="mb-4 p-4 rounded-xl"
+              style={{
+                background: 'rgba(239, 68, 68, 0.1)',
+                border: '1px solid rgba(239, 68, 68, 0.3)',
+              }}
+            >
+              <p className="text-sm font-bold mb-1" style={{ color: '#f87171' }}>
+                Ya jugaste esta hora
+              </p>
+              <p className="text-xs" style={{ color: 'rgba(255,255,255,0.5)' }}>
+                Podras jugar de nuevo en: <span style={{ color: '#fbbf24' }}>{Math.floor(Math.max(0, timeRemaining) / 60000)}:{(Math.floor(Math.max(0, timeRemaining) / 1000) % 60).toString().padStart(2, '0')}</span>
+              </p>
+            </div>
+          )}
+
           {/* Start button */}
           <button
             onClick={() => handleStartLevel(difficulty)}
-            disabled={!completedLevels.has(difficulty === 'medio' ? 'bajo' : difficulty === 'dificil' ? 'medio' : '') && difficulty !== 'bajo' && !completedLevels.has(difficulty)}
+            disabled={alreadyPlayed || (!completedLevels.has(difficulty === 'medio' ? 'bajo' : difficulty === 'dificil' ? 'medio' : '') && difficulty !== 'bajo' && !completedLevels.has(difficulty))}
             className="px-8 py-3.5 rounded-xl font-black uppercase tracking-wider text-base transition-all duration-300 hover:scale-105 active:scale-95 relative overflow-hidden disabled:opacity-40 disabled:cursor-not-allowed"
             style={{
               background: 'linear-gradient(135deg, #a855f7, #f97316)',

@@ -49,6 +49,40 @@ function getRandomTeam(): number {
   return Math.floor(Math.random() * TEAMS.length)
 }
 
+// Check if player already played this hour
+function hasPlayedThisHour(): boolean {
+  try {
+    const key = 'tpk_tragamonedas_last_play'
+    const lastPlay = localStorage.getItem(key)
+    if (!lastPlay) return false
+    const lastDate = new Date(lastPlay)
+    const now = new Date()
+    return (
+      lastDate.getFullYear() === now.getFullYear() &&
+      lastDate.getMonth() === now.getMonth() &&
+      lastDate.getDate() === now.getDate() &&
+      lastDate.getHours() === now.getHours()
+    )
+  } catch {
+    return false
+  }
+}
+
+function markPlayedThisHour(): void {
+  try {
+    localStorage.setItem('tpk_tragamonedas_last_play', new Date().toISOString())
+  } catch {
+    // ignore
+  }
+}
+
+function getTimeUntilNextHour(): number {
+  const now = new Date()
+  const nextHour = new Date(now)
+  nextHour.setHours(nextHour.getHours() + 1, 0, 0, 0)
+  return nextHour.getTime() - now.getTime()
+}
+
 // ============================================
 // SLOT MACHINE COMPONENT
 // ============================================
@@ -63,7 +97,33 @@ export default function SlotMachineGame() {
   const [showWinAnimation, setShowWinAnimation] = useState(false)
   const [dailyTeam, setDailyTeam] = useState(0)
   const [history, setHistory] = useState<Array<{ reels: [number, number, number]; result: string; points: number }>>([])
+  const [alreadyPlayed, setAlreadyPlayed] = useState(false)
+  const [timeRemaining, setTimeRemaining] = useState(0)
   const reelIntervalsRef = useRef<(ReturnType<typeof setInterval> | null)[]>([null, null, null])
+  const countdownRef = useRef<NodeJS.Timeout | null>(null)
+
+  // Check if already played this hour
+  useEffect(() => {
+    const check = () => {
+      if (hasPlayedThisHour()) {
+        setAlreadyPlayed(true)
+        setTimeRemaining(getTimeUntilNextHour())
+      } else {
+        setAlreadyPlayed(false)
+      }
+    }
+    check()
+    const interval = setInterval(check, 30000)
+    return () => clearInterval(interval)
+  }, [])
+
+  // Countdown timer for already played
+  useEffect(() => {
+    if (!alreadyPlayed) return
+    const tick = () => setTimeRemaining(getTimeUntilNextHour())
+    countdownRef.current = setInterval(tick, 1000)
+    return () => { if (countdownRef.current) clearInterval(countdownRef.current) }
+  }, [alreadyPlayed])
 
   // Set daily team based on date
   useEffect(() => {
@@ -82,6 +142,11 @@ export default function SlotMachineGame() {
   }, [])
 
   const startGame = useCallback(() => {
+    if (hasPlayedThisHour()) {
+      setAlreadyPlayed(true)
+      return
+    }
+    markPlayedThisHour()
     setGameState('playing')
     setSpinsLeft(MAX_SPINS)
     setTotalPoints(0)
@@ -366,19 +431,42 @@ export default function SlotMachineGame() {
           </div>
 
           {/* Spins info */}
-          <div className="mb-6 relative z-10">
+          <div className="mb-4 relative z-10">
             <span className="text-xs" style={{ color: 'rgba(255,255,255,0.4)' }}>
               {MAX_SPINS} giros gratis por partida
             </span>
           </div>
 
+          {/* Already played this hour */}
+          {alreadyPlayed && (
+            <div
+              className="mb-4 p-4 rounded-xl relative z-10"
+              style={{
+                background: 'rgba(239, 68, 68, 0.1)',
+                border: '1px solid rgba(239, 68, 68, 0.3)',
+              }}
+            >
+              <p className="text-sm font-bold mb-1" style={{ color: '#f87171' }}>
+                Ya jugaste esta hora
+              </p>
+              <p className="text-xs" style={{ color: 'rgba(255,255,255,0.5)' }}>
+                Podras jugar de nuevo en: <span style={{ color: '#fbbf24' }}>{Math.floor(Math.max(0, timeRemaining) / 60000)}:{(Math.floor(Math.max(0, timeRemaining) / 1000) % 60).toString().padStart(2, '0')}</span>
+              </p>
+            </div>
+          )}
+
           {/* Start Button */}
           <button
             onClick={startGame}
-            className="relative z-10 px-10 py-4 rounded-xl font-black uppercase tracking-wider text-lg transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer"
+            disabled={alreadyPlayed}
+            className="relative z-10 px-10 py-4 rounded-xl font-black uppercase tracking-wider text-lg transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer disabled:opacity-40 disabled:hover:scale-100"
             style={{
-              background: 'linear-gradient(135deg, #fbbf24, #f97316, #ef4444)',
-              boxShadow: '0 0 25px rgba(251, 191, 36, 0.5), 0 0 80px rgba(249, 115, 22, 0.2)',
+              background: alreadyPlayed
+                ? 'rgba(255,255,255,0.1)'
+                : 'linear-gradient(135deg, #fbbf24, #f97316, #ef4444)',
+              boxShadow: alreadyPlayed
+                ? 'none'
+                : '0 0 25px rgba(251, 191, 36, 0.5), 0 0 80px rgba(249, 115, 22, 0.2)',
               color: '#000',
             }}
           >

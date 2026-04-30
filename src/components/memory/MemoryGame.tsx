@@ -40,10 +40,11 @@ interface Card {
 
 type Difficulty = 'easy' | 'medium' | 'hard'
 
+// Grid: 3 cols x 2 rows, 4 cols x 4 rows, 5 cols x 4 rows
 const DIFFICULTY_CONFIG = {
-  easy: { pairs: 4, cols: 4, rows: 2, label: 'Facil', emoji: '\u{1F7E2}', points: 5 },
-  medium: { pairs: 8, cols: 4, rows: 4, label: 'Medio', emoji: '\u{1F7E1}', points: 15 },
-  hard: { pairs: 10, cols: 5, rows: 4, label: 'Dificil', emoji: '\u{1F534}', points: 30 },
+  easy:   { pairs: 3,  cols: 3, rows: 2, label: 'Facil',  emoji: '\u{1F7E2}', points: 10 },
+  medium: { pairs: 6,  cols: 4, rows: 3, label: 'Medio',  emoji: '\u{1F7E1}', points: 25 },
+  hard:   { pairs: 10, cols: 5, rows: 4, label: 'Dificil', emoji: '\u{1F534}', points: 50 },
 }
 
 function shuffleArray<T>(array: T[]): T[] {
@@ -91,8 +92,43 @@ function createCards(pairCount: number): Card[] {
   return shuffleArray(cards)
 }
 
+// Check if player already played this hour for this game type
+function hasPlayedThisHour(): boolean {
+  try {
+    const key = 'tpk_memoria_last_play'
+    const lastPlay = localStorage.getItem(key)
+    if (!lastPlay) return false
+    const lastDate = new Date(lastPlay)
+    const now = new Date()
+    // Same hour check (same year, month, day, hour)
+    return (
+      lastDate.getFullYear() === now.getFullYear() &&
+      lastDate.getMonth() === now.getMonth() &&
+      lastDate.getDate() === now.getDate() &&
+      lastDate.getHours() === now.getHours()
+    )
+  } catch {
+    return false
+  }
+}
+
+function markPlayedThisHour(): void {
+  try {
+    localStorage.setItem('tpk_memoria_last_play', new Date().toISOString())
+  } catch {
+    // ignore
+  }
+}
+
+function getTimeUntilNextHour(): number {
+  const now = new Date()
+  const nextHour = new Date(now)
+  nextHour.setHours(nextHour.getHours() + 1, 0, 0, 0)
+  return nextHour.getTime() - now.getTime()
+}
+
 export default function MemoryGame() {
-  const [difficulty, setDifficulty] = useState<Difficulty>('medium')
+  const [difficulty, setDifficulty] = useState<Difficulty>('easy')
   const [cards, setCards] = useState<Card[]>([])
   const [flippedIds, setFlippedIds] = useState<string[]>([])
   const [moves, setMoves] = useState(0)
@@ -103,9 +139,39 @@ export default function MemoryGame() {
   const [gameComplete, setGameComplete] = useState(false)
   const [showSplash, setShowSplash] = useState(true)
   const [earnedPoints, setEarnedPoints] = useState(0)
+  const [alreadyPlayed, setAlreadyPlayed] = useState(false)
+  const [timeRemaining, setTimeRemaining] = useState(0)
   const timerRef = useRef<NodeJS.Timeout | null>(null)
+  const countdownRef = useRef<NodeJS.Timeout | null>(null)
 
   const config = DIFFICULTY_CONFIG[difficulty]
+
+  // Check if already played this hour
+  useEffect(() => {
+    const check = () => {
+      if (hasPlayedThisHour()) {
+        setAlreadyPlayed(true)
+        setTimeRemaining(getTimeUntilNextHour())
+      } else {
+        setAlreadyPlayed(false)
+      }
+    }
+    check()
+    const interval = setInterval(check, 30000)
+    return () => clearInterval(interval)
+  }, [])
+
+  // Countdown timer for already played
+  useEffect(() => {
+    if (!alreadyPlayed) return
+    const tick = () => {
+      setTimeRemaining(getTimeUntilNextHour())
+    }
+    countdownRef.current = setInterval(tick, 1000)
+    return () => {
+      if (countdownRef.current) clearInterval(countdownRef.current)
+    }
+  }, [alreadyPlayed])
 
   // Timer logic
   useEffect(() => {
@@ -117,9 +183,11 @@ export default function MemoryGame() {
     }
   }, [isPlaying, gameComplete])
 
-  // Check for game completion - handled in handleCardClick when match found
-
   const startGame = useCallback((diff?: Difficulty) => {
+    if (hasPlayedThisHour()) {
+      setAlreadyPlayed(true)
+      return
+    }
     const d = diff || difficulty
     const c = DIFFICULTY_CONFIG[d]
     setDifficulty(d)
@@ -133,6 +201,8 @@ export default function MemoryGame() {
     setGameComplete(false)
     setEarnedPoints(0)
     setShowSplash(false)
+    setAlreadyPlayed(false)
+    markPlayedThisHour()
   }, [difficulty])
 
   const handleCardClick = useCallback(
@@ -171,12 +241,11 @@ export default function MemoryGame() {
             setFlippedIds([])
             setIsLocked(false)
 
-            // Check for game completion directly here
             if (newMatchedCount === DIFFICULTY_CONFIG[difficulty].pairs) {
               setGameComplete(true)
               setIsPlaying(false)
               if (timerRef.current) clearInterval(timerRef.current)
-              const currentMoves = moves + 1 // this flip counts
+              const currentMoves = moves + 1
               const pairsCount = DIFFICULTY_CONFIG[difficulty].pairs
               const starMultiplier = currentMoves <= pairsCount * 1.5 ? 3 : currentMoves <= pairsCount * 2 ? 2 : 1
               setEarnedPoints(DIFFICULTY_CONFIG[difficulty].points * starMultiplier)
@@ -203,6 +272,13 @@ export default function MemoryGame() {
   const formatTime = (seconds: number) => {
     const m = Math.floor(seconds / 60)
     const s = seconds % 60
+    return `${m}:${s.toString().padStart(2, '0')}`
+  }
+
+  const formatCountdown = (ms: number) => {
+    const totalSec = Math.max(0, Math.floor(ms / 1000))
+    const m = Math.floor(totalSec / 60)
+    const s = totalSec % 60
     return `${m}:${s.toString().padStart(2, '0')}`
   }
 
@@ -274,6 +350,24 @@ export default function MemoryGame() {
             Encuentra los pares de escudos de la Liga BetPlay
           </p>
 
+          {/* Already played this hour */}
+          {alreadyPlayed && (
+            <div
+              className="mb-4 p-4 rounded-xl relative z-10"
+              style={{
+                background: 'rgba(239, 68, 68, 0.1)',
+                border: '1px solid rgba(239, 68, 68, 0.3)',
+              }}
+            >
+              <p className="text-sm font-bold mb-1" style={{ color: '#f87171' }}>
+                Ya jugaste esta hora
+              </p>
+              <p className="text-xs" style={{ color: 'rgba(255,255,255,0.5)' }}>
+                Podras jugar de nuevo en: <span style={{ color: '#fbbf24' }}>{formatCountdown(timeRemaining)}</span>
+              </p>
+            </div>
+          )}
+
           {/* Difficulty Selection */}
           <div className="mb-6 relative z-10">
             <p className="text-xs uppercase tracking-widest mb-3" style={{ color: 'rgba(236,72,153,0.5)' }}>
@@ -299,7 +393,7 @@ export default function MemoryGame() {
                   >
                     <span className="block text-lg mb-1">{cfg.emoji}</span>
                     <span className="block">{cfg.label}</span>
-                    <span className="block text-[0.6rem] opacity-60">{cfg.pairs} pares</span>
+                    <span className="block text-[0.6rem] opacity-60">{cfg.cols}x{cfg.rows} | {cfg.pairs} pares</span>
                     <span className="block text-[0.55rem] font-black mt-1" style={{
                       color: difficulty === key ? '#fbbf24' : 'rgba(255,255,255,0.3)',
                       textShadow: difficulty === key ? '0 0 6px rgba(251,191,36,0.4)' : 'none',
@@ -315,10 +409,15 @@ export default function MemoryGame() {
           {/* Start Button */}
           <button
             onClick={() => startGame()}
-            className="relative z-10 px-8 py-3 rounded-xl font-black uppercase tracking-wider text-lg transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer"
+            disabled={alreadyPlayed}
+            className="relative z-10 px-8 py-3 rounded-xl font-black uppercase tracking-wider text-lg transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer disabled:opacity-40 disabled:hover:scale-100"
             style={{
-              background: 'linear-gradient(135deg, #ec4899, #f97316)',
-              boxShadow: '0 0 20px rgba(236, 72, 153, 0.5), 0 0 60px rgba(249, 115, 22, 0.2)',
+              background: alreadyPlayed
+                ? 'rgba(255,255,255,0.1)'
+                : 'linear-gradient(135deg, #ec4899, #f97316)',
+              boxShadow: alreadyPlayed
+                ? 'none'
+                : '0 0 20px rgba(236, 72, 153, 0.5), 0 0 60px rgba(249, 115, 22, 0.2)',
               color: '#fff',
             }}
           >
@@ -334,6 +433,7 @@ export default function MemoryGame() {
               <p>{'\u{1F0CF}'} Voltea 2 cartas por turno</p>
               <p>{'\u26BD'} Encuentra los escudos iguales</p>
               <p>{'\u{1F3C6}'} Menos movimientos = mas puntos (x3, x2, x1)</p>
+              <p>{'\u23F0'} Una oportunidad por hora</p>
             </div>
           </div>
         </div>
@@ -450,28 +550,21 @@ export default function MemoryGame() {
           {/* Action buttons */}
           <div className="flex gap-3 justify-center">
             <button
-              onClick={() => startGame()}
-              className="px-6 py-2.5 rounded-xl font-bold uppercase tracking-wider text-sm transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer"
-              style={{
-                background: 'linear-gradient(135deg, #ec4899, #f97316)',
-                boxShadow: '0 0 20px rgba(236, 72, 153, 0.5)',
-                color: '#fff',
-              }}
-            >
-              {'\u{1F504}'} Jugar de nuevo
-            </button>
-            <button
               onClick={() => setShowSplash(true)}
               className="px-6 py-2.5 rounded-xl font-bold uppercase tracking-wider text-sm transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer"
               style={{
-                background: 'rgba(255,255,255,0.05)',
-                border: '1px solid rgba(255,255,255,0.15)',
-                color: 'rgba(255,255,255,0.6)',
+                background: 'rgba(236, 72, 153, 0.12)',
+                border: '1px solid rgba(236, 72, 153, 0.3)',
+                color: '#ec4899',
               }}
             >
               {'\u{1F3E0}'} Menu
             </button>
           </div>
+
+          <p className="text-xs mt-4" style={{ color: 'rgba(255,255,255,0.3)' }}>
+            Podras jugar de nuevo la proxima hora
+          </p>
         </div>
 
         <style jsx>{`
@@ -504,7 +597,7 @@ export default function MemoryGame() {
         }}
       >
         {/* Header */}
-        <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
           <div className="flex items-center gap-2">
             <span className="text-xl">{'\u{1F9E0}'}</span>
             <h3
@@ -559,12 +652,12 @@ export default function MemoryGame() {
           />
         </div>
 
-        {/* Card Grid - organized in proper rows and columns */}
+        {/* Card Grid - FIXED: proper grid with good card sizes */}
         <div
           className="grid gap-2 md:gap-3 mx-auto"
           style={{
             gridTemplateColumns: `repeat(${config.cols}, 1fr)`,
-            maxWidth: config.cols * 90 + 'px',
+            maxWidth: config.cols <= 3 ? '300px' : config.cols <= 4 ? '420px' : '500px',
           }}
         >
           {cards.map((card) => (
@@ -589,17 +682,6 @@ export default function MemoryGame() {
           >
             {'\u2190'} Salir
           </button>
-          <button
-            onClick={() => startGame()}
-            className="px-4 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all duration-300 hover:scale-105 cursor-pointer"
-            style={{
-              background: 'rgba(236, 72, 153, 0.12)',
-              border: '1px solid rgba(236, 72, 153, 0.3)',
-              color: '#ec4899',
-            }}
-          >
-            {'\u{1F504}'} Reiniciar
-          </button>
         </div>
       </div>
     </div>
@@ -608,6 +690,7 @@ export default function MemoryGame() {
 
 // ============================================
 // MEMORY CARD COMPONENT - Solo escudos luminosos
+// FIXED: Removed overflow:hidden that was clipping 3D transforms
 // ============================================
 function MemoryCard({ card, onClick }: { card: Card; onClick: () => void }) {
   const [isAnimating, setIsAnimating] = useState(false)
@@ -624,7 +707,7 @@ function MemoryCard({ card, onClick }: { card: Card; onClick: () => void }) {
   return (
     <div
       className="relative cursor-pointer select-none"
-      style={{ perspective: '800px' }}
+      style={{ perspective: '1000px' }}
       onClick={handleClick}
     >
       <div
@@ -632,31 +715,33 @@ function MemoryCard({ card, onClick }: { card: Card; onClick: () => void }) {
         style={{
           transformStyle: 'preserve-3d',
           transform: isRevealed ? 'rotateY(180deg)' : 'rotateY(0)',
-          animation: isAnimating && !isRevealed ? 'mem-card-shake 0.3s ease-out' : 'none',
         }}
       >
         {/* Front - Hidden card (neon card back) */}
         <div
-          className="aspect-square rounded-xl flex items-center justify-center overflow-hidden"
+          className="rounded-xl flex items-center justify-center"
           style={{
             backfaceVisibility: 'hidden',
+            WebkitBackfaceVisibility: 'hidden',
             position: 'absolute',
             inset: 0,
             background: '#000',
             border: '2px solid rgba(236, 72, 153, 0.4)',
             boxShadow: '0 0 12px rgba(236, 72, 153, 0.2), inset 0 0 8px rgba(236, 72, 153, 0.05)',
+            aspectRatio: '1',
           }}
         >
           {/* Neon border glow effect */}
           <div className="absolute inset-0 rounded-xl" style={{
             background: 'repeating-linear-gradient(45deg, transparent, transparent 4px, rgba(236, 72, 153, 0.06) 4px, rgba(236, 72, 153, 0.06) 8px)',
           }} />
-          <div className="absolute inset-1.5 rounded-lg" style={{
+          <div className="absolute rounded-lg" style={{
+            inset: '6px',
             border: '1px solid rgba(236, 72, 153, 0.15)',
           }} />
           {/* Center icon */}
           <span
-            className="text-xl md:text-2xl relative z-10"
+            className="text-2xl md:text-3xl relative z-10"
             style={{
               filter: 'drop-shadow(0 0 8px rgba(236, 72, 153, 0.7))',
               animation: 'mem-glow 2s ease-in-out infinite',
@@ -668,9 +753,10 @@ function MemoryCard({ card, onClick }: { card: Card; onClick: () => void }) {
 
         {/* Back - Team shield ONLY on black background */}
         <div
-          className="aspect-square rounded-xl flex items-center justify-center overflow-hidden"
+          className="rounded-xl flex items-center justify-center"
           style={{
             backfaceVisibility: 'hidden',
+            WebkitBackfaceVisibility: 'hidden',
             transform: 'rotateY(180deg)',
             position: 'absolute',
             inset: 0,
@@ -679,7 +765,7 @@ function MemoryCard({ card, onClick }: { card: Card; onClick: () => void }) {
             boxShadow: card.isMatched
               ? '0 0 20px rgba(34, 197, 94, 0.4), 0 0 40px rgba(34, 197, 94, 0.15), inset 0 0 10px rgba(34, 197, 94, 0.05)'
               : '0 0 15px rgba(249, 115, 22, 0.25), inset 0 0 8px rgba(249, 115, 22, 0.03)',
-            animation: card.isMatched ? 'mem-match-pulse 0.5s ease-out' : 'none',
+            aspectRatio: '1',
             transition: 'border-color 0.3s, box-shadow 0.3s',
           }}
         >
@@ -687,7 +773,7 @@ function MemoryCard({ card, onClick }: { card: Card; onClick: () => void }) {
           <img
             src={getTeamImagePath(card.teamId)}
             alt=""
-            className="w-[85%] h-[85%] object-contain"
+            className="w-[80%] h-[80%] object-contain"
             style={{
               filter: card.isMatched
                 ? 'drop-shadow(0 0 8px rgba(34,197,94,0.6)) brightness(1.1)'
@@ -725,21 +811,13 @@ function MemoryCard({ card, onClick }: { card: Card; onClick: () => void }) {
         </div>
       </div>
 
+      {/* Spacer to give the card height (since children are absolute) */}
+      <div style={{ aspectRatio: '1' }} />
+
       <style jsx>{`
-        @keyframes mem-card-shake {
-          0%, 100% { transform: rotateY(0) scale(1); }
-          25% { transform: rotateY(0) scale(1.05); }
-          50% { transform: rotateY(0) scale(0.98); }
-          75% { transform: rotateY(0) scale(1.02); }
-        }
         @keyframes mem-glow {
           0%, 100% { opacity: 0.7; }
           50% { opacity: 1; }
-        }
-        @keyframes mem-match-pulse {
-          0% { transform: scale(1); }
-          50% { transform: scale(1.08); }
-          100% { transform: scale(1); }
         }
         @keyframes mem-match-glow {
           0% { opacity: 0.3; }
