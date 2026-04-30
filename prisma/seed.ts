@@ -91,6 +91,36 @@ async function main() {
 
   console.log('✅ Created game:', memoriaFutbolera.name)
 
+  // Create GANADOR TPK banner
+  const ganadorBanner = await prisma.tpkBanner.upsert({
+    where: { type: 'ganador' },
+    update: {},
+    create: {
+      type: 'ganador',
+      title: 'GANADOR TPK',
+      subtitle: 'Campeón de la Semana',
+      imageUrl: null,
+      linkUrl: null,
+      isActive: true,
+    },
+  })
+  console.log('✅ Created banner:', ganadorBanner.title)
+
+  // Create PREMIO TPK banner
+  const premioBanner = await prisma.tpkBanner.upsert({
+    where: { type: 'premio' },
+    update: {},
+    create: {
+      type: 'premio',
+      title: 'PREMIO TPK',
+      subtitle: 'Zapatillas Personalizadas',
+      imageUrl: null,
+      linkUrl: null,
+      isActive: true,
+    },
+  })
+  console.log('✅ Created banner:', premioBanner.title)
+
   // Verify games
   const allGames = await prisma.game.findMany({
     include: { _count: { select: { participants: true } } },

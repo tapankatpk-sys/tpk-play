@@ -138,3 +138,19 @@ model PopupConfig {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
+
+// ============================================
+// BANNERS TPK - GANADOR TPK y PREMIO TPK
+// ============================================
+
+model TpkBanner {
+  id          String   @id @default(cuid())
+  type        String   @unique // "ganador" or "premio"
+  title       String   // e.g. "GANADOR TPK", "PREMIO TPK"
+  subtitle    String?  // e.g. "Campeón Semanal", "Zapatillas Nike personalizadas"
+  imageUrl    String?  // URL de la foto del ganador o premio
+  linkUrl     String?  // Enlace opcional
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}

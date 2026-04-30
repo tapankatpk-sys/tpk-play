@@ -44,7 +44,19 @@ interface PopupConfig {
   updatedAt: string
 }
 
-type Tab = 'games' | 'participants' | 'stats' | 'popup'
+interface TpkBannerData {
+  id: string
+  type: string
+  title: string
+  subtitle: string | null
+  imageUrl: string | null
+  linkUrl: string | null
+  isActive: boolean
+  createdAt: string
+  updatedAt: string
+}
+
+type Tab = 'games' | 'participants' | 'stats' | 'popup' | 'banners'
 
 const SESSION_KEY = 'tpk_admin_token'
 
@@ -101,6 +113,12 @@ export default function AdminPanel() {
   const [popupForm, setPopupForm] = useState({ text: 'TPK NUEVO', linkUrl: '#', imageUrl: '', isActive: true, color: '#f97316', size: 120, position: 'bottom-left' })
   const [editingPopup, setEditingPopup] = useState<PopupConfig | null>(null)
   const [savingPopup, setSavingPopup] = useState(false)
+
+  // Banners state
+  const [banners, setBanners] = useState<TpkBannerData[]>([])
+  const [bannerForm, setBannerForm] = useState({ type: 'ganador', title: 'GANADOR TPK', subtitle: '', imageUrl: '', linkUrl: '', isActive: true })
+  const [editingBanner, setEditingBanner] = useState<TpkBannerData | null>(null)
+  const [savingBanner, setSavingBanner] = useState(false)
 
   // Auth state
   const [isAuthenticated, setIsAuthenticated] = useState(false)
@@ -241,16 +259,32 @@ export default function AdminPanel() {
     }
   }, [])
 
+  const fetchBanners = useCallback(async () => {
+    try {
+      const res = await fetch('/api/banners')
+      if (!res.ok) throw new Error(`Error ${res.status}`)
+      const data = await res.json()
+      if (Array.isArray(data)) {
+        setBanners(data)
+      } else {
+        setBanners([])
+      }
+    } catch (err) {
+      console.error('Error fetching banners:', err)
+      setBanners([])
+    }
+  }, [])
+
   useEffect(() => {
     if (isAuthenticated && showPanel) {
       const load = async () => {
         setLoading(true)
-        await Promise.all([fetchGames(), fetchParticipants(), fetchPopups()])
+        await Promise.all([fetchGames(), fetchParticipants(), fetchPopups(), fetchBanners()])
         setLoading(false)
       }
       load()
     }
-  }, [isAuthenticated, showPanel, fetchGames, fetchParticipants, fetchPopups])
+  }, [isAuthenticated, showPanel, fetchGames, fetchParticipants, fetchPopups, fetchBanners])
 
   // Game CRUD
   const handleOpenAddGame = () => {
@@ -457,6 +491,62 @@ export default function AdminPanel() {
       fetchPopups()
     } catch (err) {
       console.error('Error toggling popup:', err)
+    }
+  }
+
+  // Banner CRUD
+  const handleSaveBanner = async () => {
+    if (!bannerForm.title.trim()) return
+    setSavingBanner(true)
+    try {
+      const payload = {
+        ...bannerForm,
+        subtitle: bannerForm.subtitle || null,
+        imageUrl: bannerForm.imageUrl || null,
+        linkUrl: bannerForm.linkUrl || null,
+      }
+      if (editingBanner) {
+        await fetch('/api/banners', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: editingBanner.id, ...payload }),
+        })
+      } else {
+        await fetch('/api/banners', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        })
+      }
+      setEditingBanner(null)
+      setBannerForm({ type: 'ganador', title: 'GANADOR TPK', subtitle: '', imageUrl: '', linkUrl: '', isActive: true })
+      fetchBanners()
+    } catch (err) {
+      console.error('Error saving banner:', err)
+    } finally {
+      setSavingBanner(false)
+    }
+  }
+
+  const handleDeleteBanner = async (id: string) => {
+    try {
+      await fetch(`/api/banners?id=${id}`, { method: 'DELETE' })
+      fetchBanners()
+    } catch (err) {
+      console.error('Error deleting banner:', err)
+    }
+  }
+
+  const handleToggleBanner = async (banner: TpkBannerData) => {
+    try {
+      await fetch('/api/banners', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: banner.id, isActive: !banner.isActive }),
+      })
+      fetchBanners()
+    } catch (err) {
+      console.error('Error toggling banner:', err)
     }
   }
 
@@ -672,6 +762,7 @@ export default function AdminPanel() {
               { key: 'participants' as Tab, label: 'Participantes', count: participants.length, color: '#f97316' },
               { key: 'stats' as Tab, label: 'Estadísticas', count: null, color: '#22c55e' },
               { key: 'popup' as Tab, label: 'Popup', count: popups.length, color: '#eab308' },
+              { key: 'banners' as Tab, label: 'Banners', count: banners.length, color: '#00ffff' },
             ].map((tab) => (
               <button
                 key={tab.key}
@@ -1332,8 +1423,304 @@ export default function AdminPanel() {
                   ))
                 )}
               </div>
+            ) : activeTab === 'banners' ? (
+              /* ========== BANNERS TAB ========== */
+              <div className="space-y-3">
+                {/* Info banner */}
+                <div
+                  className="p-3 rounded-xl flex items-center gap-3"
+                  style={{
+                    background: 'rgba(0, 255, 255, 0.05)',
+                    border: '1px solid rgba(0, 255, 255, 0.2)',
+                  }}
+                >
+                  <span style={{ color: '#00ffff', fontSize: '1.2rem' }}>💡</span>
+                  <span className="text-xs" style={{ color: 'rgba(0,255,255,0.7)' }}>
+                    Crea los banners <b style={{ color: '#00ffff' }}>GANADOR TPK</b> y <b style={{ color: '#ff00ff' }}>PREMIO TPK</b> para mostrar en la página principal. Sube la foto del ganador o el premio.
+                  </span>
+                </div>
+
+                {/* Add banner button */}
+                <button
+                  onClick={() => {
+                    setEditingBanner(null)
+                    setBannerForm({ type: 'ganador', title: 'GANADOR TPK', subtitle: '', imageUrl: '', linkUrl: '', isActive: true })
+                  }}
+                  className="w-full py-3 rounded-xl text-sm font-bold uppercase tracking-wider cursor-pointer transition-all"
+                  style={{
+                    border: '1px dashed rgba(0, 255, 255, 0.4)',
+                    color: '#00ffff',
+                    background: 'rgba(0, 255, 255, 0.05)',
+                  }}
+                >
+                  + Agregar Banner
+                </button>
+
+                {/* Banner Form */}
+                {editingBanner && (
+                  <div
+                    className="p-4 rounded-xl space-y-3"
+                    style={{
+                      background: `rgba(${editingBanner.type === 'ganador' ? '0,255,255' : '255,0,255'}, 0.05)`,
+                      border: `1px solid rgba(${editingBanner.type === 'ganador' ? '0,255,255' : '255,0,255'}, 0.2)`,
+                    }}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-bold" style={{ color: editingBanner.type === 'ganador' ? '#00ffff' : '#ff00ff' }}>
+                        {editingBanner.type === 'ganador' ? '🏆 Editar GANADOR TPK' : '🎁 Editar PREMIO TPK'}
+                      </span>
+                      <button
+                        onClick={() => setEditingBanner(null)}
+                        className="text-xs cursor-pointer"
+                        style={{ color: 'rgba(255,255,255,0.4)' }}
+                      >
+                        Cancelar
+                      </button>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      {/* Type */}
+                      <div>
+                        <label className="block text-xs font-bold uppercase tracking-wider mb-1" style={{ color: '#00ffff' }}>Tipo de Banner</label>
+                        <select
+                          value={bannerForm.type}
+                          onChange={(e) => {
+                            const t = e.target.value
+                            setBannerForm({
+                              ...bannerForm,
+                              type: t,
+                              title: t === 'ganador' ? 'GANADOR TPK' : 'PREMIO TPK',
+                            })
+                          }}
+                          className="w-full px-3 py-2 rounded-lg text-sm text-white outline-none"
+                          style={{ background: 'rgba(0,0,0,0.5)', border: '1px solid rgba(0,255,255,0.3)' }}
+                        >
+                          <option value="ganador">🏆 GANADOR TPK</option>
+                          <option value="premio">🎁 PREMIO TPK</option>
+                        </select>
+                      </div>
+                      {/* Title */}
+                      <div>
+                        <label className="block text-xs font-bold uppercase tracking-wider mb-1" style={{ color: '#00ffff' }}>Título</label>
+                        <input
+                          type="text"
+                          value={bannerForm.title}
+                          onChange={(e) => setBannerForm({ ...bannerForm, title: e.target.value })}
+                          className="w-full px-3 py-2 rounded-lg text-sm text-white outline-none"
+                          style={{ background: 'rgba(0,0,0,0.5)', border: '1px solid rgba(0,255,255,0.3)' }}
+                          placeholder="GANADOR TPK"
+                        />
+                      </div>
+                      {/* Subtitle */}
+                      <div>
+                        <label className="block text-xs font-bold uppercase tracking-wider mb-1" style={{ color: '#00ffff' }}>Subtítulo</label>
+                        <input
+                          type="text"
+                          value={bannerForm.subtitle}
+                          onChange={(e) => setBannerForm({ ...bannerForm, subtitle: e.target.value })}
+                          className="w-full px-3 py-2 rounded-lg text-sm text-white outline-none"
+                          style={{ background: 'rgba(0,0,0,0.5)', border: '1px solid rgba(0,255,255,0.3)' }}
+                          placeholder="Campeón Semanal"
+                        />
+                      </div>
+                      {/* Image URL */}
+                      <div>
+                        <label className="block text-xs font-bold uppercase tracking-wider mb-1" style={{ color: '#00ffff' }}>URL de Imagen (foto del ganador o premio)</label>
+                        <input
+                          type="url"
+                          value={bannerForm.imageUrl}
+                          onChange={(e) => setBannerForm({ ...bannerForm, imageUrl: e.target.value })}
+                          className="w-full px-3 py-2 rounded-lg text-sm text-white outline-none"
+                          style={{ background: 'rgba(0,0,0,0.5)', border: '1px solid rgba(0,255,255,0.3)' }}
+                          placeholder="https://ejemplo.com/foto.jpg"
+                        />
+                        {bannerForm.imageUrl && (
+                          <div className="mt-2 flex items-center gap-2">
+                            <img
+                              src={bannerForm.imageUrl}
+                              alt="Preview"
+                              className="w-10 h-10 rounded-lg object-cover"
+                              style={{ border: `2px solid ${bannerForm.type === 'ganador' ? '#00ffff' : '#ff00ff'}`, boxShadow: `0 0 8px ${bannerForm.type === 'ganador' ? 'rgba(0,255,255,0.4)' : 'rgba(255,0,255,0.4)'}` }}
+                              onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
+                            />
+                            <span className="text-[0.6rem]" style={{ color: 'rgba(255,255,255,0.3)' }}>Vista previa</span>
+                          </div>
+                        )}
+                      </div>
+                      {/* Link URL */}
+                      <div>
+                        <label className="block text-xs font-bold uppercase tracking-wider mb-1" style={{ color: '#00ffff' }}>Enlace (opcional)</label>
+                        <input
+                          type="url"
+                          value={bannerForm.linkUrl}
+                          onChange={(e) => setBannerForm({ ...bannerForm, linkUrl: e.target.value })}
+                          className="w-full px-3 py-2 rounded-lg text-sm text-white outline-none"
+                          style={{ background: 'rgba(0,0,0,0.5)', border: '1px solid rgba(0,255,255,0.3)' }}
+                          placeholder="https://instagram.com/ganador"
+                        />
+                      </div>
+                      {/* Active toggle */}
+                      <div className="flex items-center gap-3">
+                        <button
+                          onClick={() => setBannerForm({ ...bannerForm, isActive: !bannerForm.isActive })}
+                          className="px-3 py-1.5 rounded-lg text-xs font-bold cursor-pointer"
+                          style={{
+                            background: bannerForm.isActive ? 'rgba(34,197,94,0.15)' : 'rgba(239,68,68,0.15)',
+                            color: bannerForm.isActive ? '#4ade80' : '#ef4444',
+                            border: `1px solid ${bannerForm.isActive ? 'rgba(34,197,94,0.3)' : 'rgba(239,68,68,0.3)'}`,
+                          }}
+                        >
+                          {bannerForm.isActive ? '● Activo' : '○ Inactivo'}
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Save button */}
+                    <div className="flex gap-2 pt-2">
+                      <button
+                        onClick={handleSaveBanner}
+                        disabled={savingBanner || !bannerForm.title.trim()}
+                        className="flex-1 py-2 rounded-lg text-sm font-bold cursor-pointer transition-all disabled:opacity-50"
+                        style={{
+                          background: `linear-gradient(135deg, ${bannerForm.type === 'ganador' ? '#00ffff, #0088ff' : '#ff00ff, #ff4488'})`,
+                          color: '#000',
+                          boxShadow: `0 0 10px ${bannerForm.type === 'ganador' ? 'rgba(0,255,255,0.3)' : 'rgba(255,0,255,0.3)'}`,
+                        }}
+                      >
+                        {savingBanner ? 'Guardando...' : 'Guardar Banner'}
+                      </button>
+                      <button
+                        onClick={() => setEditingBanner(null)}
+                        className="px-4 py-2 rounded-lg text-sm cursor-pointer"
+                        style={{ background: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.6)' }}
+                      >
+                        Cancelar
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Banner list */}
+                {banners.length === 0 ? (
+                  <div className="text-center py-8" style={{ color: 'rgba(255,255,255,0.3)' }}>
+                    No hay banners creados. Agrega el GANADOR TPK y el PREMIO TPK.
+                  </div>
+                ) : (
+                  banners.map((banner) => {
+                    const isGanador = banner.type === 'ganador'
+                    const color = isGanador ? '#00ffff' : '#ff00ff'
+                    const glowBg = isGanador ? 'rgba(0,255,255,' : 'rgba(255,0,255,'
+                    return (
+                      <div
+                        key={banner.id}
+                        className="rounded-xl transition-all"
+                        style={{
+                          background: 'rgba(255,255,255,0.03)',
+                          border: `1px solid ${banner.isActive ? `${glowBg}0.3)` : 'rgba(255,255,255,0.08)'}`,
+                          boxShadow: banner.isActive ? `0 0 10px ${glowBg}0.08)` : 'none',
+                        }}
+                      >
+                        <div className="p-4 flex items-center gap-3">
+                          {/* Image preview */}
+                          <div
+                            className="w-14 h-14 rounded-lg overflow-hidden flex-shrink-0 flex items-center justify-center"
+                            style={{
+                              border: `2px solid ${color}50`,
+                              background: banner.imageUrl ? 'transparent' : `${glowBg}0.1)`,
+                            }}
+                          >
+                            {banner.imageUrl ? (
+                              <img
+                                src={banner.imageUrl}
+                                alt={banner.title}
+                                className="w-full h-full object-cover"
+                                onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
+                              />
+                            ) : (
+                              <span className="text-xl">{isGanador ? '🏆' : '🎁'}</span>
+                            )}
+                          </div>
+
+                          {/* Info */}
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-1 flex-wrap">
+                              <span
+                                className="px-2 py-0.5 rounded text-xs font-bold"
+                                style={{ background: `${glowBg}0.15)`, color, border: `1px solid ${glowBg}0.3)` }}
+                              >
+                                {isGanador ? '🏆 GANADOR' : '🎁 PREMIO'}
+                              </span>
+                              <span
+                                className="px-2 py-0.5 rounded text-xs font-bold"
+                                style={{
+                                  background: banner.isActive ? 'rgba(34,197,94,0.15)' : 'rgba(239,68,68,0.15)',
+                                  color: banner.isActive ? '#4ade80' : '#ef4444',
+                                  border: `1px solid ${banner.isActive ? 'rgba(34,197,94,0.3)' : 'rgba(239,68,68,0.3)'}`,
+                                }}
+                              >
+                                {banner.isActive ? '● Activo' : '○ Inactivo'}
+                              </span>
+                            </div>
+                            <div className="font-bold text-sm" style={{ color: banner.isActive ? color : 'rgba(255,255,255,0.4)' }}>
+                              {banner.title}
+                            </div>
+                            {banner.subtitle && (
+                              <div className="text-xs mt-0.5" style={{ color: 'rgba(255,255,255,0.4)' }}>{banner.subtitle}</div>
+                            )}
+                          </div>
+
+                          {/* Actions */}
+                          <div className="flex items-center gap-1.5">
+                            <button
+                              onClick={() => handleToggleBanner(banner)}
+                              className="w-7 h-7 rounded-lg flex items-center justify-center cursor-pointer"
+                              style={{
+                                background: banner.isActive ? 'rgba(34,197,94,0.1)' : 'rgba(239,68,68,0.1)',
+                                color: banner.isActive ? '#4ade80' : '#ef4444',
+                                border: `1px solid ${banner.isActive ? 'rgba(34,197,94,0.2)' : 'rgba(239,68,68,0.2)'}`,
+                              }}
+                              title={banner.isActive ? 'Desactivar' : 'Activar'}
+                            >
+                              {banner.isActive ? (
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18.36 6.64a9 9 0 1 1-12.73 0"/><line x1="12" y1="2" x2="12" y2="12"/></svg>
+                              ) : (
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+                              )}
+                            </button>
+                            <button
+                              onClick={() => {
+                                setEditingBanner(banner)
+                                setBannerForm({
+                                  type: banner.type,
+                                  title: banner.title,
+                                  subtitle: banner.subtitle || '',
+                                  imageUrl: banner.imageUrl || '',
+                                  linkUrl: banner.linkUrl || '',
+                                  isActive: banner.isActive,
+                                })
+                              }}
+                              className="w-7 h-7 rounded-lg flex items-center justify-center cursor-pointer"
+                              style={{ background: `${glowBg}0.1)`, color, border: `1px solid ${glowBg}0.2)` }}
+                              title="Editar"
+                            >
+                              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                            </button>
+                            <button
+                              onClick={() => handleDeleteBanner(banner.id)}
+                              className="w-7 h-7 rounded-lg flex items-center justify-center cursor-pointer"
+                              style={{ background: 'rgba(239,68,68,0.1)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.2)' }}
+                              title="Eliminar"
+                            >
+                              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    )
+                  })
+                )}
+              </div>
             ) : (
-              /* ========== STATS TAB ========== */
               <div className="space-y-4">
                 {/* Stats cards */}
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">

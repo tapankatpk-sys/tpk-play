@@ -1,4 +1,5 @@
 import HeroSection from '@/components/hero/HeroSection'
+import TPKBanners from '@/components/banners/TPKBanners'
 import RegistrationSection from '@/components/registration/RegistrationSection'
 import TriviaGame from '@/components/trivia/TriviaGame'
 import LightningTriviaGame from '@/components/lightning/LightningTriviaGame'
@@ -10,6 +11,9 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-black">
       <HeroSection />
+      
+      {/* TPK Banners - Ganador & Premio */}
+      <TPKBanners />
       
       {/* Games Section */}
       <section className="relative py-12">
