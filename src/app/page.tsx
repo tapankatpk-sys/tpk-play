@@ -88,7 +88,7 @@ export default function Home() {
           }} />
         </div>
 
-        {/* Memoria Futbolera */}
+        {/* Memoria Futbolera  */}
         <div className="relative z-10">
           <MemoryGame />
         </div>
