@@ -709,103 +709,173 @@ function MemoryCard({ card, onClick }: { card: Card; onClick: () => void }) {
 
   return (
     <div
-      className="relative cursor-pointer select-none"
-      style={{ aspectRatio: '1', perspective: '1000px' }}
+      className="cursor-pointer select-none"
+      style={{
+        width: '100%',
+        paddingBottom: '100%', // 1:1 aspect ratio via padding trick (most compatible)
+        position: 'relative',
+      }}
       onClick={handleClick}
     >
-      {/* Flip container fills the parent entirely */}
+      {/* Perspective wrapper */}
       <div
-        className="absolute inset-0 transition-transform duration-500"
         style={{
-          transformStyle: 'preserve-3d',
-          transform: isRevealed ? 'rotateY(180deg)' : 'rotateY(0)',
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          perspective: '1000px',
         }}
       >
-        {/* Front - Hidden card (neon card back) */}
+        {/* Flip container */}
         <div
-          className="absolute inset-0 rounded-xl flex items-center justify-center"
           style={{
-            backfaceVisibility: 'hidden',
-            WebkitBackfaceVisibility: 'hidden',
-            background: '#000',
-            border: '2px solid rgba(236, 72, 153, 0.4)',
-            boxShadow: '0 0 12px rgba(236, 72, 153, 0.2), inset 0 0 8px rgba(236, 72, 153, 0.05)',
+            width: '100%',
+            height: '100%',
+            transition: 'transform 0.5s',
+            transformStyle: 'preserve-3d',
+            transform: isRevealed ? 'rotateY(180deg)' : 'rotateY(0)',
+            position: 'relative',
           }}
         >
-          {/* Neon border glow effect */}
-          <div className="absolute inset-0 rounded-xl pointer-events-none" style={{
-            background: 'repeating-linear-gradient(45deg, transparent, transparent 4px, rgba(236, 72, 153, 0.06) 4px, rgba(236, 72, 153, 0.06) 8px)',
-          }} />
-          <div className="absolute rounded-lg pointer-events-none" style={{
-            inset: '6px',
-            border: '1px solid rgba(236, 72, 153, 0.15)',
-          }} />
-          {/* Center icon */}
-          <span
-            className="text-2xl md:text-3xl relative z-10"
+          {/* Front - Hidden card (neon card back) - visible when NOT revealed */}
+          <div
             style={{
-              filter: 'drop-shadow(0 0 8px rgba(236, 72, 153, 0.7))',
-              animation: 'mem-glow 2s ease-in-out infinite',
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backfaceVisibility: 'hidden',
+              WebkitBackfaceVisibility: 'hidden',
+              background: '#000',
+              border: '2px solid rgba(236, 72, 153, 0.4)',
+              boxShadow: '0 0 12px rgba(236, 72, 153, 0.2), inset 0 0 8px rgba(236, 72, 153, 0.05)',
+              borderRadius: '0.75rem',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              zIndex: isRevealed ? 1 : 2,
             }}
           >
-            {'\u26BD'}
-          </span>
-        </div>
-
-        {/* Back - Team shield ONLY on black background */}
-        <div
-          className="absolute inset-0 rounded-xl flex items-center justify-center"
-          style={{
-            backfaceVisibility: 'hidden',
-            WebkitBackfaceVisibility: 'hidden',
-            transform: 'rotateY(180deg)',
-            background: '#000',
-            border: `2px solid ${card.isMatched ? 'rgba(34, 197, 94, 0.8)' : 'rgba(249, 115, 22, 0.6)'}`,
-            boxShadow: card.isMatched
-              ? '0 0 20px rgba(34, 197, 94, 0.4), 0 0 40px rgba(34, 197, 94, 0.15), inset 0 0 10px rgba(34, 197, 94, 0.05)'
-              : '0 0 15px rgba(249, 115, 22, 0.25), inset 0 0 8px rgba(249, 115, 22, 0.03)',
-            transition: 'border-color 0.3s, box-shadow 0.3s',
-          }}
-        >
-          {/* Team shield - large, centered, no name */}
-          <img
-            src={getTeamImagePath(card.teamId)}
-            alt=""
-            className="w-[80%] h-[80%] object-contain"
-            style={{
-              filter: card.isMatched
-                ? 'drop-shadow(0 0 8px rgba(34,197,94,0.6)) brightness(1.1)'
-                : 'drop-shadow(0 0 6px rgba(255,255,255,0.25))',
-              transition: 'filter 0.3s',
-            }}
-          />
-
-          {/* Matched glow overlay */}
-          {card.isMatched && (
-            <div
-              className="absolute inset-0 rounded-xl pointer-events-none"
+            {/* Neon border glow effect */}
+            <div style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              borderRadius: '0.75rem',
+              pointerEvents: 'none',
+              background: 'repeating-linear-gradient(45deg, transparent, transparent 4px, rgba(236, 72, 153, 0.06) 4px, rgba(236, 72, 153, 0.06) 8px)',
+            }} />
+            <div style={{
+              position: 'absolute',
+              top: '6px',
+              left: '6px',
+              right: '6px',
+              bottom: '6px',
+              borderRadius: '0.5rem',
+              pointerEvents: 'none',
+              border: '1px solid rgba(236, 72, 153, 0.15)',
+            }} />
+            {/* Center icon */}
+            <span
+              className="text-2xl md:text-3xl"
               style={{
-                background: 'radial-gradient(circle, rgba(34,197,94,0.1), transparent 70%)',
-                animation: 'mem-match-glow 1s ease-in-out infinite alternate',
-              }}
-            />
-          )}
-
-          {/* Matched indicator */}
-          {card.isMatched && (
-            <div
-              className="absolute top-1 right-1 w-5 h-5 rounded-full flex items-center justify-center pointer-events-none"
-              style={{
-                background: 'rgba(34, 197, 94, 0.8)',
-                boxShadow: '0 0 8px rgba(34, 197, 94, 0.6)',
-                animation: 'mem-check-pop 0.3s ease-out',
+                position: 'relative',
+                zIndex: 10,
+                filter: 'drop-shadow(0 0 8px rgba(236, 72, 153, 0.7))',
+                animation: 'mem-glow 2s ease-in-out infinite',
               }}
             >
-              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="20 6 9 17 4 12" />
-              </svg>
-            </div>
-          )}
+              {'\u26BD'}
+            </span>
+          </div>
+
+          {/* Back - Team shield ONLY on black background - visible when revealed */}
+          <div
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backfaceVisibility: 'hidden',
+              WebkitBackfaceVisibility: 'hidden',
+              transform: 'rotateY(180deg)',
+              background: '#000',
+              border: `2px solid ${card.isMatched ? 'rgba(34, 197, 94, 0.8)' : 'rgba(249, 115, 22, 0.6)'}`,
+              boxShadow: card.isMatched
+                ? '0 0 20px rgba(34, 197, 94, 0.4), 0 0 40px rgba(34, 197, 94, 0.15), inset 0 0 10px rgba(34, 197, 94, 0.05)'
+                : '0 0 15px rgba(249, 115, 22, 0.25), inset 0 0 8px rgba(249, 115, 22, 0.03)',
+              borderRadius: '0.75rem',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              transition: 'border-color 0.3s, box-shadow 0.3s',
+              zIndex: isRevealed ? 2 : 1,
+              pointerEvents: 'none',
+            }}
+          >
+            {/* Team shield - large, centered, no name */}
+            <img
+              src={getTeamImagePath(card.teamId)}
+              alt=""
+              style={{
+                width: '80%',
+                height: '80%',
+                objectFit: 'contain',
+                filter: card.isMatched
+                  ? 'drop-shadow(0 0 8px rgba(34,197,94,0.6)) brightness(1.1)'
+                  : 'drop-shadow(0 0 6px rgba(255,255,255,0.25))',
+                transition: 'filter 0.3s',
+              }}
+            />
+
+            {/* Matched glow overlay */}
+            {card.isMatched && (
+              <div
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  borderRadius: '0.75rem',
+                  pointerEvents: 'none',
+                  background: 'radial-gradient(circle, rgba(34,197,94,0.1), transparent 70%)',
+                  animation: 'mem-match-glow 1s ease-in-out infinite alternate',
+                }}
+              />
+            )}
+
+            {/* Matched indicator */}
+            {card.isMatched && (
+              <div
+                style={{
+                  position: 'absolute',
+                  top: '4px',
+                  right: '4px',
+                  width: '20px',
+                  height: '20px',
+                  borderRadius: '50%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  pointerEvents: 'none',
+                  background: 'rgba(34, 197, 94, 0.8)',
+                  boxShadow: '0 0 8px rgba(34, 197, 94, 0.6)',
+                  animation: 'mem-check-pop 0.3s ease-out',
+                }}
+              >
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="20 6 9 17 4 12" />
+                </svg>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 

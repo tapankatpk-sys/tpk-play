@@ -56,7 +56,7 @@ interface TpkBannerData {
   updatedAt: string
 }
 
-type Tab = 'games' | 'participants' | 'stats' | 'popup' | 'banners'
+type Tab = 'dashboard' | 'games' | 'participants' | 'stats' | 'popup' | 'banners'
 
 interface SidebarSection {
   id: string
@@ -110,7 +110,7 @@ const emptyGameForm: GameFormData = {
 }
 
 export default function AdminPanel() {
-  const [activeTab, setActiveTab] = useState<Tab>('games')
+  const [activeTab, setActiveTab] = useState<Tab>('dashboard')
   const [games, setGames] = useState<Game[]>([])
   const [participants, setParticipants] = useState<Participant[]>([])
   const [loading, setLoading] = useState(true)
@@ -119,6 +119,7 @@ export default function AdminPanel() {
   // Sidebar state
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
     contenido: true,
+    banners: true,
     usuarios: true,
     datos: true,
   })
@@ -582,6 +583,9 @@ export default function AdminPanel() {
   const activeGames = games.filter(g => g.isActive).length
   const totalGames = games.length
 
+  // Active banners count for badge
+  const activeBanners = banners.filter(b => b.isActive).length
+
   // Sidebar sections configuration
   const sidebarSections: SidebarSection[] = [
     {
@@ -591,8 +595,16 @@ export default function AdminPanel() {
       color: '#a855f7',
       items: [
         { id: 'games', label: 'Juegos', icon: '⚽', color: '#a855f7', count: games.length },
-        { id: 'banners', label: 'Banners', icon: '🖼️', color: '#00ffff', count: banners.length },
         { id: 'popup', label: 'Popup', icon: '💬', color: '#eab308', count: popups.length },
+      ],
+    },
+    {
+      id: 'banners',
+      label: 'Banners',
+      icon: '🖼️',
+      color: '#00ffff',
+      items: [
+        { id: 'banners', label: 'Gestionar Banners', icon: '🖼️', color: '#00ffff', count: banners.length },
       ],
     },
     {
@@ -862,10 +874,28 @@ export default function AdminPanel() {
               }}
             >
               <div className="p-3 space-y-1">
-                {sidebarSections.map((section) => {
+                {/* Dashboard home button - always visible at top */}
+                <button
+                  onClick={() => handleTabChange('dashboard')}
+                  className="w-full flex items-center gap-2.5 px-2.5 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider cursor-pointer transition-all mb-1"
+                  style={{
+                    color: activeTab === 'dashboard' ? '#fbbf24' : 'rgba(255,255,255,0.5)',
+                    background: activeTab === 'dashboard' ? 'rgba(251,191,36,0.12)' : 'transparent',
+                    borderLeft: activeTab === 'dashboard' ? '3px solid #fbbf24' : '3px solid transparent',
+                    boxShadow: activeTab === 'dashboard' ? '0 0 12px rgba(251,191,36,0.08)' : 'none',
+                  }}
+                >
+                  <span className="text-sm">🏠</span>
+                  <span className="flex-1 text-left">Dashboard</span>
+                </button>
+
+                {/* Visual separator */}
+                <div className="my-2 h-px" style={{ background: 'linear-gradient(to right, transparent, rgba(168,85,247,0.3), transparent)' }} />
+
+                {sidebarSections.map((section, sectionIndex) => {
                   const isExpanded = expandedSections[section.id]
                   return (
-                    <div key={section.id} className="mb-1">
+                    <div key={section.id}>
                       {/* Section header */}
                       <button
                         onClick={() => toggleSection(section.id)}
@@ -874,6 +904,20 @@ export default function AdminPanel() {
                       >
                         <span className="text-sm">{section.icon}</span>
                         <span className="flex-1 text-left">{section.label}</span>
+                        {/* Banners badge - always show count */}
+                        {section.id === 'banners' && banners.length > 0 && (
+                          <span
+                            className="px-1.5 py-0.5 rounded-full text-[0.55rem] font-black min-w-[18px] text-center"
+                            style={{
+                              background: 'rgba(0,255,255,0.2)',
+                              color: '#00ffff',
+                              border: '1px solid rgba(0,255,255,0.4)',
+                              boxShadow: '0 0 6px rgba(0,255,255,0.15)',
+                            }}
+                          >
+                            {banners.length}
+                          </span>
+                        )}
                         <svg
                           width="12"
                           height="12"
@@ -930,6 +974,11 @@ export default function AdminPanel() {
                           )
                         })}
                       </div>
+
+                      {/* Visual separator between sections */}
+                      {sectionIndex < sidebarSections.length - 1 && (
+                        <div className="my-2 h-px" style={{ background: 'linear-gradient(to right, transparent, rgba(255,255,255,0.08), transparent)' }} />
+                      )}
                     </div>
                   )
                 })}
@@ -937,14 +986,18 @@ export default function AdminPanel() {
 
               {/* Sidebar footer info */}
               <div className="mt-auto p-3 border-t" style={{ borderColor: 'rgba(168,85,247,0.1)' }}>
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-3 gap-1.5">
                   <div className="text-center p-2 rounded-lg" style={{ background: 'rgba(168,85,247,0.06)' }}>
                     <div className="text-sm font-black" style={{ color: '#d8b4fe' }}>{activeGames}/{totalGames}</div>
-                    <div className="text-[0.55rem] uppercase" style={{ color: 'rgba(255,255,255,0.3)' }}>Juegos</div>
+                    <div className="text-[0.5rem] uppercase" style={{ color: 'rgba(255,255,255,0.3)' }}>Juegos</div>
+                  </div>
+                  <div className="text-center p-2 rounded-lg" style={{ background: 'rgba(0,255,255,0.06)' }}>
+                    <div className="text-sm font-black" style={{ color: '#00ffff' }}>{activeBanners}</div>
+                    <div className="text-[0.5rem] uppercase" style={{ color: 'rgba(255,255,255,0.3)' }}>Banners</div>
                   </div>
                   <div className="text-center p-2 rounded-lg" style={{ background: 'rgba(249,115,22,0.06)' }}>
                     <div className="text-sm font-black" style={{ color: '#fdba74' }}>{totalParticipants}</div>
-                    <div className="text-[0.55rem] uppercase" style={{ color: 'rgba(255,255,255,0.3)' }}>Participantes</div>
+                    <div className="text-[0.5rem] uppercase" style={{ color: 'rgba(255,255,255,0.3)' }}>Participantes</div>
                   </div>
                 </div>
               </div>
@@ -952,9 +1005,169 @@ export default function AdminPanel() {
 
             {/* Main Content Area */}
             <div className="flex-1 overflow-y-auto p-3 md:p-4" style={{ scrollbarColor: 'rgba(168,85,247,0.3) transparent' }}>
+              {/* Breadcrumb / Section Title */}
+              {!loading && (
+                <div className="flex items-center gap-2 mb-4 pb-3" style={{ borderBottom: '1px solid rgba(168,85,247,0.1)' }}>
+                  <span className="text-sm" style={{ color: 'rgba(255,255,255,0.3)' }}>🏠</span>
+                  <span className="text-[0.6rem] uppercase tracking-wider" style={{ color: 'rgba(255,255,255,0.3)' }}>Admin</span>
+                  <span className="text-[0.6rem]" style={{ color: 'rgba(255,255,255,0.15)' }}>/</span>
+                  <span
+                    className="text-xs font-bold uppercase tracking-wider"
+                    style={{
+                      color: activeTab === 'dashboard' ? '#fbbf24'
+                        : activeTab === 'games' ? '#a855f7'
+                        : activeTab === 'banners' ? '#00ffff'
+                        : activeTab === 'popup' ? '#eab308'
+                        : activeTab === 'participants' ? '#f97316'
+                        : '#22c55e',
+                    }}
+                  >
+                    {activeTab === 'dashboard' ? 'Dashboard'
+                      : activeTab === 'games' ? 'Juegos'
+                      : activeTab === 'banners' ? 'Banners'
+                      : activeTab === 'popup' ? 'Popup'
+                      : activeTab === 'participants' ? 'Participantes'
+                      : 'Estadísticas'}
+                  </span>
+                </div>
+              )}
+
               {loading ? (
                 <div className="flex items-center justify-center py-12">
                   <div className="w-8 h-8 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: '#a855f7', borderTopColor: 'transparent' }} />
+                </div>
+              ) : activeTab === 'dashboard' ? (
+                /* ========== DASHBOARD TAB ========== */
+                <div className="space-y-4">
+                  {/* Quick Stats Grid */}
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    <div
+                      className="p-4 rounded-xl cursor-pointer transition-all hover:scale-[1.02]"
+                      style={{ background: 'rgba(168,85,247,0.08)', border: '1px solid rgba(168,85,247,0.2)' }}
+                      onClick={() => handleTabChange('games')}
+                    >
+                      <div className="text-2xl font-black" style={{ color: '#d8b4fe' }}>{activeGames}/{totalGames}</div>
+                      <div className="text-[0.6rem] uppercase tracking-wider mt-1" style={{ color: 'rgba(255,255,255,0.4)' }}>Juegos Activos</div>
+                      <div className="text-lg mt-1">⚽</div>
+                    </div>
+                    <div
+                      className="p-4 rounded-xl cursor-pointer transition-all hover:scale-[1.02]"
+                      style={{ background: 'rgba(249,115,22,0.08)', border: '1px solid rgba(249,115,22,0.2)' }}
+                      onClick={() => handleTabChange('participants')}
+                    >
+                      <div className="text-2xl font-black" style={{ color: '#fdba74' }}>{totalParticipants}</div>
+                      <div className="text-[0.6rem] uppercase tracking-wider mt-1" style={{ color: 'rgba(255,255,255,0.4)' }}>Participantes</div>
+                      <div className="text-lg mt-1">👤</div>
+                    </div>
+                    <div
+                      className="p-4 rounded-xl cursor-pointer transition-all hover:scale-[1.02]"
+                      style={{ background: 'rgba(0,255,255,0.06)', border: '1px solid rgba(0,255,255,0.2)' }}
+                      onClick={() => handleTabChange('banners')}
+                    >
+                      <div className="text-2xl font-black" style={{ color: '#00ffff' }}>{activeBanners}/{banners.length}</div>
+                      <div className="text-[0.6rem] uppercase tracking-wider mt-1" style={{ color: 'rgba(255,255,255,0.4)' }}>Banners</div>
+                      <div className="text-lg mt-1">🖼️</div>
+                    </div>
+                    <div
+                      className="p-4 rounded-xl cursor-pointer transition-all hover:scale-[1.02]"
+                      style={{ background: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.2)' }}
+                      onClick={() => handleTabChange('stats')}
+                    >
+                      <div className="text-2xl font-black" style={{ color: '#4ade80' }}>{totalPoints.toLocaleString()}</div>
+                      <div className="text-[0.6rem] uppercase tracking-wider mt-1" style={{ color: 'rgba(255,255,255,0.4)' }}>Puntos Total</div>
+                      <div className="text-lg mt-1">🏆</div>
+                    </div>
+                  </div>
+
+                  {/* Quick Actions */}
+                  <div>
+                    <h3 className="text-xs font-bold uppercase tracking-wider mb-3" style={{ color: 'rgba(255,255,255,0.4)' }}>Acciones Rápidas</h3>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                      <button
+                        onClick={() => handleTabChange('games')}
+                        className="p-3 rounded-xl text-xs font-bold text-left cursor-pointer transition-all hover:scale-[1.02]"
+                        style={{ background: 'rgba(168,85,247,0.06)', border: '1px solid rgba(168,85,247,0.15)', color: '#d8b4fe' }}
+                      >
+                        <span className="block text-lg mb-1">⚽</span>
+                        Gestionar Juegos
+                      </button>
+                      <button
+                        onClick={() => handleTabChange('banners')}
+                        className="p-3 rounded-xl text-xs font-bold text-left cursor-pointer transition-all hover:scale-[1.02]"
+                        style={{ background: 'rgba(0,255,255,0.06)', border: '1px solid rgba(0,255,255,0.15)', color: '#00ffff' }}
+                      >
+                        <span className="block text-lg mb-1">🖼️</span>
+                        Editar Banners
+                      </button>
+                      <button
+                        onClick={() => handleTabChange('popup')}
+                        className="p-3 rounded-xl text-xs font-bold text-left cursor-pointer transition-all hover:scale-[1.02]"
+                        style={{ background: 'rgba(234,179,8,0.06)', border: '1px solid rgba(234,179,8,0.15)', color: '#eab308' }}
+                      >
+                        <span className="block text-lg mb-1">💬</span>
+                        Configurar Popup
+                      </button>
+                      <button
+                        onClick={() => handleTabChange('participants')}
+                        className="p-3 rounded-xl text-xs font-bold text-left cursor-pointer transition-all hover:scale-[1.02]"
+                        style={{ background: 'rgba(249,115,22,0.06)', border: '1px solid rgba(249,115,22,0.15)', color: '#f97316' }}
+                      >
+                        <span className="block text-lg mb-1">👤</span>
+                        Ver Participantes
+                      </button>
+                      <button
+                        onClick={() => handleTabChange('stats')}
+                        className="p-3 rounded-xl text-xs font-bold text-left cursor-pointer transition-all hover:scale-[1.02]"
+                        style={{ background: 'rgba(34,197,94,0.06)', border: '1px solid rgba(34,197,94,0.15)', color: '#22c55e' }}
+                      >
+                        <span className="block text-lg mb-1">📈</span>
+                        Estadísticas
+                      </button>
+                      <button
+                        onClick={sendAllToWhatsApp}
+                        className="p-3 rounded-xl text-xs font-bold text-left cursor-pointer transition-all hover:scale-[1.02]"
+                        style={{ background: 'rgba(34,197,94,0.06)', border: '1px solid rgba(34,197,94,0.15)', color: '#4ade80' }}
+                      >
+                        <span className="block text-lg mb-1">📱</span>
+                        Enviar por WhatsApp
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Recent Games */}
+                  {games.length > 0 && (
+                    <div>
+                      <h3 className="text-xs font-bold uppercase tracking-wider mb-3" style={{ color: 'rgba(255,255,255,0.4)' }}>Juegos Recientes</h3>
+                      <div className="space-y-2">
+                        {games.sort((a, b) => a.order - b.order).slice(0, 3).map((game) => {
+                          const gameType = GAME_TYPES[game.type] || GAME_TYPES['personalizado']
+                          return (
+                            <div
+                              key={game.id}
+                              className="flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all hover:bg-white/5"
+                              style={{ background: 'rgba(255,255,255,0.02)', border: `1px solid ${game.isActive ? `${gameType.color}20` : 'rgba(255,255,255,0.05)'}` }}
+                              onClick={() => handleTabChange('games')}
+                            >
+                              <span className="text-lg">{gameType.icon}</span>
+                              <div className="flex-1 min-w-0">
+                                <div className="text-xs font-bold truncate" style={{ color: game.isActive ? 'rgba(255,255,255,0.8)' : 'rgba(255,255,255,0.4)' }}>{game.name}</div>
+                                <div className="text-[0.6rem]" style={{ color: 'rgba(255,255,255,0.3)' }}>{gameType.label}</div>
+                              </div>
+                              <div
+                                className="px-1.5 py-0.5 rounded text-[0.55rem] font-bold"
+                                style={{
+                                  background: game.isActive ? 'rgba(34,197,94,0.1)' : 'rgba(255,255,255,0.05)',
+                                  color: game.isActive ? '#4ade80' : 'rgba(255,255,255,0.3)',
+                                }}
+                              >
+                                {game.isActive ? 'Activo' : 'Inactivo'}
+                              </div>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  )}
                 </div>
               ) : activeTab === 'games' ? (
                 /* ========== GAMES TAB ========== */
