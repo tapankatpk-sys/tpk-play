@@ -71,7 +71,7 @@ interface MatchPredictionData {
   updatedAt: string
 }
 
-type Tab = 'dashboard' | 'games' | 'participants' | 'stats' | 'popup' | 'banners' | 'predictions'
+type Tab = 'dashboard' | 'games' | 'participants' | 'stats' | 'popup' | 'banners' | 'predictions' | 'loteria'
 
 interface SidebarSection {
   id: string
@@ -199,6 +199,11 @@ export default function AdminPanel() {
   const [editingPrediction, setEditingPrediction] = useState<MatchPredictionData | null>(null)
   const [showPredictionForm, setShowPredictionForm] = useState(false)
   const [savingPrediction, setSavingPrediction] = useState(false)
+
+  // Loteria state
+  const [loteriaConfig, setLoteriaConfig] = useState<{ id: string; boardSize: number; pointsLine: number; pointsDiag: number; pointsFull: number; drawSpeed: number; isActive: boolean } | null>(null)
+  const [loteriaForm, setLoteriaForm] = useState({ boardSize: 4, pointsLine: 30, pointsDiag: 50, pointsFull: 100, drawSpeed: 5, isActive: true })
+  const [savingLoteria, setSavingLoteria] = useState(false)
 
   // Auth state
   const [isAuthenticated, setIsAuthenticated] = useState(false)
@@ -371,16 +376,37 @@ export default function AdminPanel() {
     }
   }, [])
 
+  const fetchLoteriaConfig = useCallback(async () => {
+    try {
+      const res = await fetch('/api/loteria')
+      if (!res.ok) throw new Error(`Error ${res.status}`)
+      const data = await res.json()
+      if (data && !data.error) {
+        setLoteriaConfig(data)
+        setLoteriaForm({
+          boardSize: data.boardSize,
+          pointsLine: data.pointsLine,
+          pointsDiag: data.pointsDiag,
+          pointsFull: data.pointsFull,
+          drawSpeed: data.drawSpeed,
+          isActive: data.isActive,
+        })
+      }
+    } catch (err) {
+      console.error('Error fetching loteria config:', err)
+    }
+  }, [])
+
   useEffect(() => {
     if (isAuthenticated && showPanel) {
       const load = async () => {
         setLoading(true)
-        await Promise.all([fetchGames(), fetchParticipants(), fetchPopups(), fetchBanners(), fetchPredictions()])
+        await Promise.all([fetchGames(), fetchParticipants(), fetchPopups(), fetchBanners(), fetchPredictions(), fetchLoteriaConfig()])
         setLoading(false)
       }
       load()
     }
-  }, [isAuthenticated, showPanel, fetchGames, fetchParticipants, fetchPopups, fetchBanners, fetchPredictions])
+  }, [isAuthenticated, showPanel, fetchGames, fetchParticipants, fetchPopups, fetchBanners, fetchPredictions, fetchLoteriaConfig])
 
   // Game CRUD
   const handleOpenAddGame = () => {
@@ -707,6 +733,31 @@ export default function AdminPanel() {
     }
   }
 
+  // Loteria save handler
+  const handleSaveLoteria = async () => {
+    setSavingLoteria(true)
+    try {
+      if (loteriaConfig) {
+        await fetch('/api/loteria', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: loteriaConfig.id, ...loteriaForm }),
+        })
+      } else {
+        await fetch('/api/loteria', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(loteriaForm),
+        })
+      }
+      fetchLoteriaConfig()
+    } catch (err) {
+      console.error('Error saving loteria config:', err)
+    } finally {
+      setSavingLoteria(false)
+    }
+  }
+
   // Stats calculations
   const totalParticipants = participants.length
   const totalPoints = participants.reduce((sum, p) => sum + p.totalPoints, 0)
@@ -725,6 +776,7 @@ export default function AdminPanel() {
       color: '#a855f7',
       items: [
         { id: 'games', label: 'Juegos', icon: '⚽', color: '#a855f7', count: games.length },
+        { id: 'loteria', label: 'Lotería', icon: '🃏', color: '#ff00ff' },
         { id: 'predictions', label: 'Predicciones', icon: '⚽', color: '#00ff80', count: predictions.length },
         { id: 'popup', label: 'Popup', icon: '💬', color: '#eab308', count: popups.length },
       ],
@@ -1147,6 +1199,7 @@ export default function AdminPanel() {
                     style={{
                       color: activeTab === 'dashboard' ? '#fbbf24'
                         : activeTab === 'games' ? '#a855f7'
+                        : activeTab === 'loteria' ? '#ff00ff'
                         : activeTab === 'predictions' ? '#00ff80'
                         : activeTab === 'banners' ? '#00ffff'
                         : activeTab === 'popup' ? '#eab308'
@@ -1156,6 +1209,7 @@ export default function AdminPanel() {
                   >
                     {activeTab === 'dashboard' ? 'Dashboard'
                       : activeTab === 'games' ? 'Juegos'
+                      : activeTab === 'loteria' ? 'Lotería de Equipos'
                       : activeTab === 'predictions' ? 'Predicciones'
                       : activeTab === 'banners' ? 'Banners'
                       : activeTab === 'popup' ? 'Popup'
@@ -1239,6 +1293,14 @@ export default function AdminPanel() {
                       >
                         <span className="block text-lg mb-1">💬</span>
                         Configurar Popup
+                      </button>
+                      <button
+                        onClick={() => handleTabChange('loteria')}
+                        className="p-3 rounded-xl text-xs font-bold text-left cursor-pointer transition-all hover:scale-[1.02]"
+                        style={{ background: 'rgba(255,0,255,0.06)', border: '1px solid rgba(255,0,255,0.15)', color: '#ff00ff' }}
+                      >
+                        <span className="block text-lg mb-1">🃏</span>
+                        Lotería de Equipos
                       </button>
                       <button
                         onClick={() => handleTabChange('participants')}
@@ -2502,6 +2564,301 @@ export default function AdminPanel() {
                       )
                     })
                   )}
+                </div>
+              ) : activeTab === 'loteria' ? (
+                /* ========== LOTERIA TAB ========== */
+                <div className="space-y-3">
+                  <div
+                    className="p-3 rounded-xl flex items-center gap-3"
+                    style={{
+                      background: 'rgba(255, 0, 255, 0.05)',
+                      border: '1px solid rgba(255, 0, 255, 0.2)',
+                    }}
+                  >
+                    <span style={{ color: '#ff00ff', fontSize: '1.2rem' }}>🃏</span>
+                    <span className="text-xs" style={{ color: 'rgba(255,0,255,0.7)' }}>
+                      Configura la <b style={{ color: '#ff00ff' }}>Lotería de Equipos</b>: tamaño del tablero, puntos por tipo de victoria y velocidad del sorteo. Los cambios se reflejan en tiempo real.
+                    </span>
+                  </div>
+
+                  {/* Current Config Display */}
+                  {loteriaConfig && (
+                    <div
+                      className="p-4 rounded-xl"
+                      style={{
+                        background: 'rgba(255, 0, 255, 0.04)',
+                        border: '1px solid rgba(255, 0, 255, 0.15)',
+                      }}
+                    >
+                      <div className="flex items-center justify-between mb-3">
+                        <span className="text-sm font-bold" style={{ color: '#ff00ff' }}>
+                          Estado Actual
+                        </span>
+                        <button
+                          onClick={() => setLoteriaForm({
+                            boardSize: loteriaConfig.boardSize,
+                            pointsLine: loteriaConfig.pointsLine,
+                            pointsDiag: loteriaConfig.pointsDiag,
+                            pointsFull: loteriaConfig.pointsFull,
+                            drawSpeed: loteriaConfig.drawSpeed,
+                            isActive: loteriaConfig.isActive,
+                          })}
+                          className="text-[0.65rem] font-bold cursor-pointer px-2 py-1 rounded-lg"
+                          style={{ background: 'rgba(255,0,255,0.1)', color: '#ff00ff', border: '1px solid rgba(255,0,255,0.3)' }}
+                        >
+                          Restablecer
+                        </button>
+                      </div>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                        <div className="p-2 rounded-lg text-center" style={{ background: 'rgba(255,0,255,0.06)' }}>
+                          <div className="text-lg font-black" style={{ color: '#ff00ff' }}>{loteriaConfig.boardSize}x{loteriaConfig.boardSize}</div>
+                          <div className="text-[0.55rem] uppercase" style={{ color: 'rgba(255,255,255,0.4)' }}>Tablero</div>
+                        </div>
+                        <div className="p-2 rounded-lg text-center" style={{ background: 'rgba(255,200,0,0.06)' }}>
+                          <div className="text-lg font-black" style={{ color: '#ffc800' }}>+{loteriaConfig.pointsLine}</div>
+                          <div className="text-[0.55rem] uppercase" style={{ color: 'rgba(255,255,255,0.4)' }}>Línea</div>
+                        </div>
+                        <div className="p-2 rounded-lg text-center" style={{ background: 'rgba(0,255,255,0.06)' }}>
+                          <div className="text-lg font-black" style={{ color: '#00ffff' }}>+{loteriaConfig.pointsDiag}</div>
+                          <div className="text-[0.55rem] uppercase" style={{ color: 'rgba(255,255,255,0.4)' }}>Diagonal</div>
+                        </div>
+                        <div className="p-2 rounded-lg text-center" style={{ background: 'rgba(255,200,0,0.06)' }}>
+                          <div className="text-lg font-black" style={{ color: '#ffc800' }}>+{loteriaConfig.pointsFull}</div>
+                          <div className="text-[0.55rem] uppercase" style={{ color: 'rgba(255,255,255,0.4)' }}>Completa</div>
+                        </div>
+                        <div className="p-2 rounded-lg text-center" style={{ background: 'rgba(168,85,247,0.06)' }}>
+                          <div className="text-lg font-black" style={{ color: '#d8b4fe' }}>{loteriaConfig.drawSpeed}s</div>
+                          <div className="text-[0.55rem] uppercase" style={{ color: 'rgba(255,255,255,0.4)' }}>Velocidad</div>
+                        </div>
+                        <div className="p-2 rounded-lg text-center" style={{ background: loteriaConfig.isActive ? 'rgba(34,197,94,0.06)' : 'rgba(239,68,68,0.06)' }}>
+                          <div className="text-lg font-black" style={{ color: loteriaConfig.isActive ? '#4ade80' : '#ef4444' }}>
+                            {loteriaConfig.isActive ? '●' : '○'}
+                          </div>
+                          <div className="text-[0.55rem] uppercase" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                            {loteriaConfig.isActive ? 'Activo' : 'Inactivo'}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Configuration Form */}
+                  <div
+                    className="p-4 rounded-xl space-y-4"
+                    style={{
+                      background: 'rgba(255, 0, 255, 0.03)',
+                      border: '1px solid rgba(255, 0, 255, 0.15)',
+                    }}
+                  >
+                    <span className="text-sm font-bold" style={{ color: '#ff00ff' }}>
+                      Configuración del Juego
+                    </span>
+
+                    {/* Board Size */}
+                    <div>
+                      <label className="block text-xs font-bold uppercase tracking-wider mb-2" style={{ color: '#ff00ff' }}>
+                        Tamaño del Tablero
+                      </label>
+                      <div className="grid grid-cols-3 gap-2">
+                        {[
+                          { size: 3, label: '3x3', desc: '9 equipos' },
+                          { size: 4, label: '4x4', desc: '16 equipos' },
+                          { size: 5, label: '5x5', desc: '25 equipos' },
+                        ].map((option) => (
+                          <button
+                            key={option.size}
+                            onClick={() => setLoteriaForm({ ...loteriaForm, boardSize: option.size })}
+                            className="p-3 rounded-xl text-center cursor-pointer transition-all"
+                            style={{
+                              background: loteriaForm.boardSize === option.size ? 'rgba(255,0,255,0.15)' : 'rgba(0,0,0,0.3)',
+                              border: loteriaForm.boardSize === option.size ? '2px solid #ff00ff' : '2px solid rgba(255,255,255,0.08)',
+                              boxShadow: loteriaForm.boardSize === option.size ? '0 0 12px rgba(255,0,255,0.2)' : 'none',
+                            }}
+                          >
+                            <div className="text-lg font-black" style={{ color: loteriaForm.boardSize === option.size ? '#ff00ff' : 'rgba(255,255,255,0.5)' }}>
+                              {option.label}
+                            </div>
+                            <div className="text-[0.55rem]" style={{ color: 'rgba(255,255,255,0.3)' }}>{option.desc}</div>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Points Configuration */}
+                    <div>
+                      <label className="block text-xs font-bold uppercase tracking-wider mb-2" style={{ color: '#ffc800' }}>
+                        Puntos por Tipo de Victoria
+                      </label>
+                      <div className="grid grid-cols-3 gap-3">
+                        <div>
+                          <label className="block text-[0.6rem] uppercase mb-1" style={{ color: '#ff00ff' }}>Línea</label>
+                          <input
+                            type="number"
+                            min="1"
+                            value={loteriaForm.pointsLine}
+                            onChange={(e) => setLoteriaForm({ ...loteriaForm, pointsLine: parseInt(e.target.value) || 30 })}
+                            className="w-full px-3 py-2 rounded-lg text-sm text-white text-center font-bold outline-none"
+                            style={{ background: 'rgba(0,0,0,0.5)', border: '1px solid rgba(255,0,255,0.3)' }}
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-[0.6rem] uppercase mb-1" style={{ color: '#00ffff' }}>Diagonal</label>
+                          <input
+                            type="number"
+                            min="1"
+                            value={loteriaForm.pointsDiag}
+                            onChange={(e) => setLoteriaForm({ ...loteriaForm, pointsDiag: parseInt(e.target.value) || 50 })}
+                            className="w-full px-3 py-2 rounded-lg text-sm text-white text-center font-bold outline-none"
+                            style={{ background: 'rgba(0,0,0,0.5)', border: '1px solid rgba(0,255,255,0.3)' }}
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-[0.6rem] uppercase mb-1" style={{ color: '#ffc800' }}>Completa</label>
+                          <input
+                            type="number"
+                            min="1"
+                            value={loteriaForm.pointsFull}
+                            onChange={(e) => setLoteriaForm({ ...loteriaForm, pointsFull: parseInt(e.target.value) || 100 })}
+                            className="w-full px-3 py-2 rounded-lg text-sm text-white text-center font-bold outline-none"
+                            style={{ background: 'rgba(0,0,0,0.5)', border: '1px solid rgba(255,200,0,0.3)' }}
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Draw Speed */}
+                    <div>
+                      <label className="block text-xs font-bold uppercase tracking-wider mb-2" style={{ color: '#d8b4fe' }}>
+                        Velocidad del Sorteo
+                      </label>
+                      <div className="flex items-center gap-3">
+                        <input
+                          type="range"
+                          min="2"
+                          max="10"
+                          step="1"
+                          value={loteriaForm.drawSpeed}
+                          onChange={(e) => setLoteriaForm({ ...loteriaForm, drawSpeed: parseInt(e.target.value) })}
+                          className="flex-1"
+                          style={{ accentColor: '#ff00ff' }}
+                        />
+                        <span className="text-sm font-bold min-w-[40px] text-center" style={{ color: '#d8b4fe' }}>
+                          {loteriaForm.drawSpeed}s
+                        </span>
+                      </div>
+                      <div className="flex justify-between text-[0.5rem] mt-1" style={{ color: 'rgba(255,255,255,0.25)' }}>
+                        <span>Rápido</span>
+                        <span>Lento</span>
+                      </div>
+                    </div>
+
+                    {/* Active toggle */}
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <label className="block text-xs font-bold uppercase tracking-wider" style={{ color: 'rgba(255,255,255,0.6)' }}>
+                          Juego Activo
+                        </label>
+                        <p className="text-[0.55rem]" style={{ color: 'rgba(255,255,255,0.3)' }}>
+                          Desactiva para ocultar la lotería del sitio
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => setLoteriaForm({ ...loteriaForm, isActive: !loteriaForm.isActive })}
+                        className="px-4 py-2 rounded-lg text-xs font-bold cursor-pointer transition-all"
+                        style={{
+                          background: loteriaForm.isActive ? 'rgba(34,197,94,0.15)' : 'rgba(239,68,68,0.15)',
+                          color: loteriaForm.isActive ? '#4ade80' : '#ef4444',
+                          border: `1px solid ${loteriaForm.isActive ? 'rgba(34,197,94,0.3)' : 'rgba(239,68,68,0.3)'}`,
+                          boxShadow: loteriaForm.isActive ? '0 0 8px rgba(34,197,94,0.1)' : '0 0 8px rgba(239,68,68,0.1)',
+                        }}
+                      >
+                        {loteriaForm.isActive ? '● Activo' : '○ Inactivo'}
+                      </button>
+                    </div>
+
+                    {/* Save button */}
+                    <div className="flex gap-2 pt-2">
+                      <button
+                        onClick={handleSaveLoteria}
+                        disabled={savingLoteria}
+                        className="flex-1 py-3 rounded-xl text-sm font-bold uppercase tracking-wider cursor-pointer transition-all disabled:opacity-50"
+                        style={{
+                          background: 'linear-gradient(135deg, #ff00ff, #ffc800)',
+                          color: '#000',
+                          boxShadow: '0 0 12px rgba(255,0,255,0.3), 0 0 24px rgba(255,200,0,0.15)',
+                        }}
+                      >
+                        {savingLoteria ? 'Guardando...' : 'Guardar Configuración'}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Preview Section */}
+                  <div
+                    className="p-4 rounded-xl"
+                    style={{
+                      background: 'rgba(255, 0, 255, 0.03)',
+                      border: '1px solid rgba(255, 0, 255, 0.1)',
+                    }}
+                  >
+                    <div className="flex items-center justify-between mb-3">
+                      <span className="text-xs font-bold uppercase tracking-wider" style={{ color: 'rgba(255,0,255,0.6)' }}>
+                        Vista Previa del Tablero
+                      </span>
+                      <span className="text-[0.55rem]" style={{ color: 'rgba(255,255,255,0.25)' }}>
+                        {loteriaForm.boardSize * loteriaForm.boardSize} escudos
+                      </span>
+                    </div>
+                    <div
+                      className="grid gap-1.5 mx-auto"
+                      style={{
+                        gridTemplateColumns: `repeat(${loteriaForm.boardSize}, 1fr)`,
+                        maxWidth: loteriaForm.boardSize <= 3 ? '180px' : loteriaForm.boardSize <= 4 ? '240px' : '300px',
+                      }}
+                    >
+                      {Array.from({ length: loteriaForm.boardSize * loteriaForm.boardSize }).map((_, i) => {
+                        const teamIndex = i % 22
+                        const teamSlug = [
+                          'millonarios', 'atletico-nacional', 'america-de-cali', 'deportivo-cali',
+                          'atletico-junior', 'independiente-santa-fe', 'independiente-medellin', 'once-caldas',
+                          'deportes-tolima', 'deportivo-pereira', 'la-equidad', 'aguilas-doradas',
+                          'atletico-bucaramanga', 'deportivo-pasto', 'envigado', 'fortaleza-ceif',
+                          'boyaca-chico', 'jaguares-de-cordoba', 'cucuta-deportivo', 'alianza-valledupar',
+                          'llaneros', 'internacional-de-bogota'
+                        ][teamIndex]
+                        const ext = teamSlug === 'internacional-de-bogota' ? 'png' : 'svg'
+                        const isEven = i % 2 === 0
+                        return (
+                          <div
+                            key={i}
+                            className="aspect-square rounded-lg flex items-center justify-center overflow-hidden"
+                            style={{
+                              background: isEven ? 'rgba(255,0,255,0.08)' : 'rgba(0,255,255,0.06)',
+                              border: `1px solid ${isEven ? 'rgba(255,0,255,0.2)' : 'rgba(0,255,255,0.15)'}`,
+                            }}
+                          >
+                            <img
+                              src={`/images/teams/${teamSlug}.${ext}`}
+                              alt=""
+                              className="w-6 h-6 md:w-8 md:h-8 object-contain"
+                              style={{ filter: 'drop-shadow(0 0 3px rgba(255,0,255,0.4))', opacity: 0.7 }}
+                            />
+                          </div>
+                        )
+                      })}
+                    </div>
+                    <div className="mt-3 flex justify-center gap-2">
+                      <div className="px-2 py-1 rounded text-[0.55rem] font-bold" style={{ background: 'rgba(255,0,255,0.1)', color: '#ff00ff', border: '1px solid rgba(255,0,255,0.2)' }}>
+                        Línea +{loteriaForm.pointsLine}
+                      </div>
+                      <div className="px-2 py-1 rounded text-[0.55rem] font-bold" style={{ background: 'rgba(0,255,255,0.1)', color: '#00ffff', border: '1px solid rgba(0,255,255,0.2)' }}>
+                        Diagonal +{loteriaForm.pointsDiag}
+                      </div>
+                      <div className="px-2 py-1 rounded text-[0.55rem] font-bold" style={{ background: 'rgba(255,200,0,0.1)', color: '#ffc800', border: '1px solid rgba(255,200,0,0.2)' }}>
+                        Completa +{loteriaForm.pointsFull}
+                      </div>
+                    </div>
+                  </div>
                 </div>
               ) : (
                 /* ========== STATS TAB ========== */

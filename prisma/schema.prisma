@@ -173,3 +173,19 @@ model MatchPrediction {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
+
+// ============================================
+// LOTERÍA DE EQUIPOS - Configuración del juego
+// ============================================
+
+model LoteriaConfig {
+  id          String   @id @default(cuid())
+  boardSize   Int      @default(4)      // 3, 4, o 5 (grid: 3x3, 4x4, 5x5)
+  pointsLine  Int      @default(30)     // Puntos por línea horizontal/vertical
+  pointsDiag  Int      @default(50)     // Puntos por diagonal
+  pointsFull  Int      @default(100)    // Puntos por lotería completa
+  drawSpeed   Int      @default(5)      // Segundos entre cada sorteo
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}

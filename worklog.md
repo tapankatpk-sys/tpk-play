@@ -42,3 +42,46 @@ Stage Summary:
 - Visually attractive LED/neon themed game with team shields
 - Complete game loop: intro → playing → won/lost/completed
 - Admin preview available in GamePreviewModal
+
+---
+Task ID: 3
+Agent: Main Agent
+Task: Add Lotería de Equipos to admin panel with full configuration management
+
+Work Log:
+- Added LoteriaConfig model to prisma/schema.prisma (boardSize, pointsLine, pointsDiag, pointsFull, drawSpeed, isActive)
+- Created API route /api/loteria with GET (auto-creates default config), POST (create), PUT (update)
+- Added 'loteria' to Tab type in AdminPanel.tsx
+- Added loteria state variables (loteriaConfig, loteriaForm, savingLoteria)
+- Added fetchLoteriaConfig function and integrated into data loading useEffect
+- Added handleSaveLoteria handler for config CRUD
+- Added Lotería sidebar item under Contenido section (between Juegos and Predicciones)
+- Added breadcrumb mapping for loteria tab (🃏 icon, #ff00ff color)
+- Added "Lotería de Equipos" quick action button on dashboard
+- Created full Lotería admin tab with:
+  - Status info banner explaining the feature
+  - Current config display with 6 stat cards (board size, points, speed, active status)
+  - Board size selector (3x3/4x4/5x5) with visual toggle buttons
+  - Points configuration (line, diagonal, full board) with color-coded inputs
+  - Draw speed slider (2-10 seconds)
+  - Active/inactive toggle
+  - Save configuration button
+  - Live board preview with team shields grid
+  - Points summary badges
+- Updated LoteriaGame.tsx to fetch config from /api/loteria API:
+  - Dynamic board size (3x3, 4x4, 5x5) from config
+  - Dynamic win points from config
+  - Dynamic draw speed from config
+  - Disabled state when game is deactivated
+  - Loading state while fetching config
+  - Dynamic win pattern generation based on board size
+- Pushed schema to Neon DB via Vercel build (prisma db push)
+- Built and deployed to Vercel production
+- API verified working: /api/loteria returns default config
+
+Stage Summary:
+- Lotería de Equipos now fully manageable from admin panel
+- Admin can configure: board size, points, draw speed, active/inactive
+- Game component reads config dynamically from API
+- Preview section shows real-time board layout
+- All changes deployed live at tpkplay.vercel.app

@@ -72,35 +72,57 @@ function seededRandom(seed: string): () => number {
 }
 
 // ============================================
-// GAME CONFIGURATION
+// GAME CONFIG FROM API
 // ============================================
-const BOARD_SIZE = 4 // 4x4 grid = 16 teams
-const TOTAL_DRAWS = 16 // Max draws to complete
-const WIN_PATTERNS = {
-  row: [
-    [0, 1, 2, 3],
-    [4, 5, 6, 7],
-    [8, 9, 10, 11],
-    [12, 13, 14, 15],
-  ],
-  col: [
-    [0, 4, 8, 12],
-    [1, 5, 9, 13],
-    [2, 6, 10, 14],
-    [3, 7, 11, 15],
-  ],
-  diagonal: [
-    [0, 5, 10, 15],
-    [3, 6, 9, 12],
-  ],
+interface LoteriaConfigData {
+  boardSize: number
+  pointsLine: number
+  pointsDiag: number
+  pointsFull: number
+  drawSpeed: number
+  isActive: boolean
 }
 
-type GamePhase = 'intro' | 'playing' | 'won' | 'lost' | 'completed'
+const DEFAULT_CONFIG: LoteriaConfigData = {
+  boardSize: 4,
+  pointsLine: 30,
+  pointsDiag: 50,
+  pointsFull: 100,
+  drawSpeed: 5,
+  isActive: true,
+}
+
+type GamePhase = 'intro' | 'playing' | 'won' | 'lost' | 'completed' | 'disabled'
+
+// ============================================
+// WIN PATTERN GENERATOR (dynamic based on board size)
+// ============================================
+function generateWinPatterns(size: number) {
+  const patterns: { row: number[][]; col: number[][]; diagonal: number[][] } = { row: [], col: [], diagonal: [] }
+
+  // Rows
+  for (let r = 0; r < size; r++) {
+    patterns.row.push(Array.from({ length: size }, (_, c) => r * size + c))
+  }
+
+  // Columns
+  for (let c = 0; c < size; c++) {
+    patterns.col.push(Array.from({ length: size }, (_, r) => r * size + c))
+  }
+
+  // Diagonals
+  patterns.diagonal.push(Array.from({ length: size }, (_, i) => i * size + i))
+  patterns.diagonal.push(Array.from({ length: size }, (_, i) => i * size + (size - 1 - i)))
+
+  return patterns
+}
 
 // ============================================
 // MAIN COMPONENT
 // ============================================
 export default function LoteriaGame() {
+  const [config, setConfig] = useState<LoteriaConfigData>(DEFAULT_CONFIG)
+  const [configLoaded, setConfigLoaded] = useState(false)
   const [phase, setPhase] = useState<GamePhase>('intro')
   const [board, setBoard] = useState<typeof TEAMS>([])
   const [drawnTeams, setDrawnTeams] = useState<typeof TEAMS>([])
@@ -113,30 +135,60 @@ export default function LoteriaGame() {
   const [canPlay, setCanPlay] = useState(true)
   const [showDrawnTeam, setShowDrawnTeam] = useState(false)
   const [drawAnimation, setDrawAnimation] = useState(false)
-  const [missedOne, setMissedOne] = useState(false)
   const drawTimerRef = useRef<NodeJS.Timeout | null>(null)
   const autoDrawRef = useRef<NodeJS.Timeout | null>(null)
 
+  // Fetch config from API
+  useEffect(() => {
+    const fetchConfig = async () => {
+      try {
+        const res = await fetch('/api/loteria')
+        if (res.ok) {
+          const data = await res.json()
+          if (data && !data.error) {
+            setConfig({
+              boardSize: data.boardSize || 4,
+              pointsLine: data.pointsLine || 30,
+              pointsDiag: data.pointsDiag || 50,
+              pointsFull: data.pointsFull || 100,
+              drawSpeed: data.drawSpeed || 5,
+              isActive: data.isActive !== false,
+            })
+          }
+        }
+      } catch {
+        // Use defaults
+      }
+      setConfigLoaded(true)
+    }
+    fetchConfig()
+  }, [])
+
   // Check hourly play limit
   useEffect(() => {
+    if (!configLoaded) return
+    if (!config.isActive) {
+      setPhase('disabled')
+      return
+    }
     const hourKey = getHourKey()
     const played = localStorage.getItem(`tpk_loteria_played_${hourKey}`)
     if (played) {
       setCanPlay(false)
     }
-  }, [])
+  }, [configLoaded, config.isActive])
 
   // Generate board from seed
-  const generateBoard = useCallback(() => {
+  const generateBoard = useCallback((boardSize: number) => {
     const hourKey = getHourKey()
-    const rng = seededRandom(`loteria-${hourKey}`)
+    const rng = seededRandom(`loteria-${hourKey}-${boardSize}`)
     const shuffled = [...TEAMS]
     // Seeded shuffle
     for (let i = shuffled.length - 1; i > 0; i--) {
       const j = Math.floor(rng() * (i + 1))
       ;[shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]
     }
-    return shuffled.slice(0, BOARD_SIZE * BOARD_SIZE)
+    return shuffled.slice(0, boardSize * boardSize)
   }, [])
 
   // Generate draw order from seed
@@ -152,8 +204,9 @@ export default function LoteriaGame() {
   }, [])
 
   // Check win condition
-  const checkWin = useCallback((marked: Set<number>): { won: boolean; type: string } => {
-    for (const [type, patterns] of Object.entries(WIN_PATTERNS)) {
+  const checkWin = useCallback((marked: Set<number>, boardSize: number): { won: boolean; type: string } => {
+    const winPatterns = generateWinPatterns(boardSize)
+    for (const [type, patterns] of Object.entries(winPatterns)) {
       for (const pattern of patterns) {
         if (pattern.every(idx => marked.has(idx))) {
           return { won: true, type: type === 'row' ? 'LÍNEA HORIZONTAL' : type === 'col' ? 'LÍNEA VERTICAL' : 'DIAGONAL' }
@@ -161,15 +214,23 @@ export default function LoteriaGame() {
       }
     }
     // Full board
-    if (marked.size === BOARD_SIZE * BOARD_SIZE) {
+    if (marked.size === boardSize * boardSize) {
       return { won: true, type: 'LOTERÍA COMPLETA' }
     }
     return { won: false, type: '' }
   }, [])
 
+  // Get points for win type
+  const getPointsForWin = useCallback((winType: string): number => {
+    if (winType === 'LOTERÍA COMPLETA') return config.pointsFull
+    if (winType === 'DIAGONAL') return config.pointsDiag
+    return config.pointsLine // Lines (horizontal/vertical)
+  }, [config.pointsLine, config.pointsDiag, config.pointsFull])
+
   // Start game
   const startGame = () => {
-    const newBoard = generateBoard()
+    const boardSize = config.boardSize
+    const newBoard = generateBoard(boardSize)
     const newDrawOrder = generateDrawOrder()
     setBoard(newBoard)
     setDrawnTeams(newDrawOrder)
@@ -180,16 +241,15 @@ export default function LoteriaGame() {
     setWinType('')
     setPhase('playing')
     setShowDrawnTeam(false)
-    setMissedOne(false)
 
     // Start first draw after a moment
     setTimeout(() => {
-      drawNext(newDrawOrder, 0, new Set())
+      drawNext(newDrawOrder, 0, new Set(), boardSize)
     }, 1000)
   }
 
   // Draw next team
-  const drawNext = useCallback((drawOrder: typeof TEAMS, index: number, currentMarked: Set<number>) => {
+  const drawNext = useCallback((drawOrder: typeof TEAMS, index: number, currentMarked: Set<number>, boardSize: number) => {
     if (index >= drawOrder.length) {
       setPhase('completed')
       return
@@ -205,17 +265,17 @@ export default function LoteriaGame() {
       setDrawAnimation(false)
     }, 600)
 
-    // Auto advance after 4 seconds if player doesn't mark
+    // Auto advance after drawSpeed seconds if player doesn't mark
     if (autoDrawRef.current) clearTimeout(autoDrawRef.current)
     autoDrawRef.current = setTimeout(() => {
       const nextIndex = index + 1
       if (nextIndex >= drawOrder.length) {
         // Check if player has any win
         if (currentMarked.size > 0) {
-          const result = checkWin(currentMarked)
+          const result = checkWin(currentMarked, boardSize)
           if (result.won) {
             setWinType(result.type)
-            const pts = result.type === 'LOTERÍA COMPLETA' ? 100 : result.type === 'DIAGONAL' ? 50 : 30
+            const pts = getPointsForWin(result.type)
             setPoints(pts)
             setPhase('won')
             const hourKey = getHourKey()
@@ -227,10 +287,10 @@ export default function LoteriaGame() {
         const hourKey = getHourKey()
         localStorage.setItem(`tpk_loteria_played_${hourKey}`, JSON.stringify({ points: 0 }))
       } else {
-        drawNext(drawOrder, nextIndex, currentMarked)
+        drawNext(drawOrder, nextIndex, currentMarked, boardSize)
       }
-    }, 5000)
-  }, [checkWin])
+    }, config.drawSpeed * 1000)
+  }, [checkWin, getPointsForWin, config.drawSpeed])
 
   // Mark a cell
   const handleMarkCell = (cellIndex: number) => {
@@ -246,11 +306,11 @@ export default function LoteriaGame() {
     setMarkedCells(newMarked)
 
     // Check win
-    const result = checkWin(newMarked)
+    const result = checkWin(newMarked, config.boardSize)
     if (result.won) {
       if (autoDrawRef.current) clearTimeout(autoDrawRef.current)
       setWinType(result.type)
-      const pts = result.type === 'LOTERÍA COMPLETA' ? 100 : result.type === 'DIAGONAL' ? 50 : 30
+      const pts = getPointsForWin(result.type)
       setPoints(pts)
       setPhase('won')
       const hourKey = getHourKey()
@@ -265,18 +325,18 @@ export default function LoteriaGame() {
       if (nextIndex >= drawnTeams.length) {
         setPhase('completed')
       } else {
-        drawNext(drawnTeams, nextIndex, newMarked)
+        drawNext(drawnTeams, nextIndex, newMarked, config.boardSize)
       }
     }, 1200)
   }
 
   // Claim Lotería (manual claim)
   const handleClaimLoteria = () => {
-    const result = checkWin(markedCells)
+    const result = checkWin(markedCells, config.boardSize)
     if (result.won) {
       if (autoDrawRef.current) clearTimeout(autoDrawRef.current)
       setWinType(result.type)
-      const pts = result.type === 'LOTERÍA COMPLETA' ? 100 : result.type === 'DIAGONAL' ? 50 : 30
+      const pts = getPointsForWin(result.type)
       setPoints(pts)
       setPhase('won')
       const hourKey = getHourKey()
@@ -292,9 +352,29 @@ export default function LoteriaGame() {
     }
   }, [])
 
+  const boardSize = config.boardSize
+
   // ============================================
   // RENDER
   // ============================================
+  if (!configLoaded) {
+    return (
+      <div className="relative">
+        <div className="text-center mb-6">
+          <h3 className="text-lg md:text-xl font-black uppercase tracking-wider" style={{ color: '#ff00ff' }}>
+            LOTERÍA DE EQUIPOS
+          </h3>
+        </div>
+        <div className="rounded-2xl p-8" style={{ background: 'rgba(0,0,0,0.5)', border: '2px solid rgba(255,0,255,0.2)' }}>
+          <div className="flex items-center justify-center gap-2">
+            <div className="w-5 h-5 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: '#ff00ff', borderTopColor: 'transparent' }} />
+            <span className="text-xs" style={{ color: 'rgba(255,255,255,0.4)' }}>Cargando...</span>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="relative">
       {/* Section Header */}
@@ -361,6 +441,19 @@ export default function LoteriaGame() {
         </div>
 
         <div className="relative z-10 p-4 md:p-6">
+          {/* ====== DISABLED PHASE ====== */}
+          {phase === 'disabled' && (
+            <div className="text-center py-8 space-y-4">
+              <div className="text-4xl mb-2" style={{ filter: 'grayscale(1)' }}>🃏</div>
+              <h4 className="text-lg font-bold" style={{ color: 'rgba(255,255,255,0.5)' }}>
+                Lotería No Disponible
+              </h4>
+              <p className="text-xs" style={{ color: 'rgba(255,255,255,0.3)' }}>
+                El juego está desactivado temporalmente
+              </p>
+            </div>
+          )}
+
           {/* ====== INTRO PHASE ====== */}
           {phase === 'intro' && (
             <div className="text-center py-8 space-y-6">
@@ -378,7 +471,7 @@ export default function LoteriaGame() {
                   Lotería de Equipos
                 </h4>
                 <p className="text-xs mt-2" style={{ color: 'rgba(255,255,255,0.5)' }}>
-                  Se sortean escudos y tú marcas en tu tabla
+                  Se sortean escudos y tú marcas en tu tabla ({boardSize}x{boardSize})
                 </p>
               </div>
 
@@ -386,15 +479,15 @@ export default function LoteriaGame() {
               <div className="flex justify-center gap-3 flex-wrap">
                 <div className="px-3 py-2 rounded-lg" style={{ background: 'rgba(255,0,255,0.1)', border: '1px solid rgba(255,0,255,0.3)' }}>
                   <div className="text-xs font-bold" style={{ color: '#ff00ff' }}>Línea</div>
-                  <div className="text-sm font-black" style={{ color: '#ffc800' }}>+30 pts</div>
+                  <div className="text-sm font-black" style={{ color: '#ffc800' }}>+{config.pointsLine} pts</div>
                 </div>
                 <div className="px-3 py-2 rounded-lg" style={{ background: 'rgba(0,255,255,0.1)', border: '1px solid rgba(0,255,255,0.3)' }}>
                   <div className="text-xs font-bold" style={{ color: '#00ffff' }}>Diagonal</div>
-                  <div className="text-sm font-black" style={{ color: '#ffc800' }}>+50 pts</div>
+                  <div className="text-sm font-black" style={{ color: '#ffc800' }}>+{config.pointsDiag} pts</div>
                 </div>
                 <div className="px-3 py-2 rounded-lg" style={{ background: 'rgba(255,200,0,0.1)', border: '1px solid rgba(255,200,0,0.3)' }}>
                   <div className="text-xs font-bold" style={{ color: '#ffc800' }}>Completa</div>
-                  <div className="text-sm font-black" style={{ color: '#ffc800' }}>+100 pts</div>
+                  <div className="text-sm font-black" style={{ color: '#ffc800' }}>+{config.pointsFull} pts</div>
                 </div>
               </div>
 
@@ -448,7 +541,6 @@ export default function LoteriaGame() {
                           background: 'rgba(255,0,255,0.1)',
                           border: '3px solid #ff00ff',
                           boxShadow: '0 0 15px rgba(255,0,255,0.5), 0 0 30px rgba(255,0,255,0.2), inset 0 0 10px rgba(255,0,255,0.1)',
-                          animation: showDrawnTeam ? 'none' : 'none',
                         }}
                       >
                         <Image
@@ -486,8 +578,11 @@ export default function LoteriaGame() {
                 />
               </div>
 
-              {/* 4x4 Board */}
-              <div className="grid grid-cols-4 gap-2 md:gap-3 max-w-md mx-auto">
+              {/* Dynamic Board Grid */}
+              <div
+                className="grid gap-2 md:gap-3 max-w-md mx-auto"
+                style={{ gridTemplateColumns: `repeat(${boardSize}, 1fr)` }}
+              >
                 {board.map((team, idx) => {
                   const isMarked = markedCells.has(idx)
                   const isCurrentDraw = currentDraw?.slug === team.slug
@@ -571,7 +666,7 @@ export default function LoteriaGame() {
               </div>
 
               {/* Claim Lotería button */}
-              {markedCells.size >= 4 && (
+              {markedCells.size >= boardSize && (
                 <div className="text-center">
                   <button
                     onClick={handleClaimLoteria}
@@ -647,7 +742,7 @@ export default function LoteriaGame() {
               {markedCells.size > 0 ? (
                 <div>
                   <span className="text-sm" style={{ color: 'rgba(255,0,255,0.6)' }}>
-                    Marcaste {markedCells.size} de {BOARD_SIZE * BOARD_SIZE} escudos
+                    Marcaste {markedCells.size} de {boardSize * boardSize} escudos
                   </span>
                 </div>
               ) : null}
