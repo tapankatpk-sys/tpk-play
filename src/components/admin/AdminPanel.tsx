@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import Image from 'next/image'
 import GamePreviewModal from './GamePreviewModal'
 
 interface Game {
@@ -243,6 +244,10 @@ export default function AdminPanel() {
   const [parquesConfig, setParquesConfig] = useState<{ id: string; tokensPerPlayer: number; pointsCapture: number; pointsFinish: number; pointsWin: number; diceSpeed: number; isActive: boolean } | null>(null)
   const [parquesForm, setParquesForm] = useState({ tokensPerPlayer: 2, pointsCapture: 50, pointsFinish: 100, pointsWin: 500, diceSpeed: 3, isActive: true })
   const [savingParques, setSavingParques] = useState(false)
+
+  // Parques rooms state
+  const [parquesRooms, setParquesRooms] = useState<any[]>([])
+  const [parquesRoomsLoading, setParquesRoomsLoading] = useState(false)
 
   // Auth state
   const [isAuthenticated, setIsAuthenticated] = useState(false)
@@ -506,6 +511,19 @@ export default function AdminPanel() {
       load()
     }
   }, [isAuthenticated, showPanel, fetchGames, fetchParticipants, fetchPopups, fetchBanners, fetchPredictions, fetchLoteriaConfig, fetchRuletaConfig, fetchCircuitoConfig, fetchParquesConfig])
+
+  // Fetch Parques Rooms
+  const fetchParquesRooms = useCallback(async () => {
+    setParquesRoomsLoading(true)
+    try {
+      const res = await fetch('/api/parques-room?listAll=true')
+      if (res.ok) {
+        const data = await res.json()
+        setParquesRooms(Array.isArray(data) ? data : [])
+      }
+    } catch { /* ignore */ }
+    setParquesRoomsLoading(false)
+  }, [])
 
   // Game CRUD
   const handleOpenAddGame = () => {
@@ -930,6 +948,14 @@ export default function AdminPanel() {
     } finally {
       setSavingParques(false)
     }
+  }
+
+  // Delete parques room
+  const handleDeleteParquesRoom = async (roomId: string) => {
+    try {
+      await fetch(`/api/parques-room?roomId=${roomId}`, { method: 'DELETE' })
+      fetchParquesRooms()
+    } catch { /* ignore */ }
   }
 
   // Stats calculations
@@ -3611,6 +3637,71 @@ export default function AdminPanel() {
                     >
                       {savingParques ? 'Guardando...' : 'Guardar Configuración'}
                     </button>
+                  </div>
+
+                  {/* Salas Activas */}
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="text-[0.6rem] font-bold uppercase tracking-wider" style={{ color: 'rgba(250,204,21,0.4)' }}>
+                        Salas de Parqués
+                      </div>
+                      <button
+                        onClick={fetchParquesRooms}
+                        className="px-2 py-1 rounded-lg text-[0.5rem] font-bold cursor-pointer"
+                        style={{ background: 'rgba(250,204,21,0.08)', color: '#facc15', border: '1px solid rgba(250,204,21,0.2)' }}
+                      >
+                        Actualizar
+                      </button>
+                    </div>
+                    {parquesRoomsLoading ? (
+                      <div className="text-center py-4">
+                        <div className="w-4 h-4 border-2 border-t-transparent rounded-full animate-spin mx-auto" style={{ borderColor: '#facc15', borderTopColor: 'transparent' }} />
+                      </div>
+                    ) : parquesRooms.length === 0 ? (
+                      <div className="text-center py-4 rounded-xl" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }}>
+                        <p className="text-[0.55rem]" style={{ color: 'rgba(255,255,255,0.3)' }}>No hay salas activas</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-1.5 max-h-48 overflow-y-auto">
+                        {parquesRooms.map((r: any) => (
+                          <div key={r.id} className="flex items-center gap-2 px-3 py-2 rounded-lg"
+                            style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)' }}>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-1.5">
+                                <span className="text-[0.6rem] font-mono font-black" style={{ color: '#facc15' }}>{r.roomCode}</span>
+                                <span className="text-[0.5rem] px-1.5 py-0.5 rounded-full font-bold"
+                                  style={{
+                                    background: r.status === 'waiting' ? 'rgba(250,204,21,0.1)' : r.status === 'playing' ? 'rgba(34,197,94,0.1)' : 'rgba(239,68,68,0.1)',
+                                    color: r.status === 'waiting' ? '#facc15' : r.status === 'playing' ? '#22c55e' : '#ef4444',
+                                  }}>
+                                  {r.status === 'waiting' ? 'Espera' : r.status === 'playing' ? 'Jugando' : 'Finalizada'}
+                                </span>
+                              </div>
+                              <div className="text-[0.45rem] mt-0.5" style={{ color: 'rgba(255,255,255,0.3)' }}>
+                                {r.players?.length || 0}/4 jugadores &middot; {r.clasicoMode}
+                              </div>
+                            </div>
+                            {r.players && r.players.length > 0 && (
+                              <div className="flex -space-x-1">
+                                {r.players.slice(0, 4).map((p: any) => (
+                                  <Image key={p.id} src={`/images/teams/${p.teamSlug}.${p.teamSlug === 'internacional-de-bogota' ? 'png' : 'svg'}`} alt="" width={14} height={14}
+                                    className="w-3.5 h-3.5 object-contain rounded-full"
+                                    style={{ border: '1px solid rgba(0,0,0,0.5)' }}
+                                  />
+                                ))}
+                              </div>
+                            )}
+                            <button
+                              onClick={() => { if (confirm('Eliminar esta sala?')) handleDeleteParquesRoom(r.id) }}
+                              className="px-1.5 py-0.5 rounded text-[0.5rem] cursor-pointer"
+                              style={{ background: 'rgba(239,68,68,0.08)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.15)' }}
+                            >
+                              X
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
 
                   {/* Preview */}

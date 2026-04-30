@@ -234,3 +234,36 @@ model ParquesConfig {
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 }
+
+// ============================================
+// PARQUÉS FUTBOLERO - Salas multijugador
+// ============================================
+
+model ParquesRoom {
+  id              String   @id @default(cuid())
+  roomCode        String   @unique            // Código de 6 caracteres para compartir
+  clasicoMode     String   @default("rivales-historicos") // Modo de clásico seleccionado
+  status          String   @default("waiting") // "waiting", "playing", "finished"
+  currentPlayer   Int      @default(0)        // Índice del jugador actual (0-3)
+  gameState       String   @default("{}")     // JSON: estado completo del juego (tokens, dado, etc.)
+  winnerPlayerIdx Int      @default(-1)       // Índice del ganador (-1 si no hay)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  players         ParquesRoomPlayer[]
+}
+
+model ParquesRoomPlayer {
+  id              String   @id @default(cuid())
+  roomId          String
+  room            ParquesRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  participantCode String                        // Código TPK del participante
+  participantName String                        // Nombre del participante (cache)
+  teamSlug        String                        // Escudo de equipo elegido
+  playerIndex     Int                           // Posición en el tablero (0-3)
+  isCreator       Boolean  @default(false)      // Quien creó la sala
+  score           Int      @default(0)          // Puntos acumulados en la partida
+  joinedAt        DateTime @default(now())
+
+  @@unique([roomId, participantCode])
+  @@unique([roomId, playerIndex])
+}
