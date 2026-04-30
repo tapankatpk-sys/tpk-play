@@ -122,6 +122,11 @@ const SopaEscudos = dynamic(() => import('@/components/sopa/SopaEscudos'), {
   loading: GameSkeleton,
 })
 
+const CanalEnVivo = dynamic(() => import('@/components/canal-vivo/CanalEnVivo'), {
+  ssr: false,
+  loading: GameSkeleton,
+})
+
 const AdminPanel = dynamic(() => import('@/components/admin/AdminPanel'), {
   ssr: false,
 })
@@ -162,6 +167,18 @@ export default function Home() {
 
       {/* Match Predictions - Liga BetPlay */}
       <MatchPredictions />
+
+      {/* Canal en Vivo - Liga BetPlay */}
+      <section className="relative py-4 md:py-6">
+        <div className="absolute top-0 left-0 right-0 h-px" style={{
+          background: 'linear-gradient(to right, transparent, rgba(239, 68, 68, 0.5), rgba(249, 115, 22, 0.5), transparent)',
+        }} />
+        <div className="relative z-10">
+          <GameGuard gameName="Canal en Vivo" gameIcon="📺" accentColor="#ef4444">
+            <CanalEnVivo />
+          </GameGuard>
+        </div>
+      </section>
 
       {/* Games Section */}
       <section className="relative py-8 md:py-12">

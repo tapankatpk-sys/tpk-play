@@ -73,7 +73,7 @@ interface MatchPredictionData {
   updatedAt: string
 }
 
-type Tab = 'dashboard' | 'games' | 'participants' | 'stats' | 'popup' | 'banners' | 'predictions' | 'loteria' | 'ruleta' | 'circuito' | 'parques' | 'rompecabezas' | 'penales' | 'carta-mayor' | 'diana' | 'clasificacion' | 'numero-camiseta' | 'mineria' | 'apuesta' | 'sopa' | 'audio'
+type Tab = 'dashboard' | 'games' | 'participants' | 'stats' | 'popup' | 'banners' | 'predictions' | 'loteria' | 'ruleta' | 'circuito' | 'parques' | 'rompecabezas' | 'penales' | 'carta-mayor' | 'diana' | 'clasificacion' | 'numero-camiseta' | 'mineria' | 'apuesta' | 'sopa' | 'audio' | 'canal-vivo'
 
 interface SidebarSection {
   id: string
@@ -304,6 +304,11 @@ export default function AdminPanel() {
   const [audioConfig, setAudioConfig] = useState<{ id: string; audioUrl: string; volume: number; autoPlay: boolean; isActive: boolean; label: string } | null>(null)
   const [audioForm, setAudioForm] = useState({ audioUrl: '/tpk-anthem.mp3', volume: 60, autoPlay: false, isActive: true, label: 'Te Pe Ka Fans Club' })
   const [savingAudio, setSavingAudio] = useState(false)
+
+  // Canal Vivo config state
+  const [canalVivoConfig, setCanalVivoConfig] = useState<{ id: string; youtubeChannelId: string; youtubeVideoId: string; streamTitle: string; streamSubtitle: string; altStreamUrl: string; altStreamLabel: string; showChat: boolean; showSchedule: boolean; autoPlay: boolean; isActive: boolean } | null>(null)
+  const [canalVivoForm, setCanalVivoForm] = useState({ youtubeChannelId: 'UCZjpA3YBPXvJv3pg4SPEjfw', youtubeVideoId: '', streamTitle: 'Liga BetPlay en Vivo', streamSubtitle: 'Win Sports - Señal en Vivo', altStreamUrl: '', altStreamLabel: 'Señal Alternativa', showChat: true, showSchedule: true, autoPlay: true, isActive: true })
+  const [savingCanalVivo, setSavingCanalVivo] = useState(false)
 
   // Parques rooms state
   const [parquesRooms, setParquesRooms] = useState<any[]>([])
@@ -770,16 +775,41 @@ export default function AdminPanel() {
     }
   }, [])
 
+  const fetchCanalVivoConfig = useCallback(async () => {
+    try {
+      const res = await fetch('/api/canal-vivo')
+      if (!res.ok) throw new Error(`Error ${res.status}`)
+      const data = await res.json()
+      if (data && !data.error) {
+        setCanalVivoConfig(data)
+        setCanalVivoForm({
+          youtubeChannelId: data.youtubeChannelId || 'UCZjpA3YBPXvJv3pg4SPEjfw',
+          youtubeVideoId: data.youtubeVideoId || '',
+          streamTitle: data.streamTitle || 'Liga BetPlay en Vivo',
+          streamSubtitle: data.streamSubtitle || 'Win Sports - Señal en Vivo',
+          altStreamUrl: data.altStreamUrl || '',
+          altStreamLabel: data.altStreamLabel || 'Señal Alternativa',
+          showChat: data.showChat !== false,
+          showSchedule: data.showSchedule !== false,
+          autoPlay: data.autoPlay !== false,
+          isActive: data.isActive !== false,
+        })
+      }
+    } catch (err) {
+      console.error('Error fetching canal vivo config:', err)
+    }
+  }, [])
+
   useEffect(() => {
     if (isAuthenticated && showPanel) {
       const load = async () => {
         setLoading(true)
-        await Promise.all([fetchGames(), fetchParticipants(), fetchPopups(), fetchBanners(), fetchPredictions(), fetchLoteriaConfig(), fetchRuletaConfig(), fetchCircuitoConfig(), fetchParquesConfig(), fetchRompecabezasConfig(), fetchPenalesConfig(), fetchCartaMayorConfig(), fetchDianaConfig(), fetchClasificacionConfig(), fetchNumeroCamisetaConfig(), fetchMineriaConfig(), fetchApuestaConfig(), fetchSopaConfig(), fetchAudioConfig()])
+        await Promise.all([fetchGames(), fetchParticipants(), fetchPopups(), fetchBanners(), fetchPredictions(), fetchLoteriaConfig(), fetchRuletaConfig(), fetchCircuitoConfig(), fetchParquesConfig(), fetchRompecabezasConfig(), fetchPenalesConfig(), fetchCartaMayorConfig(), fetchDianaConfig(), fetchClasificacionConfig(), fetchNumeroCamisetaConfig(), fetchMineriaConfig(), fetchApuestaConfig(), fetchSopaConfig(), fetchAudioConfig(), fetchCanalVivoConfig()])
         setLoading(false)
       }
       load()
     }
-  }, [isAuthenticated, showPanel, fetchGames, fetchParticipants, fetchPopups, fetchBanners, fetchPredictions, fetchLoteriaConfig, fetchRuletaConfig, fetchCircuitoConfig, fetchParquesConfig, fetchRompecabezasConfig, fetchPenalesConfig, fetchCartaMayorConfig, fetchDianaConfig, fetchClasificacionConfig, fetchNumeroCamisetaConfig, fetchMineriaConfig, fetchApuestaConfig, fetchSopaConfig, fetchAudioConfig])
+  }, [isAuthenticated, showPanel, fetchGames, fetchParticipants, fetchPopups, fetchBanners, fetchPredictions, fetchLoteriaConfig, fetchRuletaConfig, fetchCircuitoConfig, fetchParquesConfig, fetchRompecabezasConfig, fetchPenalesConfig, fetchCartaMayorConfig, fetchDianaConfig, fetchClasificacionConfig, fetchNumeroCamisetaConfig, fetchMineriaConfig, fetchApuestaConfig, fetchSopaConfig, fetchAudioConfig, fetchCanalVivoConfig])
 
   // Fetch Parques Rooms
   const fetchParquesRooms = useCallback(async () => {
@@ -1471,6 +1501,30 @@ export default function AdminPanel() {
     }
   }
 
+  const handleSaveCanalVivo = async () => {
+    setSavingCanalVivo(true)
+    try {
+      if (canalVivoConfig) {
+        await fetch('/api/canal-vivo', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: canalVivoConfig.id, ...canalVivoForm }),
+        })
+      } else {
+        await fetch('/api/canal-vivo', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(canalVivoForm),
+        })
+      }
+      fetchCanalVivoConfig()
+    } catch (err) {
+      console.error('Error saving canal vivo config:', err)
+    } finally {
+      setSavingCanalVivo(false)
+    }
+  }
+
   // Delete parques room
   const handleDeleteParquesRoom = async (roomId: string) => {
     try {
@@ -1511,6 +1565,7 @@ export default function AdminPanel() {
         { id: 'apuesta', label: 'Apuesta', icon: '📊', color: '#f97316' },
         { id: 'sopa', label: 'Sopa', icon: '🔤', color: '#14b8a6' },
         { id: 'audio', label: 'Audio', icon: '🎵', color: '#a855f7' },
+        { id: 'canal-vivo', label: 'Canal en Vivo', icon: '📺', color: '#ef4444' },
         { id: 'predictions', label: 'Predicciones', icon: '⚽', color: '#00ff80', count: predictions.length },
         { id: 'popup', label: 'Popup', icon: '💬', color: '#eab308', count: popups.length },
       ],
@@ -1947,6 +2002,7 @@ export default function AdminPanel() {
                         : activeTab === 'apuesta' ? '#f97316'
                         : activeTab === 'sopa' ? '#14b8a6'
                         : activeTab === 'audio' ? '#a855f7'
+                        : activeTab === 'canal-vivo' ? '#ef4444'
                         : activeTab === 'predictions' ? '#00ff80'
                         : activeTab === 'banners' ? '#00ffff'
                         : activeTab === 'popup' ? '#eab308'
@@ -1970,6 +2026,7 @@ export default function AdminPanel() {
                       : activeTab === 'apuesta' ? 'Apuesta Futbolera'
                       : activeTab === 'sopa' ? 'Sopa de Escudos'
                       : activeTab === 'audio' ? 'Reproductor de Audio'
+                      : activeTab === 'canal-vivo' ? 'Canal en Vivo'
                       : activeTab === 'predictions' ? 'Predicciones'
                       : activeTab === 'banners' ? 'Banners'
                       : activeTab === 'popup' ? 'Popup'
@@ -6049,6 +6106,327 @@ export default function AdminPanel() {
                           <span className="text-[0.45rem] font-bold" style={{ color: 'rgba(168,85,247,0.6)' }}>{audioForm.volume}%</span>
                         </div>
                       </div>
+                    </div>
+                  </div>
+                </div>
+              ) : activeTab === 'canal-vivo' ? (
+                /* ========== CANAL EN VIVO TAB ========== */
+                <div className="space-y-4">
+                  <div className="p-3 rounded-xl" style={{ background: 'rgba(239,68,68,0.04)', border: '1px solid rgba(239,68,68,0.15)' }}>
+                    <p className="text-[0.65rem]" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                      Configura el <b style={{ color: '#fca5a5' }}>Canal en Vivo</b> de TPK PLAY. Transmite partidos de la Liga BetPlay directamente desde Win Sports YouTube.
+                      Puedes configurar el canal de YouTube, título, señales alternativas y más.
+                    </p>
+                  </div>
+
+                  {canalVivoConfig && (
+                    <div className="grid grid-cols-3 md:grid-cols-5 gap-2">
+                      <div className="p-2 rounded-lg text-center" style={{ background: 'rgba(239,68,68,0.06)' }}>
+                        <div className="text-[0.5rem] uppercase" style={{ color: 'rgba(239,68,68,0.5)' }}>Estado</div>
+                        <div className="text-lg font-black" style={{ color: canalVivoConfig.isActive ? '#4ade80' : '#ef4444' }}>
+                          {canalVivoConfig.isActive ? '●' : '○'}
+                        </div>
+                      </div>
+                      <div className="p-2 rounded-lg text-center" style={{ background: 'rgba(168,85,247,0.06)' }}>
+                        <div className="text-[0.5rem] uppercase" style={{ color: 'rgba(168,85,247,0.5)' }}>Chat</div>
+                        <div className="text-sm font-black" style={{ color: canalVivoConfig.showChat ? '#4ade80' : '#ef4444' }}>
+                          {canalVivoConfig.showChat ? 'Sí' : 'No'}
+                        </div>
+                      </div>
+                      <div className="p-2 rounded-lg text-center" style={{ background: 'rgba(249,115,22,0.06)' }}>
+                        <div className="text-[0.5rem] uppercase" style={{ color: 'rgba(249,115,22,0.5)' }}>Programación</div>
+                        <div className="text-sm font-black" style={{ color: canalVivoConfig.showSchedule ? '#4ade80' : '#ef4444' }}>
+                          {canalVivoConfig.showSchedule ? 'Sí' : 'No'}
+                        </div>
+                      </div>
+                      <div className="p-2 rounded-lg text-center" style={{ background: 'rgba(34,197,94,0.06)' }}>
+                        <div className="text-[0.5rem] uppercase" style={{ color: 'rgba(34,197,94,0.5)' }}>AutoPlay</div>
+                        <div className="text-sm font-black" style={{ color: canalVivoConfig.autoPlay ? '#4ade80' : '#ef4444' }}>
+                          {canalVivoConfig.autoPlay ? 'Sí' : 'No'}
+                        </div>
+                      </div>
+                      <div className="p-2 rounded-lg text-center col-span-3 md:col-span-1" style={{ background: 'rgba(251,191,36,0.06)' }}>
+                        <div className="text-[0.5rem] uppercase" style={{ color: 'rgba(251,191,36,0.5)' }}>Video ID</div>
+                        <div className="text-xs font-mono font-bold truncate" style={{ color: '#fbbf24' }}>
+                          {canalVivoConfig.youtubeVideoId || 'Auto (channel)'}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="space-y-3">
+                    <div>
+                      <label className="text-[0.6rem] font-bold uppercase tracking-wider block mb-1" style={{ color: 'rgba(239,68,68,0.6)' }}>
+                        Título del Canal
+                      </label>
+                      <input type="text"
+                        value={canalVivoForm.streamTitle}
+                        onChange={(e) => setCanalVivoForm({ ...canalVivoForm, streamTitle: e.target.value })}
+                        className="w-full px-3 py-2 rounded-lg text-sm font-bold outline-none"
+                        style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(239,68,68,0.2)', color: '#fca5a5' }}
+                        placeholder="Liga BetPlay en Vivo"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-[0.6rem] font-bold uppercase tracking-wider block mb-1" style={{ color: 'rgba(249,115,22,0.6)' }}>
+                        Subtítulo
+                      </label>
+                      <input type="text"
+                        value={canalVivoForm.streamSubtitle}
+                        onChange={(e) => setCanalVivoForm({ ...canalVivoForm, streamSubtitle: e.target.value })}
+                        className="w-full px-3 py-2 rounded-lg text-sm font-bold outline-none"
+                        style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(249,115,22,0.2)', color: '#fdba74' }}
+                        placeholder="Win Sports - Señal en Vivo"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-[0.6rem] font-bold uppercase tracking-wider block mb-1" style={{ color: 'rgba(255,0,0,0.6)' }}>
+                        YouTube Channel ID
+                      </label>
+                      <input type="text"
+                        value={canalVivoForm.youtubeChannelId}
+                        onChange={(e) => setCanalVivoForm({ ...canalVivoForm, youtubeChannelId: e.target.value })}
+                        className="w-full px-3 py-2 rounded-lg text-sm font-mono outline-none"
+                        style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,0,0,0.2)', color: '#ff6666' }}
+                        placeholder="UCZjpA3YBPXvJv3pg4SPEjfw"
+                      />
+                      <p className="text-[0.5rem] mt-1" style={{ color: 'rgba(255,255,255,0.25)' }}>
+                        ID del canal de YouTube. Win Sports: UCZjpA3YBPXvJv3pg4SPEjfw. Se usa para embeber la transmisión en vivo automáticamente.
+                      </p>
+                    </div>
+
+                    <div>
+                      <label className="text-[0.6rem] font-bold uppercase tracking-wider block mb-1" style={{ color: 'rgba(168,85,247,0.6)' }}>
+                        YouTube Video ID (opcional)
+                      </label>
+                      <input type="text"
+                        value={canalVivoForm.youtubeVideoId}
+                        onChange={(e) => setCanalVivoForm({ ...canalVivoForm, youtubeVideoId: e.target.value })}
+                        className="w-full px-3 py-2 rounded-lg text-sm font-mono outline-none"
+                        style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(168,85,247,0.2)', color: '#d8b4fe' }}
+                        placeholder="Ej: NyCBsU3HGNk (dejar vacío para usar channel live)"
+                      />
+                      <p className="text-[0.5rem] mt-1" style={{ color: 'rgba(255,255,255,0.25)' }}>
+                        Si especificas un Video ID, se embeberá ese video en vez de la señal en vivo del canal. Útil para redirigir a un partido específico.
+                      </p>
+                    </div>
+
+                    <div>
+                      <label className="text-[0.6rem] font-bold uppercase tracking-wider block mb-1" style={{ color: 'rgba(249,115,22,0.6)' }}>
+                        URL Señal Alternativa
+                      </label>
+                      <input type="text"
+                        value={canalVivoForm.altStreamUrl}
+                        onChange={(e) => setCanalVivoForm({ ...canalVivoForm, altStreamUrl: e.target.value })}
+                        className="w-full px-3 py-2 rounded-lg text-sm font-mono outline-none"
+                        style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(249,115,22,0.2)', color: '#fdba74' }}
+                        placeholder="https://ejemplo.com/stream (dejar vacío si no aplica)"
+                      />
+                      <p className="text-[0.5rem] mt-1" style={{ color: 'rgba(255,255,255,0.25)' }}>
+                        URL de una señal alternativa de streaming. Se mostrará en la pestaña "Más Señales" del canal.
+                      </p>
+                    </div>
+
+                    <div>
+                      <label className="text-[0.6rem] font-bold uppercase tracking-wider block mb-1" style={{ color: 'rgba(249,115,22,0.6)' }}>
+                        Label Señal Alternativa
+                      </label>
+                      <input type="text"
+                        value={canalVivoForm.altStreamLabel}
+                        onChange={(e) => setCanalVivoForm({ ...canalVivoForm, altStreamLabel: e.target.value })}
+                        className="w-full px-3 py-2 rounded-lg text-sm font-bold outline-none"
+                        style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(249,115,22,0.2)', color: '#fdba74' }}
+                        placeholder="Señal Alternativa"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-[0.6rem] font-bold uppercase tracking-wider block mb-1" style={{ color: 'rgba(168,85,247,0.6)' }}>
+                          Chat de YouTube
+                        </label>
+                        <p className="text-[0.5rem] mb-2" style={{ color: 'rgba(255,255,255,0.25)' }}>
+                          Mostrar chat en vivo junto al reproductor
+                        </p>
+                        <button
+                          onClick={() => setCanalVivoForm({ ...canalVivoForm, showChat: !canalVivoForm.showChat })}
+                          className="px-4 py-2 rounded-lg text-xs font-bold cursor-pointer transition-all"
+                          style={{
+                            background: canalVivoForm.showChat ? 'rgba(34,197,94,0.15)' : 'rgba(239,68,68,0.15)',
+                            color: canalVivoForm.showChat ? '#4ade80' : '#ef4444',
+                            border: `1px solid ${canalVivoForm.showChat ? 'rgba(34,197,94,0.3)' : 'rgba(239,68,68,0.3)'}`,
+                          }}
+                        >
+                          {canalVivoForm.showChat ? '● Visible' : '○ Oculto'}
+                        </button>
+                      </div>
+                      <div>
+                        <label className="text-[0.6rem] font-bold uppercase tracking-wider block mb-1" style={{ color: 'rgba(249,115,22,0.6)' }}>
+                          Programación
+                        </label>
+                        <p className="text-[0.5rem] mb-2" style={{ color: 'rgba(255,255,255,0.25)' }}>
+                          Mostrar pestaña de próximos partidos
+                        </p>
+                        <button
+                          onClick={() => setCanalVivoForm({ ...canalVivoForm, showSchedule: !canalVivoForm.showSchedule })}
+                          className="px-4 py-2 rounded-lg text-xs font-bold cursor-pointer transition-all"
+                          style={{
+                            background: canalVivoForm.showSchedule ? 'rgba(34,197,94,0.15)' : 'rgba(239,68,68,0.15)',
+                            color: canalVivoForm.showSchedule ? '#4ade80' : '#ef4444',
+                            border: `1px solid ${canalVivoForm.showSchedule ? 'rgba(34,197,94,0.3)' : 'rgba(239,68,68,0.3)'}`,
+                          }}
+                        >
+                          {canalVivoForm.showSchedule ? '● Visible' : '○ Oculto'}
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-[0.6rem] font-bold uppercase tracking-wider block mb-1" style={{ color: 'rgba(34,197,94,0.6)' }}>
+                          Auto-Reproducir
+                        </label>
+                        <p className="text-[0.5rem] mb-2" style={{ color: 'rgba(255,255,255,0.25)' }}>
+                          Iniciar reproducción automáticamente (silenciado)
+                        </p>
+                        <button
+                          onClick={() => setCanalVivoForm({ ...canalVivoForm, autoPlay: !canalVivoForm.autoPlay })}
+                          className="px-4 py-2 rounded-lg text-xs font-bold cursor-pointer transition-all"
+                          style={{
+                            background: canalVivoForm.autoPlay ? 'rgba(34,197,94,0.15)' : 'rgba(239,68,68,0.15)',
+                            color: canalVivoForm.autoPlay ? '#4ade80' : '#ef4444',
+                            border: `1px solid ${canalVivoForm.autoPlay ? 'rgba(34,197,94,0.3)' : 'rgba(239,68,68,0.3)'}`,
+                          }}
+                        >
+                          {canalVivoForm.autoPlay ? '● Activado' : '○ Desactivado'}
+                        </button>
+                      </div>
+                      <div>
+                        <label className="text-[0.6rem] font-bold uppercase tracking-wider block mb-1" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                          Canal Activo
+                        </label>
+                        <p className="text-[0.5rem] mb-2" style={{ color: 'rgba(255,255,255,0.25)' }}>
+                          Desactiva para ocultar el canal del sitio
+                        </p>
+                        <button
+                          onClick={() => setCanalVivoForm({ ...canalVivoForm, isActive: !canalVivoForm.isActive })}
+                          className="px-4 py-2 rounded-lg text-xs font-bold cursor-pointer transition-all"
+                          style={{
+                            background: canalVivoForm.isActive ? 'rgba(34,197,94,0.15)' : 'rgba(239,68,68,0.15)',
+                            color: canalVivoForm.isActive ? '#4ade80' : '#ef4444',
+                            border: `1px solid ${canalVivoForm.isActive ? 'rgba(34,197,94,0.3)' : 'rgba(239,68,68,0.3)'}`,
+                          }}
+                        >
+                          {canalVivoForm.isActive ? '● Activo' : '○ Inactivo'}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end">
+                    <button
+                      onClick={handleSaveCanalVivo}
+                      disabled={savingCanalVivo}
+                      className="px-6 py-2.5 rounded-xl font-bold text-sm cursor-pointer transition-all hover:scale-105 disabled:opacity-50"
+                      style={{
+                        background: 'linear-gradient(135deg, #ef4444, #f97316)',
+                        color: '#fff',
+                        boxShadow: '0 0 12px rgba(239,68,68,0.2)',
+                      }}
+                    >
+                      {savingCanalVivo ? 'Guardando...' : 'Guardar Configuración'}
+                    </button>
+                  </div>
+
+                  {/* Preview */}
+                  <div>
+                    <div className="text-[0.6rem] font-bold uppercase tracking-wider mb-2" style={{ color: 'rgba(239,68,68,0.4)' }}>
+                      Vista Previa del Canal
+                    </div>
+                    <div className="p-4 rounded-xl" style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(239,68,68,0.1)' }}>
+                      <div className="flex items-center gap-3">
+                        <div
+                          className="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0"
+                          style={{
+                            background: 'linear-gradient(135deg, #ef4444, #f97316)',
+                            boxShadow: '0 0 15px rgba(239,68,68,0.3)',
+                          }}
+                        >
+                          <span className="text-xl">📺</span>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="text-sm font-bold truncate" style={{ color: '#fca5a5' }}>
+                            {canalVivoForm.streamTitle || 'Liga BetPlay en Vivo'}
+                          </div>
+                          <div className="text-[0.55rem]" style={{ color: 'rgba(255,255,255,0.3)' }}>
+                            {canalVivoForm.streamSubtitle || 'Win Sports - Señal en Vivo'}
+                          </div>
+                          <div className="flex items-center gap-2 mt-1">
+                            <div className="w-1.5 h-1.5 rounded-full" style={{ background: canalVivoForm.isActive ? '#4ade80' : '#6b7280' }} />
+                            <span className="text-[0.45rem]" style={{ color: canalVivoForm.isActive ? 'rgba(34,197,94,0.6)' : 'rgba(107,114,128,0.6)' }}>
+                              {canalVivoForm.isActive ? 'Activo' : 'Inactivo'}
+                            </span>
+                            {canalVivoForm.showChat && (
+                              <span className="text-[0.45rem] px-1.5 py-0.5 rounded" style={{ background: 'rgba(168,85,247,0.1)', color: 'rgba(168,85,247,0.5)' }}>
+                                Chat
+                              </span>
+                            )}
+                            {canalVivoForm.showSchedule && (
+                              <span className="text-[0.45rem] px-1.5 py-0.5 rounded" style={{ background: 'rgba(249,115,22,0.1)', color: 'rgba(249,115,22,0.5)' }}>
+                                Programación
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                        <div className="flex-shrink-0 text-right">
+                          <div className="text-[0.45rem] font-mono" style={{ color: 'rgba(255,0,0,0.4)' }}>
+                            Ch: {canalVivoForm.youtubeChannelId.slice(0, 8)}...
+                          </div>
+                          {canalVivoForm.youtubeVideoId && (
+                            <div className="text-[0.45rem] font-mono" style={{ color: 'rgba(168,85,247,0.4)' }}>
+                              Vid: {canalVivoForm.youtubeVideoId}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Quick Links */}
+                  <div className="p-3 rounded-xl" style={{ background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(239,68,68,0.08)' }}>
+                    <div className="text-[0.6rem] font-bold uppercase tracking-wider mb-2" style={{ color: 'rgba(239,68,68,0.3)' }}>
+                      Enlaces Rápidos
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      <a
+                        href="https://www.youtube.com/@winsportstv/streams"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="px-3 py-1.5 rounded-lg text-[0.55rem] font-bold transition-all hover:scale-105"
+                        style={{ background: 'rgba(255,0,0,0.1)', border: '1px solid rgba(255,0,0,0.2)', color: '#ff6666' }}
+                      >
+                        YouTube Streams
+                      </a>
+                      <a
+                        href="https://winplay.co"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="px-3 py-1.5 rounded-lg text-[0.55rem] font-bold transition-all hover:scale-105"
+                        style={{ background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.2)', color: '#4ade80' }}
+                      >
+                        Win Play
+                      </a>
+                      <a
+                        href="https://www.winsports.co/programacion"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="px-3 py-1.5 rounded-lg text-[0.55rem] font-bold transition-all hover:scale-105"
+                        style={{ background: 'rgba(251,191,36,0.1)', border: '1px solid rgba(251,191,36,0.2)', color: '#fbbf24' }}
+                      >
+                        Programación
+                      </a>
                     </div>
                   </div>
                 </div>

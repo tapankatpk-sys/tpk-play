@@ -427,3 +427,23 @@ model AudioConfig {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
+
+// ============================================
+// CANAL EN VIVO - Streaming Liga BetPlay
+// ============================================
+
+model CanalVivoConfig {
+  id                String   @id @default(cuid())
+  youtubeChannelId  String   @default("UCZjpA3YBPXvJv3pg4SPEjfw") // Win Sports YouTube channel ID
+  youtubeVideoId    String   @default("")                            // Video ID específico (opcional, si vacío usa channel live)
+  streamTitle       String   @default("Liga BetPlay en Vivo")        // Título mostrado
+  streamSubtitle    String   @default("Win Sports - Señal en Vivo")  // Subtítulo
+  altStreamUrl      String   @default("")                            // URL alternativa de streaming
+  altStreamLabel    String   @default("Señal Alternativa")           // Label para URL alternativa
+  showChat          Boolean  @default(true)                          // Mostrar chat de YouTube
+  showSchedule      Boolean  @default(true)                          // Mostrar programación
+  autoPlay          Boolean  @default(true)                          // Auto-reproducir stream
+  isActive          Boolean  @default(true)                          // Canal activo/desactivado
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}

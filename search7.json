@@ -1,0 +1,92 @@
+[
+  {
+    "url": "https://stackoverflow.com/questions/57484639/embed-a-youtube-channels-current-live-stream-without-the-video-id",
+    "name": "Embed a YouTube channel's current live stream without",
+    "snippet": "If the channel is live , redirect the request to your server directly to the live video's embed URL based on the video's ID in the query response ...\nCurrently, if I want to embed a live stream, I can use YouTube's sharing functions to add the video to my page in an iFrame. When the user stops ... Missing: Sports | Show results with: Sports",
+    "host_name": "stackoverflow.com",
+    "rank": 0,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://jwx.com/blog/how-to-embed-a-live-streaming-video-on-your-site",
+    "name": "How To Embed a Live Streaming Video on Your Site",
+    "snippet": "7 Sept 2023 — Live stream embedding means adding live streams to your website using a video player or an online video platform. Sometimes, this process could ...",
+    "host_name": "jwx.com",
+    "rank": 1,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.yololiv.com/blog/embed-youtube-live-stream-on-website",
+    "name": "Embed YouTube Live Stream on Website: Complete Guide -",
+    "snippet": "22 Apr 2026 — TL;DR: To embed YouTube live stream on website pages, copy the iframe code from YouTube's Share menu and paste it into your site HTML .\nTL;DR: To embed YouTube live stream on website pages, copy the iframe code from YouTube's Share menu and paste it into your site HTML. Missing: Win | Show results with: Win",
+    "host_name": "www.yololiv.com",
+    "rank": 2,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://embedsocial.com/blog/embed-youtube-live-on-website",
+    "name": "How to Embed YouTube Live on Your Website in 2026?",
+    "snippet": "18 Feb 2026 — Learn how to embed YouTube Live on your website , get the embed code, and create a permanent stream setup without replacing video IDs each ...\nLearn how to embed YouTube Live on your website, get the embed code, and create a permanent stream setup without replacing video IDs each ...",
+    "host_name": "embedsocial.com",
+    "rank": 3,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://discourse.webflow.com/t/how-to-embed-a-youtube-live-stream-via-channel-id/122543",
+    "name": "How to embed a YouTube live stream via Channel ID",
+    "snippet": "27 May 2020 — Be sure to replace the “[ Channel ID ]” in the iframe with your own. You can find it by navigating to www. youtube .com/account_advanced. See the ...",
+    "host_name": "discourse.webflow.com",
+    "rank": 4,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.sociablekit.com/tutorials/embed-youtube-live-stream-iframe",
+    "name": "How to embed YouTube Live Stream on your iFrame",
+    "snippet": "Learn how to embed YouTube Live Stream on your iFrame website for FREE, step-by-step. Our widget helps you add or display it, no coding required!\nFree · Social Networking Learn how to embed YouTube Live Stream on your iFrame website for FREE, step-by-step. Our widget helps you add or display it, no coding required!",
+    "host_name": "www.sociablekit.com",
+    "rank": 5,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.fastpix.io/tutorials/how-to-build-a-live-sports-streaming-app-like-espn",
+    "name": "How to Build a Live Sports Streaming App Like ESPN+",
+    "snippet": "This guide will help you create a sports streaming platform like ESPN+ using FastPix Video API. With FastPix, you can manage multiple games with instant replays ...",
+    "host_name": "www.fastpix.io",
+    "rank": 6,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.vdocipher.com/blog/youtube-vimeo-wistia",
+    "name": "YouTube vs Wistia vs Vimeo: Pricing, Player, Copyright &",
+    "snippet": "23 Jun 2021 — After every 12 hours of live streaming , it archives the stream with a new video ID , which means that if you stream for 37 consecutive hours, you ...",
+    "host_name": "www.vdocipher.com",
+    "rank": 7,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.youtube.com/watch?v=yDbEM8Dwu54",
+    "name": "How to Embed Your Youtube Livestream Into Your Website [2026",
+    "snippet": "Troubleshooting common embedding issues. And much more! Live Stream URL: https://youtube.com/em...[YOUR CHANNEL ID HERE] iframe Embed Code ... Missing: Win Sports",
+    "host_name": "www.youtube.com",
+    "rank": 8,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://support.streamyard.com/hc/en-us/articles/15794589321748-Embed-a-Youtube-Live-Stream-on-your-website",
+    "name": "Embed a Youtube Live Stream on your website",
+    "snippet": "Follow these steps to embed a YouTube Live stream on your website: 1. Add your YouTube channel on StreamYard. You can do this from your Destinations ...",
+    "host_name": "support.streamyard.com",
+    "rank": 9,
+    "date": "",
+    "favicon": ""
+  }
+]
