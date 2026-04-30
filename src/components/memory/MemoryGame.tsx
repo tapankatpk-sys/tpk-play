@@ -40,7 +40,7 @@ interface Card {
 
 type Difficulty = 'easy' | 'medium' | 'hard'
 
-// Grid: 3 cols x 2 rows, 4 cols x 4 rows, 5 cols x 4 rows
+// Grid: 3 cols x 2 rows, 4 cols x 3 rows, 5 cols x 4 rows
 const DIFFICULTY_CONFIG = {
   easy:   { pairs: 3,  cols: 3, rows: 2, label: 'Facil',  emoji: '\u{1F7E2}', points: 10 },
   medium: { pairs: 6,  cols: 4, rows: 3, label: 'Medio',  emoji: '\u{1F7E1}', points: 25 },
@@ -690,12 +690,15 @@ export default function MemoryGame() {
 
 // ============================================
 // MEMORY CARD COMPONENT - Solo escudos luminosos
-// FIXED: Removed overflow:hidden that was clipping 3D transforms
+// FIXED: Proper 3D flip with correct sizing and click handling
+// Key fix: outer container gets aspect-ratio, flip container is absolute fill
 // ============================================
 function MemoryCard({ card, onClick }: { card: Card; onClick: () => void }) {
   const [isAnimating, setIsAnimating] = useState(false)
 
-  const handleClick = () => {
+  const handleClick = (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
     if (card.isFlipped || card.isMatched || isAnimating) return
     setIsAnimating(true)
     onClick()
@@ -707,11 +710,12 @@ function MemoryCard({ card, onClick }: { card: Card; onClick: () => void }) {
   return (
     <div
       className="relative cursor-pointer select-none"
-      style={{ perspective: '1000px' }}
+      style={{ aspectRatio: '1', perspective: '1000px' }}
       onClick={handleClick}
     >
+      {/* Flip container fills the parent entirely */}
       <div
-        className="relative w-full transition-transform duration-500"
+        className="absolute inset-0 transition-transform duration-500"
         style={{
           transformStyle: 'preserve-3d',
           transform: isRevealed ? 'rotateY(180deg)' : 'rotateY(0)',
@@ -719,23 +723,20 @@ function MemoryCard({ card, onClick }: { card: Card; onClick: () => void }) {
       >
         {/* Front - Hidden card (neon card back) */}
         <div
-          className="rounded-xl flex items-center justify-center"
+          className="absolute inset-0 rounded-xl flex items-center justify-center"
           style={{
             backfaceVisibility: 'hidden',
             WebkitBackfaceVisibility: 'hidden',
-            position: 'absolute',
-            inset: 0,
             background: '#000',
             border: '2px solid rgba(236, 72, 153, 0.4)',
             boxShadow: '0 0 12px rgba(236, 72, 153, 0.2), inset 0 0 8px rgba(236, 72, 153, 0.05)',
-            aspectRatio: '1',
           }}
         >
           {/* Neon border glow effect */}
-          <div className="absolute inset-0 rounded-xl" style={{
+          <div className="absolute inset-0 rounded-xl pointer-events-none" style={{
             background: 'repeating-linear-gradient(45deg, transparent, transparent 4px, rgba(236, 72, 153, 0.06) 4px, rgba(236, 72, 153, 0.06) 8px)',
           }} />
-          <div className="absolute rounded-lg" style={{
+          <div className="absolute rounded-lg pointer-events-none" style={{
             inset: '6px',
             border: '1px solid rgba(236, 72, 153, 0.15)',
           }} />
@@ -753,19 +754,16 @@ function MemoryCard({ card, onClick }: { card: Card; onClick: () => void }) {
 
         {/* Back - Team shield ONLY on black background */}
         <div
-          className="rounded-xl flex items-center justify-center"
+          className="absolute inset-0 rounded-xl flex items-center justify-center"
           style={{
             backfaceVisibility: 'hidden',
             WebkitBackfaceVisibility: 'hidden',
             transform: 'rotateY(180deg)',
-            position: 'absolute',
-            inset: 0,
             background: '#000',
             border: `2px solid ${card.isMatched ? 'rgba(34, 197, 94, 0.8)' : 'rgba(249, 115, 22, 0.6)'}`,
             boxShadow: card.isMatched
               ? '0 0 20px rgba(34, 197, 94, 0.4), 0 0 40px rgba(34, 197, 94, 0.15), inset 0 0 10px rgba(34, 197, 94, 0.05)'
               : '0 0 15px rgba(249, 115, 22, 0.25), inset 0 0 8px rgba(249, 115, 22, 0.03)',
-            aspectRatio: '1',
             transition: 'border-color 0.3s, box-shadow 0.3s',
           }}
         >
@@ -796,7 +794,7 @@ function MemoryCard({ card, onClick }: { card: Card; onClick: () => void }) {
           {/* Matched indicator */}
           {card.isMatched && (
             <div
-              className="absolute top-1 right-1 w-5 h-5 rounded-full flex items-center justify-center"
+              className="absolute top-1 right-1 w-5 h-5 rounded-full flex items-center justify-center pointer-events-none"
               style={{
                 background: 'rgba(34, 197, 94, 0.8)',
                 boxShadow: '0 0 8px rgba(34, 197, 94, 0.6)',
@@ -810,9 +808,6 @@ function MemoryCard({ card, onClick }: { card: Card; onClick: () => void }) {
           )}
         </div>
       </div>
-
-      {/* Spacer to give the card height (since children are absolute) */}
-      <div style={{ aspectRatio: '1' }} />
 
       <style jsx>{`
         @keyframes mem-glow {

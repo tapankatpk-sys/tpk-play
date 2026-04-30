@@ -58,6 +58,22 @@ interface TpkBannerData {
 
 type Tab = 'games' | 'participants' | 'stats' | 'popup' | 'banners'
 
+interface SidebarSection {
+  id: string
+  label: string
+  icon: string
+  color: string
+  items: SidebarItem[]
+}
+
+interface SidebarItem {
+  id: Tab
+  label: string
+  icon: string
+  color: string
+  count?: number
+}
+
 const SESSION_KEY = 'tpk_admin_token'
 
 const GAME_TYPES: Record<string, { label: string; icon: string; color: string; description: string }> = {
@@ -99,6 +115,14 @@ export default function AdminPanel() {
   const [participants, setParticipants] = useState<Participant[]>([])
   const [loading, setLoading] = useState(true)
   const [showPanel, setShowPanel] = useState(false)
+
+  // Sidebar state
+  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
+    contenido: true,
+    usuarios: true,
+    datos: true,
+  })
+  const [sidebarOpen, setSidebarOpen] = useState(false)
 
   // Game form state
   const [showGameForm, setShowGameForm] = useState(false)
@@ -315,7 +339,6 @@ export default function AdminPanel() {
     setSavingGame(true)
     try {
       if (editingGame) {
-        // Update
         await fetch('/api/games', {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
@@ -331,7 +354,6 @@ export default function AdminPanel() {
           }),
         })
       } else {
-        // Create
         await fetch('/api/games', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -560,6 +582,48 @@ export default function AdminPanel() {
   const activeGames = games.filter(g => g.isActive).length
   const totalGames = games.length
 
+  // Sidebar sections configuration
+  const sidebarSections: SidebarSection[] = [
+    {
+      id: 'contenido',
+      label: 'Contenido',
+      icon: '🎮',
+      color: '#a855f7',
+      items: [
+        { id: 'games', label: 'Juegos', icon: '⚽', color: '#a855f7', count: games.length },
+        { id: 'banners', label: 'Banners', icon: '🖼️', color: '#00ffff', count: banners.length },
+        { id: 'popup', label: 'Popup', icon: '💬', color: '#eab308', count: popups.length },
+      ],
+    },
+    {
+      id: 'usuarios',
+      label: 'Usuarios',
+      icon: '👥',
+      color: '#f97316',
+      items: [
+        { id: 'participants', label: 'Participantes', icon: '👤', color: '#f97316', count: participants.length },
+      ],
+    },
+    {
+      id: 'datos',
+      label: 'Datos',
+      icon: '📊',
+      color: '#22c55e',
+      items: [
+        { id: 'stats', label: 'Estadísticas', icon: '📈', color: '#22c55e' },
+      ],
+    },
+  ]
+
+  const toggleSection = (sectionId: string) => {
+    setExpandedSections(prev => ({ ...prev, [sectionId]: !prev[sectionId] }))
+  }
+
+  const handleTabChange = (tab: Tab) => {
+    setActiveTab(tab)
+    setSidebarOpen(false) // Close mobile sidebar on selection
+  }
+
   // Floating admin button
   if (!showPanel) {
     return (
@@ -715,9 +779,9 @@ export default function AdminPanel() {
   // Admin panel (authenticated)
   return (
     <>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: 'rgba(0,0,0,0.85)' }}>
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-2 md:p-4" style={{ backgroundColor: 'rgba(0,0,0,0.85)' }}>
         <div
-          className="w-full max-w-5xl max-h-[90vh] rounded-2xl overflow-hidden flex flex-col"
+          className="w-full max-w-6xl max-h-[95vh] md:max-h-[90vh] rounded-2xl overflow-hidden flex flex-col"
           style={{
             background: 'linear-gradient(135deg, #0a0a0a 0%, #1a0a2e 50%, #0a0a0a 100%)',
             border: '1px solid rgba(168, 85, 247, 0.3)',
@@ -725,22 +789,34 @@ export default function AdminPanel() {
           }}
         >
           {/* Header */}
-          <div className="flex items-center justify-between p-4 border-b" style={{ borderColor: 'rgba(168, 85, 247, 0.2)' }}>
+          <div className="flex items-center justify-between p-3 md:p-4 border-b" style={{ borderColor: 'rgba(168, 85, 247, 0.2)' }}>
             <div className="flex items-center gap-3">
+              {/* Mobile hamburger */}
+              <button
+                onClick={() => setSidebarOpen(!sidebarOpen)}
+                className="md:hidden w-8 h-8 rounded-lg flex items-center justify-center cursor-pointer"
+                style={{ background: 'rgba(255,255,255,0.08)' }}
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round">
+                  <line x1="3" y1="6" x2="21" y2="6" />
+                  <line x1="3" y1="12" x2="21" y2="12" />
+                  <line x1="3" y1="18" x2="21" y2="18" />
+                </svg>
+              </button>
               <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #a855f7, #f97316)' }}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
               </div>
               <div>
-                <h2 className="text-lg font-bold" style={{ color: '#d8b4fe', textShadow: '0 0 10px rgba(168, 85, 247, 0.5)' }}>
+                <h2 className="text-base md:text-lg font-bold" style={{ color: '#d8b4fe', textShadow: '0 0 10px rgba(168, 85, 247, 0.5)' }}>
                   TPK PLAY Admin
                 </h2>
-                <p className="text-xs" style={{ color: 'rgba(255,255,255,0.3)' }}>{adminEmail}</p>
+                <p className="text-[0.65rem] md:text-xs" style={{ color: 'rgba(255,255,255,0.3)' }}>{adminEmail}</p>
               </div>
             </div>
             <div className="flex items-center gap-2">
               <button
                 onClick={handleLogout}
-                className="px-3 py-1.5 rounded-lg text-xs font-bold cursor-pointer transition-all"
+                className="px-2.5 py-1.5 rounded-lg text-[0.65rem] md:text-xs font-bold cursor-pointer transition-all"
                 style={{
                   background: 'rgba(239, 68, 68, 0.1)',
                   color: '#ef4444',
@@ -759,1142 +835,1192 @@ export default function AdminPanel() {
             </div>
           </div>
 
-          {/* Tabs */}
-          <div className="flex border-b" style={{ borderColor: 'rgba(168, 85, 247, 0.2)' }}>
-            {[
-              { key: 'games' as Tab, label: 'Juegos', count: games.length, color: '#a855f7' },
-              { key: 'participants' as Tab, label: 'Participantes', count: participants.length, color: '#f97316' },
-              { key: 'stats' as Tab, label: 'Estadísticas', count: null, color: '#22c55e' },
-              { key: 'popup' as Tab, label: 'Popup', count: popups.length, color: '#eab308' },
-              { key: 'banners' as Tab, label: 'Banners', count: banners.length, color: '#00ffff' },
-            ].map((tab) => (
-              <button
-                key={tab.key}
-                onClick={() => setActiveTab(tab.key)}
-                className="flex-1 py-3 text-sm font-bold uppercase tracking-wider cursor-pointer transition-all"
-                style={{
-                  color: activeTab === tab.key ? tab.color : 'rgba(255,255,255,0.4)',
-                  borderBottom: activeTab === tab.key ? `2px solid ${tab.color}` : '2px solid transparent',
-                  textShadow: activeTab === tab.key ? `0 0 10px ${tab.color}80` : 'none',
-                }}
-              >
-                {tab.label} {tab.count !== null ? `(${tab.count})` : ''}
-              </button>
-            ))}
-          </div>
+          {/* Body: Sidebar + Content */}
+          <div className="flex-1 flex overflow-hidden relative">
+            {/* Mobile sidebar overlay */}
+            {sidebarOpen && (
+              <div
+                className="absolute inset-0 z-20 md:hidden"
+                style={{ backgroundColor: 'rgba(0,0,0,0.6)' }}
+                onClick={() => setSidebarOpen(false)}
+              />
+            )}
 
-          {/* Content */}
-          <div className="flex-1 overflow-y-auto p-4" style={{ scrollbarColor: 'rgba(168,85,247,0.3) transparent' }}>
-            {loading ? (
-              <div className="flex items-center justify-center py-12">
-                <div className="w-8 h-8 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: '#a855f7', borderTopColor: 'transparent' }} />
+            {/* Sidebar Navigation */}
+            <div
+              className={`
+                absolute md:relative z-30 md:z-auto
+                h-full w-56 flex-shrink-0 flex flex-col overflow-y-auto
+                transition-transform duration-300 ease-in-out
+                ${sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+              `}
+              style={{
+                background: 'linear-gradient(180deg, rgba(10,10,10,0.98) 0%, rgba(26,10,46,0.98) 50%, rgba(10,10,10,0.98) 100%)',
+                borderRight: '1px solid rgba(168, 85, 247, 0.15)',
+                scrollbarColor: 'rgba(168,85,247,0.3) transparent',
+                scrollbarWidth: 'thin',
+              }}
+            >
+              <div className="p-3 space-y-1">
+                {sidebarSections.map((section) => {
+                  const isExpanded = expandedSections[section.id]
+                  return (
+                    <div key={section.id} className="mb-1">
+                      {/* Section header */}
+                      <button
+                        onClick={() => toggleSection(section.id)}
+                        className="w-full flex items-center gap-2 px-2.5 py-2 rounded-lg text-xs font-bold uppercase tracking-wider cursor-pointer transition-all hover:bg-white/5"
+                        style={{ color: section.color }}
+                      >
+                        <span className="text-sm">{section.icon}</span>
+                        <span className="flex-1 text-left">{section.label}</span>
+                        <svg
+                          width="12"
+                          height="12"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke={section.color}
+                          strokeWidth="2.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          className="transition-transform duration-200"
+                          style={{ transform: isExpanded ? 'rotate(90deg)' : 'rotate(0deg)' }}
+                        >
+                          <polyline points="9 18 15 12 9 6" />
+                        </svg>
+                      </button>
+
+                      {/* Collapsible items */}
+                      <div
+                        className="overflow-hidden transition-all duration-300 ease-in-out"
+                        style={{
+                          maxHeight: isExpanded ? `${section.items.length * 44}px` : '0px',
+                          opacity: isExpanded ? 1 : 0,
+                        }}
+                      >
+                        {section.items.map((item) => {
+                          const isActive = activeTab === item.id
+                          return (
+                            <button
+                              key={item.id}
+                              onClick={() => handleTabChange(item.id)}
+                              className="w-full flex items-center gap-2.5 pl-5 pr-2.5 py-2 rounded-lg text-xs font-medium cursor-pointer transition-all"
+                              style={{
+                                color: isActive ? item.color : 'rgba(255,255,255,0.45)',
+                                background: isActive ? `${item.color}12` : 'transparent',
+                                borderLeft: isActive ? `3px solid ${item.color}` : '3px solid transparent',
+                                boxShadow: isActive ? `inset 0 0 12px ${item.color}08` : 'none',
+                              }}
+                            >
+                              <span className="text-sm">{item.icon}</span>
+                              <span className="flex-1 text-left">{item.label}</span>
+                              {item.count !== undefined && item.count > 0 && (
+                                <span
+                                  className="px-1.5 py-0.5 rounded-full text-[0.6rem] font-bold min-w-[20px] text-center"
+                                  style={{
+                                    background: isActive ? `${item.color}25` : 'rgba(255,255,255,0.08)',
+                                    color: isActive ? item.color : 'rgba(255,255,255,0.4)',
+                                    border: `1px solid ${isActive ? `${item.color}40` : 'rgba(255,255,255,0.1)'}`,
+                                  }}
+                                >
+                                  {item.count}
+                                </span>
+                              )}
+                            </button>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  )
+                })}
               </div>
-            ) : activeTab === 'games' ? (
-              /* ========== GAMES TAB ========== */
-              <div className="space-y-3">
-                {/* Error message */}
-                {fetchError && (
-                  <div
-                    className="p-3 rounded-xl flex items-center justify-between"
+
+              {/* Sidebar footer info */}
+              <div className="mt-auto p-3 border-t" style={{ borderColor: 'rgba(168,85,247,0.1)' }}>
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="text-center p-2 rounded-lg" style={{ background: 'rgba(168,85,247,0.06)' }}>
+                    <div className="text-sm font-black" style={{ color: '#d8b4fe' }}>{activeGames}/{totalGames}</div>
+                    <div className="text-[0.55rem] uppercase" style={{ color: 'rgba(255,255,255,0.3)' }}>Juegos</div>
+                  </div>
+                  <div className="text-center p-2 rounded-lg" style={{ background: 'rgba(249,115,22,0.06)' }}>
+                    <div className="text-sm font-black" style={{ color: '#fdba74' }}>{totalParticipants}</div>
+                    <div className="text-[0.55rem] uppercase" style={{ color: 'rgba(255,255,255,0.3)' }}>Participantes</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Main Content Area */}
+            <div className="flex-1 overflow-y-auto p-3 md:p-4" style={{ scrollbarColor: 'rgba(168,85,247,0.3) transparent' }}>
+              {loading ? (
+                <div className="flex items-center justify-center py-12">
+                  <div className="w-8 h-8 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: '#a855f7', borderTopColor: 'transparent' }} />
+                </div>
+              ) : activeTab === 'games' ? (
+                /* ========== GAMES TAB ========== */
+                <div className="space-y-3">
+                  {/* Error message */}
+                  {fetchError && (
+                    <div
+                      className="p-3 rounded-xl flex items-center justify-between"
+                      style={{
+                        background: 'rgba(239, 68, 68, 0.1)',
+                        border: '1px solid rgba(239, 68, 68, 0.3)',
+                      }}
+                    >
+                      <span className="text-xs font-bold" style={{ color: '#ef4444' }}>{fetchError}</span>
+                      <button
+                        onClick={() => { fetchGames(); fetchParticipants(); }}
+                        className="px-3 py-1 rounded-lg text-xs font-bold cursor-pointer"
+                        style={{ background: 'rgba(239, 68, 68, 0.2)', color: '#ef4444', border: '1px solid rgba(239, 68, 68, 0.4)' }}
+                      >
+                        Reintentar
+                      </button>
+                    </div>
+                  )}
+                  {/* Add game button */}
+                  <button
+                    onClick={handleOpenAddGame}
+                    className="w-full py-3 rounded-xl text-sm font-bold uppercase tracking-wider cursor-pointer transition-all"
                     style={{
-                      background: 'rgba(239, 68, 68, 0.1)',
-                      border: '1px solid rgba(239, 68, 68, 0.3)',
+                      border: '1px dashed rgba(168, 85, 247, 0.4)',
+                      color: '#d8b4fe',
+                      background: 'rgba(168, 85, 247, 0.05)',
                     }}
                   >
-                    <span className="text-xs font-bold" style={{ color: '#ef4444' }}>{fetchError}</span>
-                    <button
-                      onClick={() => { fetchGames(); fetchParticipants(); }}
-                      className="px-3 py-1 rounded-lg text-xs font-bold cursor-pointer"
-                      style={{ background: 'rgba(239, 68, 68, 0.2)', color: '#ef4444', border: '1px solid rgba(239, 68, 68, 0.4)' }}
-                    >
-                      Reintentar
-                    </button>
-                  </div>
-                )}
-                {/* Add game button */}
-                <button
-                  onClick={handleOpenAddGame}
-                  className="w-full py-3 rounded-xl text-sm font-bold uppercase tracking-wider cursor-pointer transition-all"
-                  style={{
-                    border: '1px dashed rgba(168, 85, 247, 0.4)',
-                    color: '#d8b4fe',
-                    background: 'rgba(168, 85, 247, 0.05)',
-                  }}
-                >
-                  + Agregar Juego
-                </button>
+                    + Agregar Juego
+                  </button>
 
-                {games.length === 0 ? (
-                  <div className="text-center py-8" style={{ color: 'rgba(255,255,255,0.3)' }}>
-                    No hay juegos registrados. Agrega el primero.
+                  {games.length === 0 ? (
+                    <div className="text-center py-8" style={{ color: 'rgba(255,255,255,0.3)' }}>
+                      No hay juegos registrados. Agrega el primero.
+                    </div>
+                  ) : (
+                    games
+                      .sort((a, b) => a.order - b.order)
+                      .map((game) => {
+                        const gameType = GAME_TYPES[game.type] || GAME_TYPES['personalizado']
+                        return (
+                          <div
+                            key={game.id}
+                            className="rounded-xl transition-all"
+                            style={{
+                              background: 'rgba(255,255,255,0.03)',
+                              border: `1px solid ${game.isActive ? `${gameType.color}30` : 'rgba(255,255,255,0.08)'}`,
+                              boxShadow: game.isActive ? `0 0 10px ${gameType.color}08` : 'none',
+                            }}
+                          >
+                            {/* Game card top row */}
+                            <div className="p-4 flex items-start gap-3">
+                              {/* Drag handle + order */}
+                              <div className="flex flex-col items-center gap-0.5 pt-1">
+                                <button
+                                  onClick={() => handleMoveGame(game, 'up')}
+                                  className="w-6 h-6 rounded flex items-center justify-center cursor-pointer transition-colors"
+                                  style={{ color: 'rgba(255,255,255,0.3)', background: 'rgba(255,255,255,0.05)' }}
+                                  title="Mover arriba"
+                                >
+                                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 15l-6-6-6 6"/></svg>
+                                </button>
+                                <span className="text-[0.6rem] font-bold" style={{ color: 'rgba(255,255,255,0.2)' }}>#{game.order}</span>
+                                <button
+                                  onClick={() => handleMoveGame(game, 'down')}
+                                  className="w-6 h-6 rounded flex items-center justify-center cursor-pointer transition-colors"
+                                  style={{ color: 'rgba(255,255,255,0.3)', background: 'rgba(255,255,255,0.05)' }}
+                                  title="Mover abajo"
+                                >
+                                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M6 9l6 6 6-6"/></svg>
+                                </button>
+                              </div>
+
+                              {/* Game info */}
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2 mb-1 flex-wrap">
+                                  <span
+                                    className="px-2 py-0.5 rounded text-xs font-bold flex items-center gap-1"
+                                    style={{ background: `${gameType.color}20`, color: gameType.color, border: `1px solid ${gameType.color}40` }}
+                                  >
+                                    <span>{gameType.icon}</span>
+                                    {gameType.label}
+                                  </span>
+                                  <span
+                                    className="px-2 py-0.5 rounded text-xs font-bold"
+                                    style={{
+                                      background: game.isActive ? 'rgba(34, 197, 94, 0.15)' : 'rgba(239, 68, 68, 0.15)',
+                                      color: game.isActive ? '#4ade80' : '#ef4444',
+                                      border: `1px solid ${game.isActive ? 'rgba(34, 197, 94, 0.3)' : 'rgba(239, 68, 68, 0.3)'}`,
+                                    }}
+                                  >
+                                    {game.isActive ? '● Activo' : '○ Inactivo'}
+                                  </span>
+                                </div>
+                                <div className="font-bold text-sm" style={{ color: game.isActive ? '#e9d5ff' : 'rgba(255,255,255,0.4)' }}>
+                                  {game.name}
+                                </div>
+                                {game.description && (
+                                  <div className="text-xs mt-1 line-clamp-2" style={{ color: 'rgba(255,255,255,0.4)' }}>{game.description}</div>
+                                )}
+                                <div className="flex items-center gap-3 mt-2">
+                                  <span className="text-xs" style={{ color: `${gameType.color}80` }}>
+                                    👥 {game._count?.participants || 0} participantes
+                                  </span>
+                                  {game.type && (
+                                    <span className="text-xs" style={{ color: 'rgba(255,255,255,0.2)' }}>
+                                      {gameType.description}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+
+                              {/* Action buttons */}
+                              <div className="flex items-center gap-1.5">
+                                <button
+                                  onClick={() => setPreviewGame(game)}
+                                  className="w-8 h-8 rounded-lg flex items-center justify-center cursor-pointer transition-all"
+                                  style={{
+                                    background: 'rgba(168, 85, 247, 0.1)',
+                                    color: '#d8b4fe',
+                                    border: '1px solid rgba(168, 85, 247, 0.2)',
+                                  }}
+                                  title="Vista Previa"
+                                >
+                                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                                </button>
+                                <button
+                                  onClick={() => handleOpenEditGame(game)}
+                                  className="w-8 h-8 rounded-lg flex items-center justify-center cursor-pointer transition-all"
+                                  style={{
+                                    background: 'rgba(249, 115, 22, 0.1)',
+                                    color: '#fdba74',
+                                    border: '1px solid rgba(249, 115, 22, 0.2)',
+                                  }}
+                                  title="Editar"
+                                >
+                                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                                </button>
+                                <button
+                                  onClick={() => handleToggleGame(game)}
+                                  className="w-8 h-8 rounded-lg flex items-center justify-center cursor-pointer transition-all"
+                                  style={{
+                                    background: game.isActive ? 'rgba(34, 197, 94, 0.1)' : 'rgba(239, 68, 68, 0.1)',
+                                    color: game.isActive ? '#4ade80' : '#ef4444',
+                                    border: `1px solid ${game.isActive ? 'rgba(34, 197, 94, 0.2)' : 'rgba(239, 68, 68, 0.2)'}`,
+                                  }}
+                                  title={game.isActive ? 'Desactivar' : 'Activar'}
+                                >
+                                  {game.isActive ? (
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18.36 6.64a9 9 0 1 1-12.73 0"/><line x1="12" y1="2" x2="12" y2="12"/></svg>
+                                  ) : (
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+                                  )}
+                                </button>
+                                {deleteConfirm === game.id ? (
+                                  <div className="flex items-center gap-1">
+                                    <button
+                                      onClick={() => handleDeleteGame(game.id)}
+                                      className="px-2 py-1 rounded-lg text-xs font-bold cursor-pointer"
+                                      style={{ background: 'rgba(239, 68, 68, 0.3)', color: '#ef4444', border: '1px solid rgba(239, 68, 68, 0.5)' }}
+                                    >
+                                      Sí
+                                    </button>
+                                    <button
+                                      onClick={() => setDeleteConfirm(null)}
+                                      className="px-2 py-1 rounded-lg text-xs cursor-pointer"
+                                      style={{ background: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.5)', border: '1px solid rgba(255,255,255,0.1)' }}
+                                    >
+                                      No
+                                    </button>
+                                  </div>
+                                ) : (
+                                  <button
+                                    onClick={() => setDeleteConfirm(game.id)}
+                                    className="w-8 h-8 rounded-lg flex items-center justify-center cursor-pointer transition-all"
+                                    style={{
+                                      background: 'rgba(239, 68, 68, 0.1)',
+                                      color: '#ef4444',
+                                      border: '1px solid rgba(239, 68, 68, 0.2)',
+                                    }}
+                                    title="Eliminar"
+                                  >
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        )
+                      })
+                  )}
+                </div>
+              ) : activeTab === 'participants' ? (
+                /* ========== PARTICIPANTS TAB ========== */
+                <div className="space-y-3">
+                  {participants.length > 0 && (
+                    <button
+                      onClick={sendAllToWhatsApp}
+                      className="w-full py-3 rounded-xl text-sm font-bold uppercase tracking-wider cursor-pointer transition-all flex items-center justify-center gap-2"
+                      style={{
+                        background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
+                        color: 'white',
+                        boxShadow: '0 0 15px rgba(34, 197, 94, 0.3)',
+                      }}
+                    >
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.625.846 5.059 2.284 7.034L.789 23.492a.5.5 0 00.612.638l4.694-1.358A11.946 11.946 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-2.136 0-4.144-.62-5.845-1.688l-.414-.258-2.965.858.87-2.89-.276-.438A9.955 9.955 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
+                      Enviar Todo a WhatsApp TPK
+                    </button>
+                  )}
+
+                  {participants.length === 0 ? (
+                    <div className="text-center py-8" style={{ color: 'rgba(255,255,255,0.3)' }}>
+                      No hay participantes registrados aún.
+                    </div>
+                  ) : (
+                    participants.map((p) => (
+                      <div
+                        key={p.id}
+                        className="p-4 rounded-xl transition-all"
+                        style={{
+                          background: 'rgba(255,255,255,0.03)',
+                          border: '1px solid rgba(249, 115, 22, 0.2)',
+                        }}
+                      >
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <div className="font-bold text-sm" style={{ color: '#fed7aa' }}>{p.name}</div>
+                            <div className="text-xs mt-1" style={{ color: 'rgba(255,255,255,0.5)' }}>{p.email}</div>
+                            <div className="text-xs" style={{ color: 'rgba(255,255,255,0.5)' }}>{p.phone}</div>
+                            <div className="flex items-center gap-2 mt-2">
+                              <span
+                                className="px-2 py-0.5 rounded text-xs font-bold"
+                                style={{ background: 'rgba(168, 85, 247, 0.2)', color: '#d8b4fe', border: '1px solid rgba(168, 85, 247, 0.3)' }}
+                              >
+                                {p.code}
+                              </span>
+                              {p.game && (
+                                <span
+                                  className="px-2 py-0.5 rounded text-xs"
+                                  style={{ background: 'rgba(249, 115, 22, 0.15)', color: '#fdba74', border: '1px solid rgba(249, 115, 22, 0.3)' }}
+                                >
+                                  {p.game.name}
+                                </span>
+                              )}
+                              <span
+                                className="px-2 py-0.5 rounded text-xs font-bold"
+                                style={{ background: 'rgba(234, 179, 8, 0.15)', color: '#fde047', border: '1px solid rgba(234, 179, 8, 0.3)' }}
+                              >
+                                ⭐ {p.totalPoints} pts
+                              </span>
+                            </div>
+                            <div className="flex gap-1 mt-2">
+                              <span className="text-xs" style={{ color: p.followedFb ? '#4ade80' : 'rgba(255,255,255,0.2)' }}>FB</span>
+                              <span className="text-xs" style={{ color: 'rgba(255,255,255,0.15)' }}>·</span>
+                              <span className="text-xs" style={{ color: p.followedIg ? '#4ade80' : 'rgba(255,255,255,0.2)' }}>IG</span>
+                              <span className="text-xs" style={{ color: 'rgba(255,255,255,0.15)' }}>·</span>
+                              <span className="text-xs" style={{ color: p.followedWa ? '#4ade80' : 'rgba(255,255,255,0.2)' }}>WA</span>
+                            </div>
+                          </div>
+                          <div className="flex flex-col gap-1">
+                            <button
+                              onClick={() => sendToWhatsApp(p)}
+                              className="px-3 py-1 rounded-lg text-xs font-bold cursor-pointer"
+                              style={{ background: 'rgba(34, 197, 94, 0.15)', color: '#4ade80', border: '1px solid rgba(34, 197, 94, 0.3)' }}
+                            >
+                              WhatsApp
+                            </button>
+                            <button
+                              onClick={() => handleDeleteParticipant(p.id)}
+                              className="px-3 py-1 rounded-lg text-xs cursor-pointer"
+                              style={{ background: 'rgba(239, 68, 68, 0.15)', color: '#ef4444', border: '1px solid rgba(239, 68, 68, 0.3)' }}
+                            >
+                              Eliminar
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              ) : activeTab === 'popup' ? (
+                /* ========== POPUP TAB ========== */
+                <div className="space-y-3">
+                  <button
+                    onClick={() => {
+                      setEditingPopup(null)
+                      setPopupForm({ text: 'TPK NUEVO', linkUrl: '#', imageUrl: '', isActive: true, color: '#f97316', size: 120, position: 'bottom-left' })
+                    }}
+                    className="w-full py-3 rounded-xl text-sm font-bold uppercase tracking-wider cursor-pointer transition-all"
+                    style={{
+                      border: '1px dashed rgba(234, 179, 8, 0.4)',
+                      color: '#fde047',
+                      background: 'rgba(234, 179, 8, 0.05)',
+                    }}
+                  >
+                    + Agregar Popup Circular
+                  </button>
+
+                  {(editingPopup || popupForm.text) && (
+                    <div
+                      className="p-4 rounded-xl space-y-3"
+                      style={{
+                        background: 'rgba(234, 179, 8, 0.05)',
+                        border: '1px solid rgba(234, 179, 8, 0.2)',
+                      }}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-bold" style={{ color: '#fde047' }}>
+                          {editingPopup ? 'Editar Popup' : 'Nuevo Popup'}
+                        </span>
+                        <button
+                          onClick={() => {
+                            setEditingPopup(null)
+                            setPopupForm({ text: 'TPK NUEVO', linkUrl: '#', imageUrl: '', isActive: true, color: '#f97316', size: 120, position: 'bottom-left' })
+                          }}
+                          className="text-xs cursor-pointer"
+                          style={{ color: 'rgba(255,255,255,0.4)' }}
+                        >
+                          Cancelar
+                        </button>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-xs font-bold uppercase tracking-wider mb-1" style={{ color: '#fde047' }}>Texto</label>
+                          <input
+                            type="text"
+                            value={popupForm.text}
+                            onChange={(e) => setPopupForm({ ...popupForm, text: e.target.value })}
+                            className="w-full px-3 py-2 rounded-lg text-sm text-white outline-none"
+                            style={{ background: 'rgba(0,0,0,0.5)', border: '1px solid rgba(234,179,8,0.3)' }}
+                            placeholder="TPK NUEVO"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-bold uppercase tracking-wider mb-1" style={{ color: '#fde047' }}>URL de destino</label>
+                          <input
+                            type="url"
+                            value={popupForm.linkUrl}
+                            onChange={(e) => setPopupForm({ ...popupForm, linkUrl: e.target.value })}
+                            className="w-full px-3 py-2 rounded-lg text-sm text-white outline-none"
+                            style={{ background: 'rgba(0,0,0,0.5)', border: '1px solid rgba(234,179,8,0.3)' }}
+                            placeholder="https://ejemplo.com"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-bold uppercase tracking-wider mb-1" style={{ color: '#fde047' }}>URL de Imagen</label>
+                          <input
+                            type="url"
+                            value={popupForm.imageUrl}
+                            onChange={(e) => setPopupForm({ ...popupForm, imageUrl: e.target.value })}
+                            className="w-full px-3 py-2 rounded-lg text-sm text-white outline-none"
+                            style={{ background: 'rgba(0,0,0,0.5)', border: '1px solid rgba(234,179,8,0.3)' }}
+                            placeholder="https://ejemplo.com/producto.jpg"
+                          />
+                          {popupForm.imageUrl && (
+                            <div className="mt-2 flex items-center gap-2">
+                              <img
+                                src={popupForm.imageUrl}
+                                alt="Preview"
+                                className="w-8 h-8 rounded-full object-cover"
+                                style={{ border: `1px solid ${popupForm.color}` }}
+                                onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
+                              />
+                              <span className="text-[0.6rem]" style={{ color: 'rgba(255,255,255,0.3)' }}>Vista previa</span>
+                            </div>
+                          )}
+                        </div>
+                        <div>
+                          <label className="block text-xs font-bold uppercase tracking-wider mb-1" style={{ color: '#fde047' }}>Color</label>
+                          <div className="flex gap-2 flex-wrap">
+                            {['#f97316', '#a855f7', '#eab308', '#22c55e', '#ef4444', '#3b82f6', '#ec4899', '#06b6d4'].map((c) => (
+                              <button
+                                key={c}
+                                onClick={() => setPopupForm({ ...popupForm, color: c })}
+                                className="w-7 h-7 rounded-full cursor-pointer transition-all"
+                                style={{
+                                  background: c,
+                                  border: popupForm.color === c ? '2px solid white' : '2px solid transparent',
+                                  boxShadow: popupForm.color === c ? `0 0 10px ${c}80` : 'none',
+                                }}
+                              />
+                            ))}
+                          </div>
+                        </div>
+                        <div>
+                          <label className="block text-xs font-bold uppercase tracking-wider mb-1" style={{ color: '#fde047' }}>Posicion</label>
+                          <select
+                            value={popupForm.position}
+                            onChange={(e) => setPopupForm({ ...popupForm, position: e.target.value })}
+                            className="w-full px-3 py-2 rounded-lg text-sm text-white outline-none"
+                            style={{ background: 'rgba(0,0,0,0.5)', border: '1px solid rgba(234,179,8,0.3)' }}
+                          >
+                            <option value="bottom-left">Abajo Izquierda</option>
+                            <option value="bottom-right">Abajo Derecha</option>
+                            <option value="top-left">Arriba Izquierda</option>
+                            <option value="top-right">Arriba Derecha</option>
+                            <option value="center-left">Centro Izquierda</option>
+                            <option value="center-right">Centro Derecha</option>
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-xs font-bold uppercase tracking-wider mb-1" style={{ color: '#fde047' }}>
+                            Tamano: {popupForm.size}px
+                          </label>
+                          <input
+                            type="range"
+                            min="80"
+                            max="200"
+                            step="10"
+                            value={popupForm.size}
+                            onChange={(e) => setPopupForm({ ...popupForm, size: parseInt(e.target.value) })}
+                            className="w-full"
+                            style={{ accentColor: popupForm.color }}
+                          />
+                        </div>
+                        <div className="sm:col-span-2 flex items-center gap-3">
+                          <button
+                            onClick={() => setPopupForm({ ...popupForm, isActive: !popupForm.isActive })}
+                            className="px-3 py-1.5 rounded-lg text-xs font-bold cursor-pointer"
+                            style={{
+                              background: popupForm.isActive ? 'rgba(34,197,94,0.15)' : 'rgba(239,68,68,0.15)',
+                              color: popupForm.isActive ? '#4ade80' : '#ef4444',
+                              border: `1px solid ${popupForm.isActive ? 'rgba(34,197,94,0.3)' : 'rgba(239,68,68,0.3)'}`,
+                            }}
+                          >
+                            {popupForm.isActive ? '● Activo' : '○ Inactivo'}
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Mini Preview */}
+                      <div className="flex justify-center py-4">
+                        <div className="relative" style={{ width: Math.min(popupForm.size + 40, 140), height: Math.min(popupForm.size + 40, 140) }}>
+                          <div
+                            className="absolute inset-0 flex items-center justify-center"
+                            style={{ animation: 'pulse-glow 3s ease-in-out infinite' }}
+                          >
+                            <span className="text-[0.5rem] font-black uppercase tracking-wider absolute" style={{ color: popupForm.color, textShadow: `0 0 6px ${popupForm.color}80`, top: 2, left: '50%', transform: 'translateX(-50%)' }}>
+                              {popupForm.text}
+                            </span>
+                            <span className="text-[0.5rem] font-black uppercase tracking-wider absolute" style={{ color: popupForm.color, textShadow: `0 0 6px ${popupForm.color}80`, bottom: 2, left: '50%', transform: 'translateX(-50%)' }}>
+                              {popupForm.text}
+                            </span>
+                          </div>
+                          <div
+                            className="absolute rounded-full flex items-center justify-center overflow-hidden"
+                            style={{
+                              width: Math.min(popupForm.size, 100),
+                              height: Math.min(popupForm.size, 100),
+                              left: '50%',
+                              top: '50%',
+                              transform: 'translate(-50%, -50%)',
+                              background: `radial-gradient(circle at 35% 35%, ${popupForm.color}40, ${popupForm.color}15 50%, rgba(0,0,0,0.9) 80%)`,
+                              border: `2px solid ${popupForm.color}`,
+                              boxShadow: `0 0 15px ${popupForm.color}60, 0 0 30px ${popupForm.color}30`,
+                            }}
+                          >
+                            {popupForm.imageUrl ? (
+                              <img
+                                src={popupForm.imageUrl}
+                                alt="Preview"
+                                className="w-full h-full object-cover rounded-full"
+                                onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
+                              />
+                            ) : (
+                              <span className="text-xs font-black uppercase" style={{ color: popupForm.color, textShadow: `0 0 6px ${popupForm.color}80` }}>
+                                TPK
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      <button
+                        onClick={handleSavePopup}
+                        disabled={savingPopup}
+                        className="w-full py-2.5 rounded-xl font-bold text-sm uppercase tracking-wider cursor-pointer transition-all disabled:opacity-50"
+                        style={{
+                          background: `linear-gradient(135deg, ${popupForm.color}, ${popupForm.color}cc)`,
+                          color: 'white',
+                          boxShadow: `0 0 15px ${popupForm.color}40`,
+                        }}
+                      >
+                        {savingPopup ? 'Guardando...' : editingPopup ? 'Actualizar Popup' : 'Crear Popup'}
+                      </button>
+                    </div>
+                  )}
+
+                  {popups.length === 0 ? (
+                    <div className="text-center py-8" style={{ color: 'rgba(255,255,255,0.3)' }}>
+                      No hay popups creados. Agrega el primero.
+                    </div>
+                  ) : (
+                    popups.map((popup) => (
+                      <div
+                        key={popup.id}
+                        className="p-4 rounded-xl flex items-center gap-3"
+                        style={{
+                          background: 'rgba(255,255,255,0.03)',
+                          border: `1px solid ${popup.isActive ? `${popup.color}30` : 'rgba(255,255,255,0.08)'}`,
+                        }}
+                      >
+                        <div
+                          className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden"
+                          style={{
+                            background: `radial-gradient(circle, ${popup.color}40, ${popup.color}10)`,
+                            border: `1px solid ${popup.color}`,
+                            boxShadow: `0 0 8px ${popup.color}40`,
+                          }}
+                        >
+                          {popup.imageUrl ? (
+                            <img
+                              src={popup.imageUrl}
+                              alt={popup.text}
+                              className="w-full h-full object-cover rounded-full"
+                              onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
+                            />
+                          ) : (
+                            <span className="text-[0.5rem] font-black uppercase" style={{ color: popup.color }}>
+                              {popup.text.substring(0, 3)}
+                            </span>
+                          )}
+                        </div>
+
+                        <div className="flex-1 min-w-0">
+                          <div className="font-bold text-sm" style={{ color: popup.isActive ? '#fef3c7' : 'rgba(255,255,255,0.4)' }}>
+                            {popup.text}
+                          </div>
+                          <div className="text-xs mt-0.5 truncate" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                            {popup.linkUrl} | {popup.size}px | {popup.position}
+                          </div>
+                          <div className="flex items-center gap-2 mt-1 flex-wrap">
+                            {popup.imageUrl && (
+                              <span
+                                className="px-2 py-0.5 rounded text-xs font-bold"
+                                style={{ background: 'rgba(59,130,246,0.15)', color: '#60a5fa', border: '1px solid rgba(59,130,246,0.3)' }}
+                              >
+                                Con Imagen
+                              </span>
+                            )}
+                            <span
+                              className="px-2 py-0.5 rounded text-xs font-bold"
+                              style={{ background: `${popup.color}20`, color: popup.color, border: `1px solid ${popup.color}40` }}
+                            >
+                              {popup.color}
+                            </span>
+                            <span
+                              className="px-2 py-0.5 rounded text-xs font-bold"
+                              style={{
+                                background: popup.isActive ? 'rgba(34,197,94,0.15)' : 'rgba(239,68,68,0.15)',
+                                color: popup.isActive ? '#4ade80' : '#ef4444',
+                                border: `1px solid ${popup.isActive ? 'rgba(34,197,94,0.3)' : 'rgba(239,68,68,0.3)'}`,
+                              }}
+                            >
+                              {popup.isActive ? 'Activo' : 'Inactivo'}
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-1.5">
+                          <button
+                            onClick={() => handleTogglePopup(popup)}
+                            className="w-7 h-7 rounded-lg flex items-center justify-center cursor-pointer"
+                            style={{
+                              background: popup.isActive ? 'rgba(34,197,94,0.1)' : 'rgba(239,68,68,0.1)',
+                              color: popup.isActive ? '#4ade80' : '#ef4444',
+                              border: `1px solid ${popup.isActive ? 'rgba(34,197,94,0.2)' : 'rgba(239,68,68,0.2)'}`,
+                            }}
+                            title={popup.isActive ? 'Desactivar' : 'Activar'}
+                          >
+                            {popup.isActive ? (
+                              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18.36 6.64a9 9 0 1 1-12.73 0"/><line x1="12" y1="2" x2="12" y2="12"/></svg>
+                            ) : (
+                              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+                            )}
+                          </button>
+                          <button
+                            onClick={() => {
+                              setEditingPopup(popup)
+                              setPopupForm({
+                                text: popup.text,
+                                linkUrl: popup.linkUrl,
+                                imageUrl: popup.imageUrl || '',
+                                isActive: popup.isActive,
+                                color: popup.color,
+                                size: popup.size,
+                                position: popup.position,
+                              })
+                            }}
+                            className="w-7 h-7 rounded-lg flex items-center justify-center cursor-pointer"
+                            style={{ background: 'rgba(249,115,22,0.1)', color: '#fdba74', border: '1px solid rgba(249,115,22,0.2)' }}
+                            title="Editar"
+                          >
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                          </button>
+                          <button
+                            onClick={() => handleDeletePopup(popup.id)}
+                            className="w-7 h-7 rounded-lg flex items-center justify-center cursor-pointer"
+                            style={{ background: 'rgba(239,68,68,0.1)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.2)' }}
+                            title="Eliminar"
+                          >
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                          </button>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              ) : activeTab === 'banners' ? (
+                /* ========== BANNERS TAB ========== */
+                <div className="space-y-3">
+                  <div
+                    className="p-3 rounded-xl flex items-center gap-3"
+                    style={{
+                      background: 'rgba(0, 255, 255, 0.05)',
+                      border: '1px solid rgba(0, 255, 255, 0.2)',
+                    }}
+                  >
+                    <span style={{ color: '#00ffff', fontSize: '1.2rem' }}>💡</span>
+                    <span className="text-xs" style={{ color: 'rgba(0,255,255,0.7)' }}>
+                      Crea los banners <b style={{ color: '#00ffff' }}>GANADOR TPK</b> y <b style={{ color: '#ff00ff' }}>PREMIO TPK</b> para mostrar en la página principal. Sube la foto del ganador o el premio.
+                    </span>
                   </div>
-                ) : (
-                  games
-                    .sort((a, b) => a.order - b.order)
-                    .map((game) => {
-                      const gameType = GAME_TYPES[game.type] || GAME_TYPES['personalizado']
+
+                  <button
+                    onClick={() => {
+                      setEditingBanner(null)
+                      setBannerForm({ type: 'ganador', title: 'GANADOR TPK', subtitle: '', imageUrl: '', linkUrl: '', isActive: true })
+                      setShowBannerForm(true)
+                    }}
+                    className="w-full py-3 rounded-xl text-sm font-bold uppercase tracking-wider cursor-pointer transition-all"
+                    style={{
+                      border: '1px dashed rgba(0, 255, 255, 0.4)',
+                      color: '#00ffff',
+                      background: 'rgba(0, 255, 255, 0.05)',
+                    }}
+                  >
+                    + Agregar Banner
+                  </button>
+
+                  {showBannerForm && (
+                    <div
+                      className="p-4 rounded-xl space-y-3"
+                      style={{
+                        background: `rgba(${bannerForm.type === 'ganador' ? '0,255,255' : '255,0,255'}, 0.05)`,
+                        border: `1px solid rgba(${bannerForm.type === 'ganador' ? '0,255,255' : '255,0,255'}, 0.2)`,
+                      }}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-bold" style={{ color: bannerForm.type === 'ganador' ? '#00ffff' : '#ff00ff' }}>
+                          {bannerForm.type === 'ganador' ? '🏆 GANADOR TPK' : '🎁 PREMIO TPK'}
+                        </span>
+                        <button
+                          onClick={() => { setEditingBanner(null); setShowBannerForm(false) }}
+                          className="text-xs cursor-pointer"
+                          style={{ color: 'rgba(255,255,255,0.4)' }}
+                        >
+                          Cancelar
+                        </button>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-xs font-bold uppercase tracking-wider mb-1" style={{ color: '#00ffff' }}>Tipo de Banner</label>
+                          <select
+                            value={bannerForm.type}
+                            onChange={(e) => {
+                              const t = e.target.value
+                              setBannerForm({
+                                ...bannerForm,
+                                type: t,
+                                title: t === 'ganador' ? 'GANADOR TPK' : 'PREMIO TPK',
+                              })
+                            }}
+                            className="w-full px-3 py-2 rounded-lg text-sm text-white outline-none"
+                            style={{ background: 'rgba(0,0,0,0.5)', border: '1px solid rgba(0,255,255,0.3)' }}
+                          >
+                            <option value="ganador">🏆 GANADOR TPK</option>
+                            <option value="premio">🎁 PREMIO TPK</option>
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-xs font-bold uppercase tracking-wider mb-1" style={{ color: '#00ffff' }}>Título</label>
+                          <input
+                            type="text"
+                            value={bannerForm.title}
+                            onChange={(e) => setBannerForm({ ...bannerForm, title: e.target.value })}
+                            className="w-full px-3 py-2 rounded-lg text-sm text-white outline-none"
+                            style={{ background: 'rgba(0,0,0,0.5)', border: '1px solid rgba(0,255,255,0.3)' }}
+                            placeholder="GANADOR TPK"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-bold uppercase tracking-wider mb-1" style={{ color: '#00ffff' }}>Subtítulo</label>
+                          <input
+                            type="text"
+                            value={bannerForm.subtitle}
+                            onChange={(e) => setBannerForm({ ...bannerForm, subtitle: e.target.value })}
+                            className="w-full px-3 py-2 rounded-lg text-sm text-white outline-none"
+                            style={{ background: 'rgba(0,0,0,0.5)', border: '1px solid rgba(0,255,255,0.3)' }}
+                            placeholder="Campeón Semanal"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-bold uppercase tracking-wider mb-1" style={{ color: '#00ffff' }}>URL de Imagen</label>
+                          <input
+                            type="url"
+                            value={bannerForm.imageUrl}
+                            onChange={(e) => setBannerForm({ ...bannerForm, imageUrl: e.target.value })}
+                            className="w-full px-3 py-2 rounded-lg text-sm text-white outline-none"
+                            style={{ background: 'rgba(0,0,0,0.5)', border: '1px solid rgba(0,255,255,0.3)' }}
+                            placeholder="https://ejemplo.com/foto.jpg"
+                          />
+                          {bannerForm.imageUrl && (
+                            <div className="mt-2 flex items-center gap-2">
+                              <img
+                                src={bannerForm.imageUrl}
+                                alt="Preview"
+                                className="w-10 h-10 rounded-lg object-cover"
+                                style={{ border: `2px solid ${bannerForm.type === 'ganador' ? '#00ffff' : '#ff00ff'}`, boxShadow: `0 0 8px ${bannerForm.type === 'ganador' ? 'rgba(0,255,255,0.4)' : 'rgba(255,0,255,0.4)'}` }}
+                                onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
+                              />
+                              <span className="text-[0.6rem]" style={{ color: 'rgba(255,255,255,0.3)' }}>Vista previa</span>
+                            </div>
+                          )}
+                        </div>
+                        <div>
+                          <label className="block text-xs font-bold uppercase tracking-wider mb-1" style={{ color: '#00ffff' }}>Enlace (opcional)</label>
+                          <input
+                            type="url"
+                            value={bannerForm.linkUrl}
+                            onChange={(e) => setBannerForm({ ...bannerForm, linkUrl: e.target.value })}
+                            className="w-full px-3 py-2 rounded-lg text-sm text-white outline-none"
+                            style={{ background: 'rgba(0,0,0,0.5)', border: '1px solid rgba(0,255,255,0.3)' }}
+                            placeholder="https://instagram.com/ganador"
+                          />
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <button
+                            onClick={() => setBannerForm({ ...bannerForm, isActive: !bannerForm.isActive })}
+                            className="px-3 py-1.5 rounded-lg text-xs font-bold cursor-pointer"
+                            style={{
+                              background: bannerForm.isActive ? 'rgba(34,197,94,0.15)' : 'rgba(239,68,68,0.15)',
+                              color: bannerForm.isActive ? '#4ade80' : '#ef4444',
+                              border: `1px solid ${bannerForm.isActive ? 'rgba(34,197,94,0.3)' : 'rgba(239,68,68,0.3)'}`,
+                            }}
+                          >
+                            {bannerForm.isActive ? '● Activo' : '○ Inactivo'}
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="flex gap-2 pt-2">
+                        <button
+                          onClick={handleSaveBanner}
+                          disabled={savingBanner || !bannerForm.title.trim()}
+                          className="flex-1 py-2 rounded-lg text-sm font-bold cursor-pointer transition-all disabled:opacity-50"
+                          style={{
+                            background: `linear-gradient(135deg, ${bannerForm.type === 'ganador' ? '#00ffff, #0088ff' : '#ff00ff, #ff4488'})`,
+                            color: '#000',
+                            boxShadow: `0 0 10px ${bannerForm.type === 'ganador' ? 'rgba(0,255,255,0.3)' : 'rgba(255,0,255,0.3)'}`,
+                          }}
+                        >
+                          {savingBanner ? 'Guardando...' : 'Guardar Banner'}
+                        </button>
+                        <button
+                          onClick={() => { setEditingBanner(null); setShowBannerForm(false) }}
+                          className="px-4 py-2 rounded-lg text-sm cursor-pointer"
+                          style={{ background: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.6)' }}
+                        >
+                          Cancelar
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {banners.length === 0 ? (
+                    <div className="text-center py-8" style={{ color: 'rgba(255,255,255,0.3)' }}>
+                      No hay banners creados. Agrega el GANADOR TPK y el PREMIO TPK.
+                    </div>
+                  ) : (
+                    banners.map((banner) => {
+                      const isGanador = banner.type === 'ganador'
+                      const color = isGanador ? '#00ffff' : '#ff00ff'
+                      const glowBg = isGanador ? 'rgba(0,255,255,' : 'rgba(255,0,255,'
                       return (
                         <div
-                          key={game.id}
+                          key={banner.id}
                           className="rounded-xl transition-all"
                           style={{
                             background: 'rgba(255,255,255,0.03)',
-                            border: `1px solid ${game.isActive ? `${gameType.color}30` : 'rgba(255,255,255,0.08)'}`,
-                            boxShadow: game.isActive ? `0 0 10px ${gameType.color}08` : 'none',
+                            border: `1px solid ${banner.isActive ? `${glowBg}0.3)` : 'rgba(255,255,255,0.08)'}`,
+                            boxShadow: banner.isActive ? `0 0 10px ${glowBg}0.08)` : 'none',
                           }}
                         >
-                          {/* Game card top row */}
-                          <div className="p-4 flex items-start gap-3">
-                            {/* Drag handle + order */}
-                            <div className="flex flex-col items-center gap-0.5 pt-1">
-                              <button
-                                onClick={() => handleMoveGame(game, 'up')}
-                                className="w-6 h-6 rounded flex items-center justify-center cursor-pointer transition-colors"
-                                style={{ color: 'rgba(255,255,255,0.3)', background: 'rgba(255,255,255,0.05)' }}
-                                title="Mover arriba"
-                              >
-                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 15l-6-6-6 6"/></svg>
-                              </button>
-                              <span className="text-[0.6rem] font-bold" style={{ color: 'rgba(255,255,255,0.2)' }}>#{game.order}</span>
-                              <button
-                                onClick={() => handleMoveGame(game, 'down')}
-                                className="w-6 h-6 rounded flex items-center justify-center cursor-pointer transition-colors"
-                                style={{ color: 'rgba(255,255,255,0.3)', background: 'rgba(255,255,255,0.05)' }}
-                                title="Mover abajo"
-                              >
-                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M6 9l6 6 6-6"/></svg>
-                              </button>
+                          <div className="p-4 flex items-center gap-3">
+                            <div
+                              className="w-14 h-14 rounded-lg overflow-hidden flex-shrink-0 flex items-center justify-center"
+                              style={{
+                                border: `2px solid ${color}50`,
+                                background: banner.imageUrl ? 'transparent' : `${glowBg}0.1)`,
+                              }}
+                            >
+                              {banner.imageUrl ? (
+                                <img
+                                  src={banner.imageUrl}
+                                  alt={banner.title}
+                                  className="w-full h-full object-cover"
+                                  onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
+                                />
+                              ) : (
+                                <span className="text-xl">{isGanador ? '🏆' : '🎁'}</span>
+                              )}
                             </div>
 
-                            {/* Game info */}
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-2 mb-1 flex-wrap">
-                                {/* Type badge */}
                                 <span
-                                  className="px-2 py-0.5 rounded text-xs font-bold flex items-center gap-1"
-                                  style={{ background: `${gameType.color}20`, color: gameType.color, border: `1px solid ${gameType.color}40` }}
+                                  className="px-2 py-0.5 rounded text-xs font-bold"
+                                  style={{ background: `${glowBg}0.15)`, color, border: `1px solid ${glowBg}0.3)` }}
                                 >
-                                  <span>{gameType.icon}</span>
-                                  {gameType.label}
+                                  {isGanador ? '🏆 GANADOR' : '🎁 PREMIO'}
                                 </span>
-                                {/* Active/Inactive badge */}
                                 <span
                                   className="px-2 py-0.5 rounded text-xs font-bold"
                                   style={{
-                                    background: game.isActive ? 'rgba(34, 197, 94, 0.15)' : 'rgba(239, 68, 68, 0.15)',
-                                    color: game.isActive ? '#4ade80' : '#ef4444',
-                                    border: `1px solid ${game.isActive ? 'rgba(34, 197, 94, 0.3)' : 'rgba(239, 68, 68, 0.3)'}`,
+                                    background: banner.isActive ? 'rgba(34,197,94,0.15)' : 'rgba(239,68,68,0.15)',
+                                    color: banner.isActive ? '#4ade80' : '#ef4444',
+                                    border: `1px solid ${banner.isActive ? 'rgba(34,197,94,0.3)' : 'rgba(239,68,68,0.3)'}`,
                                   }}
                                 >
-                                  {game.isActive ? '● Activo' : '○ Inactivo'}
+                                  {banner.isActive ? '● Activo' : '○ Inactivo'}
                                 </span>
                               </div>
-                              <div className="font-bold text-sm" style={{ color: game.isActive ? '#e9d5ff' : 'rgba(255,255,255,0.4)' }}>
-                                {game.name}
+                              <div className="font-bold text-sm" style={{ color: banner.isActive ? color : 'rgba(255,255,255,0.4)' }}>
+                                {banner.title}
                               </div>
-                              {game.description && (
-                                <div className="text-xs mt-1 line-clamp-2" style={{ color: 'rgba(255,255,255,0.4)' }}>{game.description}</div>
+                              {banner.subtitle && (
+                                <div className="text-xs mt-0.5" style={{ color: 'rgba(255,255,255,0.4)' }}>{banner.subtitle}</div>
                               )}
-                              <div className="flex items-center gap-3 mt-2">
-                                <span className="text-xs" style={{ color: `${gameType.color}80` }}>
-                                  👥 {game._count?.participants || 0} participantes
-                                </span>
-                                {game.type && (
-                                  <span className="text-xs" style={{ color: 'rgba(255,255,255,0.2)' }}>
-                                    {gameType.description}
-                                  </span>
-                                )}
-                              </div>
                             </div>
 
-                            {/* Action buttons */}
                             <div className="flex items-center gap-1.5">
-                              {/* Preview */}
                               <button
-                                onClick={() => setPreviewGame(game)}
-                                className="w-8 h-8 rounded-lg flex items-center justify-center cursor-pointer transition-all"
+                                onClick={() => handleToggleBanner(banner)}
+                                className="w-7 h-7 rounded-lg flex items-center justify-center cursor-pointer"
                                 style={{
-                                  background: 'rgba(168, 85, 247, 0.1)',
-                                  color: '#d8b4fe',
-                                  border: '1px solid rgba(168, 85, 247, 0.2)',
+                                  background: banner.isActive ? 'rgba(34,197,94,0.1)' : 'rgba(239,68,68,0.1)',
+                                  color: banner.isActive ? '#4ade80' : '#ef4444',
+                                  border: `1px solid ${banner.isActive ? 'rgba(34,197,94,0.2)' : 'rgba(239,68,68,0.2)'}`,
                                 }}
-                                title="Vista Previa"
+                                title={banner.isActive ? 'Desactivar' : 'Activar'}
                               >
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-                              </button>
-                              {/* Edit */}
-                              <button
-                                onClick={() => handleOpenEditGame(game)}
-                                className="w-8 h-8 rounded-lg flex items-center justify-center cursor-pointer transition-all"
-                                style={{
-                                  background: 'rgba(249, 115, 22, 0.1)',
-                                  color: '#fdba74',
-                                  border: '1px solid rgba(249, 115, 22, 0.2)',
-                                }}
-                                title="Editar"
-                              >
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-                              </button>
-                              {/* Toggle active */}
-                              <button
-                                onClick={() => handleToggleGame(game)}
-                                className="w-8 h-8 rounded-lg flex items-center justify-center cursor-pointer transition-all"
-                                style={{
-                                  background: game.isActive ? 'rgba(34, 197, 94, 0.1)' : 'rgba(239, 68, 68, 0.1)',
-                                  color: game.isActive ? '#4ade80' : '#ef4444',
-                                  border: `1px solid ${game.isActive ? 'rgba(34, 197, 94, 0.2)' : 'rgba(239, 68, 68, 0.2)'}`,
-                                }}
-                                title={game.isActive ? 'Desactivar' : 'Activar'}
-                              >
-                                {game.isActive ? (
-                                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18.36 6.64a9 9 0 1 1-12.73 0"/><line x1="12" y1="2" x2="12" y2="12"/></svg>
+                                {banner.isActive ? (
+                                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18.36 6.64a9 9 0 1 1-12.73 0"/><line x1="12" y1="2" x2="12" y2="12"/></svg>
                                 ) : (
-                                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+                                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
                                 )}
                               </button>
-                              {/* Delete */}
-                              {deleteConfirm === game.id ? (
-                                <div className="flex items-center gap-1">
-                                  <button
-                                    onClick={() => handleDeleteGame(game.id)}
-                                    className="px-2 py-1 rounded-lg text-xs font-bold cursor-pointer"
-                                    style={{ background: 'rgba(239, 68, 68, 0.3)', color: '#ef4444', border: '1px solid rgba(239, 68, 68, 0.5)' }}
-                                  >
-                                    Sí
-                                  </button>
-                                  <button
-                                    onClick={() => setDeleteConfirm(null)}
-                                    className="px-2 py-1 rounded-lg text-xs cursor-pointer"
-                                    style={{ background: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.5)', border: '1px solid rgba(255,255,255,0.1)' }}
-                                  >
-                                    No
-                                  </button>
-                                </div>
-                              ) : (
-                                <button
-                                  onClick={() => setDeleteConfirm(game.id)}
-                                  className="w-8 h-8 rounded-lg flex items-center justify-center cursor-pointer transition-all"
-                                  style={{
-                                    background: 'rgba(239, 68, 68, 0.1)',
-                                    color: '#ef4444',
-                                    border: '1px solid rgba(239, 68, 68, 0.2)',
-                                  }}
-                                  title="Eliminar"
-                                >
-                                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-                                </button>
-                              )}
+                              <button
+                                onClick={() => {
+                                  setEditingBanner(banner)
+                                  setBannerForm({
+                                    type: banner.type,
+                                    title: banner.title,
+                                    subtitle: banner.subtitle || '',
+                                    imageUrl: banner.imageUrl || '',
+                                    linkUrl: banner.linkUrl || '',
+                                    isActive: banner.isActive,
+                                  })
+                                  setShowBannerForm(true)
+                                }}
+                                className="w-7 h-7 rounded-lg flex items-center justify-center cursor-pointer"
+                                style={{ background: `${glowBg}0.1)`, color, border: `1px solid ${glowBg}0.2)` }}
+                                title="Editar"
+                              >
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                              </button>
+                              <button
+                                onClick={() => handleDeleteBanner(banner.id)}
+                                className="w-7 h-7 rounded-lg flex items-center justify-center cursor-pointer"
+                                style={{ background: 'rgba(239,68,68,0.1)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.2)' }}
+                                title="Eliminar"
+                              >
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                              </button>
                             </div>
                           </div>
                         </div>
                       )
                     })
-                )}
-              </div>
-            ) : activeTab === 'participants' ? (
-              /* ========== PARTICIPANTS TAB ========== */
-              <div className="space-y-3">
-                {/* Send all to WhatsApp */}
-                {participants.length > 0 && (
-                  <button
-                    onClick={sendAllToWhatsApp}
-                    className="w-full py-3 rounded-xl text-sm font-bold uppercase tracking-wider cursor-pointer transition-all flex items-center justify-center gap-2"
-                    style={{
-                      background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
-                      color: 'white',
-                      boxShadow: '0 0 15px rgba(34, 197, 94, 0.3)',
-                    }}
-                  >
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.625.846 5.059 2.284 7.034L.789 23.492a.5.5 0 00.612.638l4.694-1.358A11.946 11.946 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-2.136 0-4.144-.62-5.845-1.688l-.414-.258-2.965.858.87-2.89-.276-.438A9.955 9.955 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
-                    Enviar Todo a WhatsApp TPK
-                  </button>
-                )}
-
-                {participants.length === 0 ? (
-                  <div className="text-center py-8" style={{ color: 'rgba(255,255,255,0.3)' }}>
-                    No hay participantes registrados aún.
-                  </div>
-                ) : (
-                  participants.map((p) => (
+                  )}
+                </div>
+              ) : (
+                /* ========== STATS TAB ========== */
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                     <div
-                      key={p.id}
-                      className="p-4 rounded-xl transition-all"
-                      style={{
-                        background: 'rgba(255,255,255,0.03)',
-                        border: '1px solid rgba(249, 115, 22, 0.2)',
-                      }}
+                      className="p-4 rounded-xl text-center"
+                      style={{ background: 'rgba(168, 85, 247, 0.08)', border: '1px solid rgba(168, 85, 247, 0.2)' }}
                     >
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <div className="font-bold text-sm" style={{ color: '#fed7aa' }}>{p.name}</div>
-                          <div className="text-xs mt-1" style={{ color: 'rgba(255,255,255,0.5)' }}>{p.email}</div>
-                          <div className="text-xs" style={{ color: 'rgba(255,255,255,0.5)' }}>{p.phone}</div>
-                          <div className="flex items-center gap-2 mt-2">
-                            <span
-                              className="px-2 py-0.5 rounded text-xs font-bold"
-                              style={{ background: 'rgba(168, 85, 247, 0.2)', color: '#d8b4fe', border: '1px solid rgba(168, 85, 247, 0.3)' }}
-                            >
-                              {p.code}
-                            </span>
-                            {p.game && (
-                              <span
-                                className="px-2 py-0.5 rounded text-xs"
-                                style={{ background: 'rgba(249, 115, 22, 0.15)', color: '#fdba74', border: '1px solid rgba(249, 115, 22, 0.3)' }}
-                              >
-                                {p.game.name}
-                              </span>
-                            )}
-                            <span
-                              className="px-2 py-0.5 rounded text-xs font-bold"
-                              style={{ background: 'rgba(234, 179, 8, 0.15)', color: '#fde047', border: '1px solid rgba(234, 179, 8, 0.3)' }}
-                            >
-                              ⭐ {p.totalPoints} pts
-                            </span>
-                          </div>
-                          <div className="flex gap-1 mt-2">
-                            <span className="text-xs" style={{ color: p.followedFb ? '#4ade80' : 'rgba(255,255,255,0.2)' }}>FB</span>
-                            <span className="text-xs" style={{ color: 'rgba(255,255,255,0.15)' }}>·</span>
-                            <span className="text-xs" style={{ color: p.followedIg ? '#4ade80' : 'rgba(255,255,255,0.2)' }}>IG</span>
-                            <span className="text-xs" style={{ color: 'rgba(255,255,255,0.15)' }}>·</span>
-                            <span className="text-xs" style={{ color: p.followedWa ? '#4ade80' : 'rgba(255,255,255,0.2)' }}>WA</span>
-                          </div>
-                        </div>
-                        <div className="flex flex-col gap-1">
-                          <button
-                            onClick={() => sendToWhatsApp(p)}
-                            className="px-3 py-1 rounded-lg text-xs font-bold cursor-pointer"
-                            style={{ background: 'rgba(34, 197, 94, 0.15)', color: '#4ade80', border: '1px solid rgba(34, 197, 94, 0.3)' }}
-                          >
-                            WhatsApp
-                          </button>
-                          <button
-                            onClick={() => handleDeleteParticipant(p.id)}
-                            className="px-3 py-1 rounded-lg text-xs cursor-pointer"
-                            style={{ background: 'rgba(239, 68, 68, 0.15)', color: '#ef4444', border: '1px solid rgba(239, 68, 68, 0.3)' }}
-                          >
-                            Eliminar
-                          </button>
-                        </div>
+                      <div className="text-2xl font-black" style={{ color: '#d8b4fe', textShadow: '0 0 10px rgba(168, 85, 247, 0.4)' }}>
+                        {totalParticipants}
+                      </div>
+                      <div className="text-xs uppercase tracking-wider mt-1" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                        Participantes
                       </div>
                     </div>
-                  ))
-                )}
-              </div>
-            ) : activeTab === 'popup' ? (
-              /* ========== POPUP TAB ========== */
-              <div className="space-y-3">
-                {/* Add popup button */}
-                <button
-                  onClick={() => {
-                    setEditingPopup(null)
-                    setPopupForm({ text: 'TPK NUEVO', linkUrl: '#', imageUrl: '', isActive: true, color: '#f97316', size: 120, position: 'bottom-left' })
-                  }}
-                  className="w-full py-3 rounded-xl text-sm font-bold uppercase tracking-wider cursor-pointer transition-all"
-                  style={{
-                    border: '1px dashed rgba(234, 179, 8, 0.4)',
-                    color: '#fde047',
-                    background: 'rgba(234, 179, 8, 0.05)',
-                  }}
-                >
-                  + Agregar Popup Circular
-                </button>
-
-                {/* Popup Form */}
-                {(editingPopup || popupForm.text) && (
-                  <div
-                    className="p-4 rounded-xl space-y-3"
-                    style={{
-                      background: 'rgba(234, 179, 8, 0.05)',
-                      border: '1px solid rgba(234, 179, 8, 0.2)',
-                    }}
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-bold" style={{ color: '#fde047' }}>
-                        {editingPopup ? 'Editar Popup' : 'Nuevo Popup'}
-                      </span>
-                      <button
-                        onClick={() => {
-                          setEditingPopup(null)
-                          setPopupForm({ text: 'TPK NUEVO', linkUrl: '#', imageUrl: '', isActive: true, color: '#f97316', size: 120, position: 'bottom-left' })
-                        }}
-                        className="text-xs cursor-pointer"
-                        style={{ color: 'rgba(255,255,255,0.4)' }}
-                      >
-                        Cancelar
-                      </button>
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      {/* Text */}
-                      <div>
-                        <label className="block text-xs font-bold uppercase tracking-wider mb-1" style={{ color: '#fde047' }}>Texto</label>
-                        <input
-                          type="text"
-                          value={popupForm.text}
-                          onChange={(e) => setPopupForm({ ...popupForm, text: e.target.value })}
-                          className="w-full px-3 py-2 rounded-lg text-sm text-white outline-none"
-                          style={{ background: 'rgba(0,0,0,0.5)', border: '1px solid rgba(234,179,8,0.3)' }}
-                          placeholder="TPK NUEVO"
-                        />
-                      </div>
-                      {/* URL */}
-                      <div>
-                        <label className="block text-xs font-bold uppercase tracking-wider mb-1" style={{ color: '#fde047' }}>URL de destino</label>
-                        <input
-                          type="url"
-                          value={popupForm.linkUrl}
-                          onChange={(e) => setPopupForm({ ...popupForm, linkUrl: e.target.value })}
-                          className="w-full px-3 py-2 rounded-lg text-sm text-white outline-none"
-                          style={{ background: 'rgba(0,0,0,0.5)', border: '1px solid rgba(234,179,8,0.3)' }}
-                          placeholder="https://ejemplo.com"
-                        />
-                      </div>
-                      {/* Image URL */}
-                      <div>
-                        <label className="block text-xs font-bold uppercase tracking-wider mb-1" style={{ color: '#fde047' }}>URL de Imagen (se muestra dentro del circulo)</label>
-                        <input
-                          type="url"
-                          value={popupForm.imageUrl}
-                          onChange={(e) => setPopupForm({ ...popupForm, imageUrl: e.target.value })}
-                          className="w-full px-3 py-2 rounded-lg text-sm text-white outline-none"
-                          style={{ background: 'rgba(0,0,0,0.5)', border: '1px solid rgba(234,179,8,0.3)' }}
-                          placeholder="https://ejemplo.com/producto.jpg"
-                        />
-                        {popupForm.imageUrl && (
-                          <div className="mt-2 flex items-center gap-2">
-                            <img
-                              src={popupForm.imageUrl}
-                              alt="Preview"
-                              className="w-8 h-8 rounded-full object-cover"
-                              style={{ border: `1px solid ${popupForm.color}` }}
-                              onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
-                            />
-                            <span className="text-[0.6rem]" style={{ color: 'rgba(255,255,255,0.3)' }}>Vista previa de imagen</span>
-                          </div>
-                        )}
-                      </div>
-                      {/* Color */}
-                      <div>
-                        <label className="block text-xs font-bold uppercase tracking-wider mb-1" style={{ color: '#fde047' }}>Color</label>
-                        <div className="flex gap-2 flex-wrap">
-                          {['#f97316', '#a855f7', '#eab308', '#22c55e', '#ef4444', '#3b82f6', '#ec4899', '#06b6d4'].map((c) => (
-                            <button
-                              key={c}
-                              onClick={() => setPopupForm({ ...popupForm, color: c })}
-                              className="w-7 h-7 rounded-full cursor-pointer transition-all"
-                              style={{
-                                background: c,
-                                border: popupForm.color === c ? '2px solid white' : '2px solid transparent',
-                                boxShadow: popupForm.color === c ? `0 0 10px ${c}80` : 'none',
-                              }}
-                            />
-                          ))}
-                        </div>
-                      </div>
-                      {/* Position */}
-                      <div>
-                        <label className="block text-xs font-bold uppercase tracking-wider mb-1" style={{ color: '#fde047' }}>Posicion</label>
-                        <select
-                          value={popupForm.position}
-                          onChange={(e) => setPopupForm({ ...popupForm, position: e.target.value })}
-                          className="w-full px-3 py-2 rounded-lg text-sm text-white outline-none"
-                          style={{ background: 'rgba(0,0,0,0.5)', border: '1px solid rgba(234,179,8,0.3)' }}
-                        >
-                          <option value="bottom-left">Abajo Izquierda</option>
-                          <option value="bottom-right">Abajo Derecha</option>
-                          <option value="top-left">Arriba Izquierda</option>
-                          <option value="top-right">Arriba Derecha</option>
-                          <option value="center-left">Centro Izquierda</option>
-                          <option value="center-right">Centro Derecha</option>
-                        </select>
-                      </div>
-                      {/* Size */}
-                      <div className="sm:col-span-2">
-                        <label className="block text-xs font-bold uppercase tracking-wider mb-1" style={{ color: '#fde047' }}>
-                          Tamano: {popupForm.size}px
-                        </label>
-                        <input
-                          type="range"
-                          min="80"
-                          max="200"
-                          step="10"
-                          value={popupForm.size}
-                          onChange={(e) => setPopupForm({ ...popupForm, size: parseInt(e.target.value) })}
-                          className="w-full"
-                          style={{ accentColor: popupForm.color }}
-                        />
-                      </div>
-                      {/* Active toggle */}
-                      <div className="sm:col-span-2 flex items-center gap-3">
-                        <button
-                          onClick={() => setPopupForm({ ...popupForm, isActive: !popupForm.isActive })}
-                          className="px-3 py-1.5 rounded-lg text-xs font-bold cursor-pointer"
-                          style={{
-                            background: popupForm.isActive ? 'rgba(34,197,94,0.15)' : 'rgba(239,68,68,0.15)',
-                            color: popupForm.isActive ? '#4ade80' : '#ef4444',
-                            border: `1px solid ${popupForm.isActive ? 'rgba(34,197,94,0.3)' : 'rgba(239,68,68,0.3)'}`,
-                          }}
-                        >
-                          {popupForm.isActive ? '● Activo' : '○ Inactivo'}
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Mini Preview */}
-                    <div className="flex justify-center py-4">
-                      <div className="relative" style={{ width: Math.min(popupForm.size + 40, 140), height: Math.min(popupForm.size + 40, 140) }}>
-                        {/* Text ring preview */}
-                        <div
-                          className="absolute inset-0 flex items-center justify-center"
-                          style={{
-                            animation: 'pulse-glow 3s ease-in-out infinite',
-                          }}
-                        >
-                          <span className="text-[0.5rem] font-black uppercase tracking-wider absolute" style={{ color: popupForm.color, textShadow: `0 0 6px ${popupForm.color}80`, top: 2, left: '50%', transform: 'translateX(-50%)' }}>
-                            {popupForm.text}
-                          </span>
-                          <span className="text-[0.5rem] font-black uppercase tracking-wider absolute" style={{ color: popupForm.color, textShadow: `0 0 6px ${popupForm.color}80`, bottom: 2, left: '50%', transform: 'translateX(-50%)' }}>
-                            {popupForm.text}
-                          </span>
-                        </div>
-                        {/* Circle with image */}
-                        <div
-                          className="absolute rounded-full flex items-center justify-center overflow-hidden"
-                          style={{
-                            width: Math.min(popupForm.size, 100),
-                            height: Math.min(popupForm.size, 100),
-                            left: '50%',
-                            top: '50%',
-                            transform: 'translate(-50%, -50%)',
-                            background: `radial-gradient(circle at 35% 35%, ${popupForm.color}40, ${popupForm.color}15 50%, rgba(0,0,0,0.9) 80%)`,
-                            border: `2px solid ${popupForm.color}`,
-                            boxShadow: `0 0 15px ${popupForm.color}60, 0 0 30px ${popupForm.color}30`,
-                          }}
-                        >
-                          {popupForm.imageUrl ? (
-                            <img
-                              src={popupForm.imageUrl}
-                              alt="Preview"
-                              className="w-full h-full object-cover rounded-full"
-                              onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
-                            />
-                          ) : (
-                            <span className="text-xs font-black uppercase" style={{ color: popupForm.color, textShadow: `0 0 6px ${popupForm.color}80` }}>
-                              TPK
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Save button */}
-                    <button
-                      onClick={handleSavePopup}
-                      disabled={savingPopup}
-                      className="w-full py-2.5 rounded-xl font-bold text-sm uppercase tracking-wider cursor-pointer transition-all disabled:opacity-50"
-                      style={{
-                        background: `linear-gradient(135deg, ${popupForm.color}, ${popupForm.color}cc)`,
-                        color: 'white',
-                        boxShadow: `0 0 15px ${popupForm.color}40`,
-                      }}
-                    >
-                      {savingPopup ? 'Guardando...' : editingPopup ? 'Actualizar Popup' : 'Crear Popup'}
-                    </button>
-                  </div>
-                )}
-
-                {/* Existing popups list */}
-                {popups.length === 0 ? (
-                  <div className="text-center py-8" style={{ color: 'rgba(255,255,255,0.3)' }}>
-                    No hay popups creados. Agrega el primero.
-                  </div>
-                ) : (
-                  popups.map((popup) => (
                     <div
-                      key={popup.id}
-                      className="p-4 rounded-xl flex items-center gap-3"
-                      style={{
-                        background: 'rgba(255,255,255,0.03)',
-                        border: `1px solid ${popup.isActive ? `${popup.color}30` : 'rgba(255,255,255,0.08)'}`,
-                      }}
+                      className="p-4 rounded-xl text-center"
+                      style={{ background: 'rgba(234, 179, 8, 0.08)', border: '1px solid rgba(234, 179, 8, 0.2)' }}
                     >
-                      {/* Mini circle preview */}
-                      <div
-                        className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden"
-                        style={{
-                          background: `radial-gradient(circle, ${popup.color}40, ${popup.color}10)`,
-                          border: `1px solid ${popup.color}`,
-                          boxShadow: `0 0 8px ${popup.color}40`,
-                        }}
-                      >
-                        {popup.imageUrl ? (
-                          <img
-                            src={popup.imageUrl}
-                            alt={popup.text}
-                            className="w-full h-full object-cover rounded-full"
-                            onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
-                          />
-                        ) : (
-                          <span className="text-[0.5rem] font-black uppercase" style={{ color: popup.color }}>
-                            {popup.text.substring(0, 3)}
-                          </span>
-                        )}
+                      <div className="text-2xl font-black" style={{ color: '#fde047', textShadow: '0 0 10px rgba(234, 179, 8, 0.4)' }}>
+                        {totalPoints.toLocaleString()}
                       </div>
-
-                      {/* Info */}
-                      <div className="flex-1 min-w-0">
-                        <div className="font-bold text-sm" style={{ color: popup.isActive ? '#fef3c7' : 'rgba(255,255,255,0.4)' }}>
-                          {popup.text}
-                        </div>
-                        <div className="text-xs mt-0.5 truncate" style={{ color: 'rgba(255,255,255,0.4)' }}>
-                          {popup.linkUrl} | {popup.size}px | {popup.position}
-                        </div>
-                        <div className="flex items-center gap-2 mt-1 flex-wrap">
-                          {popup.imageUrl && (
-                            <span
-                              className="px-2 py-0.5 rounded text-xs font-bold"
-                              style={{ background: 'rgba(59,130,246,0.15)', color: '#60a5fa', border: '1px solid rgba(59,130,246,0.3)' }}
-                            >
-                              Con Imagen
-                            </span>
-                          )}
-                          <span
-                            className="px-2 py-0.5 rounded text-xs font-bold"
-                            style={{ background: `${popup.color}20`, color: popup.color, border: `1px solid ${popup.color}40` }}
-                          >
-                            {popup.color}
-                          </span>
-                          <span
-                            className="px-2 py-0.5 rounded text-xs font-bold"
-                            style={{
-                              background: popup.isActive ? 'rgba(34,197,94,0.15)' : 'rgba(239,68,68,0.15)',
-                              color: popup.isActive ? '#4ade80' : '#ef4444',
-                              border: `1px solid ${popup.isActive ? 'rgba(34,197,94,0.3)' : 'rgba(239,68,68,0.3)'}`,
-                            }}
-                          >
-                            {popup.isActive ? 'Activo' : 'Inactivo'}
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* Actions */}
-                      <div className="flex items-center gap-1.5">
-                        <button
-                          onClick={() => handleTogglePopup(popup)}
-                          className="w-7 h-7 rounded-lg flex items-center justify-center cursor-pointer"
-                          style={{
-                            background: popup.isActive ? 'rgba(34,197,94,0.1)' : 'rgba(239,68,68,0.1)',
-                            color: popup.isActive ? '#4ade80' : '#ef4444',
-                            border: `1px solid ${popup.isActive ? 'rgba(34,197,94,0.2)' : 'rgba(239,68,68,0.2)'}`,
-                          }}
-                          title={popup.isActive ? 'Desactivar' : 'Activar'}
-                        >
-                          {popup.isActive ? (
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18.36 6.64a9 9 0 1 1-12.73 0"/><line x1="12" y1="2" x2="12" y2="12"/></svg>
-                          ) : (
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
-                          )}
-                        </button>
-                        <button
-                          onClick={() => {
-                            setEditingPopup(popup)
-                            setPopupForm({
-                              text: popup.text,
-                              linkUrl: popup.linkUrl,
-                              imageUrl: popup.imageUrl || '',
-                              isActive: popup.isActive,
-                              color: popup.color,
-                              size: popup.size,
-                              position: popup.position,
-                            })
-                          }}
-                          className="w-7 h-7 rounded-lg flex items-center justify-center cursor-pointer"
-                          style={{ background: 'rgba(249,115,22,0.1)', color: '#fdba74', border: '1px solid rgba(249,115,22,0.2)' }}
-                          title="Editar"
-                        >
-                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-                        </button>
-                        <button
-                          onClick={() => handleDeletePopup(popup.id)}
-                          className="w-7 h-7 rounded-lg flex items-center justify-center cursor-pointer"
-                          style={{ background: 'rgba(239,68,68,0.1)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.2)' }}
-                          title="Eliminar"
-                        >
-                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-                        </button>
+                      <div className="text-xs uppercase tracking-wider mt-1" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                        Puntos Totales
                       </div>
                     </div>
-                  ))
-                )}
-              </div>
-            ) : activeTab === 'banners' ? (
-              /* ========== BANNERS TAB ========== */
-              <div className="space-y-3">
-                {/* Info banner */}
-                <div
-                  className="p-3 rounded-xl flex items-center gap-3"
-                  style={{
-                    background: 'rgba(0, 255, 255, 0.05)',
-                    border: '1px solid rgba(0, 255, 255, 0.2)',
-                  }}
-                >
-                  <span style={{ color: '#00ffff', fontSize: '1.2rem' }}>💡</span>
-                  <span className="text-xs" style={{ color: 'rgba(0,255,255,0.7)' }}>
-                    Crea los banners <b style={{ color: '#00ffff' }}>GANADOR TPK</b> y <b style={{ color: '#ff00ff' }}>PREMIO TPK</b> para mostrar en la página principal. Sube la foto del ganador o el premio.
-                  </span>
-                </div>
-
-                {/* Add banner button */}
-                <button
-                  onClick={() => {
-                    setEditingBanner(null)
-                    setBannerForm({ type: 'ganador', title: 'GANADOR TPK', subtitle: '', imageUrl: '', linkUrl: '', isActive: true })
-                    setShowBannerForm(true)
-                  }}
-                  className="w-full py-3 rounded-xl text-sm font-bold uppercase tracking-wider cursor-pointer transition-all"
-                  style={{
-                    border: '1px dashed rgba(0, 255, 255, 0.4)',
-                    color: '#00ffff',
-                    background: 'rgba(0, 255, 255, 0.05)',
-                  }}
-                >
-                  + Agregar Banner
-                </button>
-
-                {/* Banner Form */}
-                {showBannerForm && (
-                  <div
-                    className="p-4 rounded-xl space-y-3"
-                    style={{
-                      background: `rgba(${bannerForm.type === 'ganador' ? '0,255,255' : '255,0,255'}, 0.05)`,
-                      border: `1px solid rgba(${bannerForm.type === 'ganador' ? '0,255,255' : '255,0,255'}, 0.2)`,
-                    }}
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-bold" style={{ color: bannerForm.type === 'ganador' ? '#00ffff' : '#ff00ff' }}>
-                        {bannerForm.type === 'ganador' ? '🏆 GANADOR TPK' : '🎁 PREMIO TPK'}
-                      </span>
-                      <button
-                        onClick={() => { setEditingBanner(null); setShowBannerForm(false) }}
-                        className="text-xs cursor-pointer"
-                        style={{ color: 'rgba(255,255,255,0.4)' }}
-                      >
-                        Cancelar
-                      </button>
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      {/* Type */}
-                      <div>
-                        <label className="block text-xs font-bold uppercase tracking-wider mb-1" style={{ color: '#00ffff' }}>Tipo de Banner</label>
-                        <select
-                          value={bannerForm.type}
-                          onChange={(e) => {
-                            const t = e.target.value
-                            setBannerForm({
-                              ...bannerForm,
-                              type: t,
-                              title: t === 'ganador' ? 'GANADOR TPK' : 'PREMIO TPK',
-                            })
-                          }}
-                          className="w-full px-3 py-2 rounded-lg text-sm text-white outline-none"
-                          style={{ background: 'rgba(0,0,0,0.5)', border: '1px solid rgba(0,255,255,0.3)' }}
-                        >
-                          <option value="ganador">🏆 GANADOR TPK</option>
-                          <option value="premio">🎁 PREMIO TPK</option>
-                        </select>
+                    <div
+                      className="p-4 rounded-xl text-center"
+                      style={{ background: 'rgba(34, 197, 94, 0.08)', border: '1px solid rgba(34, 197, 94, 0.2)' }}
+                    >
+                      <div className="text-2xl font-black" style={{ color: '#4ade80', textShadow: '0 0 10px rgba(34, 197, 94, 0.4)' }}>
+                        {activeGames}/{totalGames}
                       </div>
-                      {/* Title */}
-                      <div>
-                        <label className="block text-xs font-bold uppercase tracking-wider mb-1" style={{ color: '#00ffff' }}>Título</label>
-                        <input
-                          type="text"
-                          value={bannerForm.title}
-                          onChange={(e) => setBannerForm({ ...bannerForm, title: e.target.value })}
-                          className="w-full px-3 py-2 rounded-lg text-sm text-white outline-none"
-                          style={{ background: 'rgba(0,0,0,0.5)', border: '1px solid rgba(0,255,255,0.3)' }}
-                          placeholder="GANADOR TPK"
-                        />
-                      </div>
-                      {/* Subtitle */}
-                      <div>
-                        <label className="block text-xs font-bold uppercase tracking-wider mb-1" style={{ color: '#00ffff' }}>Subtítulo</label>
-                        <input
-                          type="text"
-                          value={bannerForm.subtitle}
-                          onChange={(e) => setBannerForm({ ...bannerForm, subtitle: e.target.value })}
-                          className="w-full px-3 py-2 rounded-lg text-sm text-white outline-none"
-                          style={{ background: 'rgba(0,0,0,0.5)', border: '1px solid rgba(0,255,255,0.3)' }}
-                          placeholder="Campeón Semanal"
-                        />
-                      </div>
-                      {/* Image URL */}
-                      <div>
-                        <label className="block text-xs font-bold uppercase tracking-wider mb-1" style={{ color: '#00ffff' }}>URL de Imagen (foto del ganador o premio)</label>
-                        <input
-                          type="url"
-                          value={bannerForm.imageUrl}
-                          onChange={(e) => setBannerForm({ ...bannerForm, imageUrl: e.target.value })}
-                          className="w-full px-3 py-2 rounded-lg text-sm text-white outline-none"
-                          style={{ background: 'rgba(0,0,0,0.5)', border: '1px solid rgba(0,255,255,0.3)' }}
-                          placeholder="https://ejemplo.com/foto.jpg"
-                        />
-                        {bannerForm.imageUrl && (
-                          <div className="mt-2 flex items-center gap-2">
-                            <img
-                              src={bannerForm.imageUrl}
-                              alt="Preview"
-                              className="w-10 h-10 rounded-lg object-cover"
-                              style={{ border: `2px solid ${bannerForm.type === 'ganador' ? '#00ffff' : '#ff00ff'}`, boxShadow: `0 0 8px ${bannerForm.type === 'ganador' ? 'rgba(0,255,255,0.4)' : 'rgba(255,0,255,0.4)'}` }}
-                              onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
-                            />
-                            <span className="text-[0.6rem]" style={{ color: 'rgba(255,255,255,0.3)' }}>Vista previa</span>
-                          </div>
-                        )}
-                      </div>
-                      {/* Link URL */}
-                      <div>
-                        <label className="block text-xs font-bold uppercase tracking-wider mb-1" style={{ color: '#00ffff' }}>Enlace (opcional)</label>
-                        <input
-                          type="url"
-                          value={bannerForm.linkUrl}
-                          onChange={(e) => setBannerForm({ ...bannerForm, linkUrl: e.target.value })}
-                          className="w-full px-3 py-2 rounded-lg text-sm text-white outline-none"
-                          style={{ background: 'rgba(0,0,0,0.5)', border: '1px solid rgba(0,255,255,0.3)' }}
-                          placeholder="https://instagram.com/ganador"
-                        />
-                      </div>
-                      {/* Active toggle */}
-                      <div className="flex items-center gap-3">
-                        <button
-                          onClick={() => setBannerForm({ ...bannerForm, isActive: !bannerForm.isActive })}
-                          className="px-3 py-1.5 rounded-lg text-xs font-bold cursor-pointer"
-                          style={{
-                            background: bannerForm.isActive ? 'rgba(34,197,94,0.15)' : 'rgba(239,68,68,0.15)',
-                            color: bannerForm.isActive ? '#4ade80' : '#ef4444',
-                            border: `1px solid ${bannerForm.isActive ? 'rgba(34,197,94,0.3)' : 'rgba(239,68,68,0.3)'}`,
-                          }}
-                        >
-                          {bannerForm.isActive ? '● Activo' : '○ Inactivo'}
-                        </button>
+                      <div className="text-xs uppercase tracking-wider mt-1" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                        Juegos Activos
                       </div>
                     </div>
-
-                    {/* Save button */}
-                    <div className="flex gap-2 pt-2">
-                      <button
-                        onClick={handleSaveBanner}
-                        disabled={savingBanner || !bannerForm.title.trim()}
-                        className="flex-1 py-2 rounded-lg text-sm font-bold cursor-pointer transition-all disabled:opacity-50"
-                        style={{
-                          background: `linear-gradient(135deg, ${bannerForm.type === 'ganador' ? '#00ffff, #0088ff' : '#ff00ff, #ff4488'})`,
-                          color: '#000',
-                          boxShadow: `0 0 10px ${bannerForm.type === 'ganador' ? 'rgba(0,255,255,0.3)' : 'rgba(255,0,255,0.3)'}`,
-                        }}
-                      >
-                        {savingBanner ? 'Guardando...' : 'Guardar Banner'}
-                      </button>
-                      <button
-                        onClick={() => { setEditingBanner(null); setShowBannerForm(false) }}
-                        className="px-4 py-2 rounded-lg text-sm cursor-pointer"
-                        style={{ background: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.6)' }}
-                      >
-                        Cancelar
-                      </button>
+                    <div
+                      className="p-4 rounded-xl text-center"
+                      style={{ background: 'rgba(249, 115, 22, 0.08)', border: '1px solid rgba(249, 115, 22, 0.2)' }}
+                    >
+                      <div className="text-2xl font-black" style={{ color: '#fdba74', textShadow: '0 0 10px rgba(249, 115, 22, 0.4)' }}>
+                        {totalParticipants > 0 ? Math.round(totalPoints / totalParticipants) : 0}
+                      </div>
+                      <div className="text-xs uppercase tracking-wider mt-1" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                        Prom. Puntos
+                      </div>
                     </div>
                   </div>
-                )}
 
-                {/* Banner list */}
-                {banners.length === 0 ? (
-                  <div className="text-center py-8" style={{ color: 'rgba(255,255,255,0.3)' }}>
-                    No hay banners creados. Agrega el GANADOR TPK y el PREMIO TPK.
-                  </div>
-                ) : (
-                  banners.map((banner) => {
-                    const isGanador = banner.type === 'ganador'
-                    const color = isGanador ? '#00ffff' : '#ff00ff'
-                    const glowBg = isGanador ? 'rgba(0,255,255,' : 'rgba(255,0,255,'
-                    return (
-                      <div
-                        key={banner.id}
-                        className="rounded-xl transition-all"
-                        style={{
-                          background: 'rgba(255,255,255,0.03)',
-                          border: `1px solid ${banner.isActive ? `${glowBg}0.3)` : 'rgba(255,255,255,0.08)'}`,
-                          boxShadow: banner.isActive ? `0 0 10px ${glowBg}0.08)` : 'none',
-                        }}
-                      >
-                        <div className="p-4 flex items-center gap-3">
-                          {/* Image preview */}
-                          <div
-                            className="w-14 h-14 rounded-lg overflow-hidden flex-shrink-0 flex items-center justify-center"
-                            style={{
-                              border: `2px solid ${color}50`,
-                              background: banner.imageUrl ? 'transparent' : `${glowBg}0.1)`,
-                            }}
-                          >
-                            {banner.imageUrl ? (
-                              <img
-                                src={banner.imageUrl}
-                                alt={banner.title}
-                                className="w-full h-full object-cover"
-                                onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
-                              />
-                            ) : (
-                              <span className="text-xl">{isGanador ? '🏆' : '🎁'}</span>
-                            )}
-                          </div>
-
-                          {/* Info */}
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 mb-1 flex-wrap">
-                              <span
-                                className="px-2 py-0.5 rounded text-xs font-bold"
-                                style={{ background: `${glowBg}0.15)`, color, border: `1px solid ${glowBg}0.3)` }}
-                              >
-                                {isGanador ? '🏆 GANADOR' : '🎁 PREMIO'}
-                              </span>
-                              <span
-                                className="px-2 py-0.5 rounded text-xs font-bold"
-                                style={{
-                                  background: banner.isActive ? 'rgba(34,197,94,0.15)' : 'rgba(239,68,68,0.15)',
-                                  color: banner.isActive ? '#4ade80' : '#ef4444',
-                                  border: `1px solid ${banner.isActive ? 'rgba(34,197,94,0.3)' : 'rgba(239,68,68,0.3)'}`,
-                                }}
-                              >
-                                {banner.isActive ? '● Activo' : '○ Inactivo'}
-                              </span>
-                            </div>
-                            <div className="font-bold text-sm" style={{ color: banner.isActive ? color : 'rgba(255,255,255,0.4)' }}>
-                              {banner.title}
-                            </div>
-                            {banner.subtitle && (
-                              <div className="text-xs mt-0.5" style={{ color: 'rgba(255,255,255,0.4)' }}>{banner.subtitle}</div>
-                            )}
-                          </div>
-
-                          {/* Actions */}
-                          <div className="flex items-center gap-1.5">
-                            <button
-                              onClick={() => handleToggleBanner(banner)}
-                              className="w-7 h-7 rounded-lg flex items-center justify-center cursor-pointer"
-                              style={{
-                                background: banner.isActive ? 'rgba(34,197,94,0.1)' : 'rgba(239,68,68,0.1)',
-                                color: banner.isActive ? '#4ade80' : '#ef4444',
-                                border: `1px solid ${banner.isActive ? 'rgba(34,197,94,0.2)' : 'rgba(239,68,68,0.2)'}`,
-                              }}
-                              title={banner.isActive ? 'Desactivar' : 'Activar'}
-                            >
-                              {banner.isActive ? (
-                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18.36 6.64a9 9 0 1 1-12.73 0"/><line x1="12" y1="2" x2="12" y2="12"/></svg>
-                              ) : (
-                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
-                              )}
-                            </button>
-                            <button
-                              onClick={() => {
-                                setEditingBanner(banner)
-                                setBannerForm({
-                                  type: banner.type,
-                                  title: banner.title,
-                                  subtitle: banner.subtitle || '',
-                                  imageUrl: banner.imageUrl || '',
-                                  linkUrl: banner.linkUrl || '',
-                                  isActive: banner.isActive,
-                                })
-                                setShowBannerForm(true)
-                              }}
-                              className="w-7 h-7 rounded-lg flex items-center justify-center cursor-pointer"
-                              style={{ background: `${glowBg}0.1)`, color, border: `1px solid ${glowBg}0.2)` }}
-                              title="Editar"
-                            >
-                              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-                            </button>
-                            <button
-                              onClick={() => handleDeleteBanner(banner.id)}
-                              className="w-7 h-7 rounded-lg flex items-center justify-center cursor-pointer"
-                              style={{ background: 'rgba(239,68,68,0.1)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.2)' }}
-                              title="Eliminar"
-                            >
-                              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    )
-                  })
-                )}
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {/* Stats cards */}
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                  <div
-                    className="p-4 rounded-xl text-center"
-                    style={{ background: 'rgba(168, 85, 247, 0.08)', border: '1px solid rgba(168, 85, 247, 0.2)' }}
-                  >
-                    <div className="text-2xl font-black" style={{ color: '#d8b4fe', textShadow: '0 0 10px rgba(168, 85, 247, 0.4)' }}>
-                      {totalParticipants}
-                    </div>
-                    <div className="text-xs uppercase tracking-wider mt-1" style={{ color: 'rgba(255,255,255,0.4)' }}>
-                      Participantes
-                    </div>
-                  </div>
-                  <div
-                    className="p-4 rounded-xl text-center"
-                    style={{ background: 'rgba(234, 179, 8, 0.08)', border: '1px solid rgba(234, 179, 8, 0.2)' }}
-                  >
-                    <div className="text-2xl font-black" style={{ color: '#fde047', textShadow: '0 0 10px rgba(234, 179, 8, 0.4)' }}>
-                      {totalPoints.toLocaleString()}
-                    </div>
-                    <div className="text-xs uppercase tracking-wider mt-1" style={{ color: 'rgba(255,255,255,0.4)' }}>
-                      Puntos Totales
-                    </div>
-                  </div>
-                  <div
-                    className="p-4 rounded-xl text-center"
-                    style={{ background: 'rgba(34, 197, 94, 0.08)', border: '1px solid rgba(34, 197, 94, 0.2)' }}
-                  >
-                    <div className="text-2xl font-black" style={{ color: '#4ade80', textShadow: '0 0 10px rgba(34, 197, 94, 0.4)' }}>
-                      {activeGames}/{totalGames}
-                    </div>
-                    <div className="text-xs uppercase tracking-wider mt-1" style={{ color: 'rgba(255,255,255,0.4)' }}>
-                      Juegos Activos
-                    </div>
-                  </div>
-                  <div
-                    className="p-4 rounded-xl text-center"
-                    style={{ background: 'rgba(249, 115, 22, 0.08)', border: '1px solid rgba(249, 115, 22, 0.2)' }}
-                  >
-                    <div className="text-2xl font-black" style={{ color: '#fdba74', textShadow: '0 0 10px rgba(249, 115, 22, 0.4)' }}>
-                      {totalParticipants > 0 ? Math.round(totalPoints / totalParticipants) : 0}
-                    </div>
-                    <div className="text-xs uppercase tracking-wider mt-1" style={{ color: 'rgba(255,255,255,0.4)' }}>
-                      Prom. Puntos
-                    </div>
-                  </div>
-                </div>
-
-                {/* Games breakdown */}
-                <div>
-                  <h3 className="text-sm font-bold uppercase tracking-wider mb-3" style={{ color: '#d8b4fe' }}>
-                    Juegos por Tipo
-                  </h3>
-                  <div className="space-y-2">
-                    {Object.entries(GAME_TYPES).map(([typeKey, typeInfo]) => {
-                      const typeGames = games.filter(g => g.type === typeKey)
-                      const typeParticipants = typeGames.reduce((sum, g) => sum + (g._count?.participants || 0), 0)
-                      return (
-                        <div
-                          key={typeKey}
-                          className="p-3 rounded-xl flex items-center justify-between"
-                          style={{ background: 'rgba(255,255,255,0.03)', border: `1px solid ${typeInfo.color}20` }}
-                        >
-                          <div className="flex items-center gap-2">
-                            <span className="text-lg">{typeInfo.icon}</span>
-                            <div>
-                              <span className="text-sm font-bold" style={{ color: typeInfo.color }}>{typeInfo.label}</span>
-                              <span className="text-xs ml-2" style={{ color: 'rgba(255,255,255,0.3)' }}>{typeInfo.description}</span>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-3">
-                            <span className="text-xs" style={{ color: 'rgba(255,255,255,0.4)' }}>
-                              {typeGames.length} juego{typeGames.length !== 1 ? 's' : ''}
-                            </span>
-                            <span className="text-xs" style={{ color: `${typeInfo.color}80` }}>
-                              👥 {typeParticipants}
-                            </span>
-                          </div>
-                        </div>
-                      )
-                    })}
-                  </div>
-                </div>
-
-                {/* Top participants */}
-                {participants.length > 0 && (
                   <div>
-                    <h3 className="text-sm font-bold uppercase tracking-wider mb-3" style={{ color: '#fde047' }}>
-                      Top 5 Participantes
+                    <h3 className="text-sm font-bold uppercase tracking-wider mb-3" style={{ color: '#d8b4fe' }}>
+                      Juegos por Tipo
                     </h3>
                     <div className="space-y-2">
-                      {[...participants]
-                        .sort((a, b) => b.totalPoints - a.totalPoints)
-                        .slice(0, 5)
-                        .map((p, i) => (
-                          <div
-                            key={p.id}
-                            className="p-3 rounded-xl flex items-center justify-between"
-                            style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(234, 179, 8, 0.15)' }}
-                          >
-                            <div className="flex items-center gap-3">
-                              <span
-                                className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-black"
-                                style={{
-                                  background: i === 0 ? 'rgba(234, 179, 8, 0.3)' : i === 1 ? 'rgba(192, 192, 192, 0.2)' : i === 2 ? 'rgba(205, 127, 50, 0.2)' : 'rgba(255,255,255,0.05)',
-                                  color: i === 0 ? '#fde047' : i === 1 ? '#d1d5db' : i === 2 ? '#cd7f32' : 'rgba(255,255,255,0.4)',
-                                  border: `1px solid ${i === 0 ? 'rgba(234, 179, 8, 0.4)' : i === 1 ? 'rgba(192, 192, 192, 0.3)' : i === 2 ? 'rgba(205, 127, 50, 0.3)' : 'rgba(255,255,255,0.1)'}`,
-                                }}
-                              >
-                                {i + 1}
-                              </span>
-                              <div>
-                                <span className="text-sm font-bold" style={{ color: '#fed7aa' }}>{p.name}</span>
-                                <span className="text-xs ml-2" style={{ color: 'rgba(255,255,255,0.3)' }}>{p.code}</span>
-                              </div>
-                            </div>
-                            <span className="text-sm font-bold" style={{ color: '#fde047' }}>
-                              ⭐ {p.totalPoints} pts
-                            </span>
-                          </div>
-                        ))
-                      }
-                    </div>
-                  </div>
-                )}
-
-                {/* Social follow stats */}
-                {participants.length > 0 && (
-                  <div>
-                    <h3 className="text-sm font-bold uppercase tracking-wider mb-3" style={{ color: '#4ade80' }}>
-                      Seguimiento Redes Sociales
-                    </h3>
-                    <div className="grid grid-cols-3 gap-3">
-                      {[
-                        { label: 'Facebook', key: 'followedFb' as const, color: '#3b82f6' },
-                        { label: 'Instagram', key: 'followedIg' as const, color: '#ec4899' },
-                        { label: 'WhatsApp', key: 'followedWa' as const, color: '#22c55e' },
-                      ].map((social) => {
-                        const count = participants.filter(p => p[social.key]).length
-                        const pct = Math.round((count / totalParticipants) * 100)
+                      {Object.entries(GAME_TYPES).map(([typeKey, typeInfo]) => {
+                        const typeGames = games.filter(g => g.type === typeKey)
+                        const typeParticipants = typeGames.reduce((sum, g) => sum + (g._count?.participants || 0), 0)
                         return (
                           <div
-                            key={social.key}
-                            className="p-3 rounded-xl text-center"
-                            style={{ background: `${social.color}08`, border: `1px solid ${social.color}20` }}
+                            key={typeKey}
+                            className="p-3 rounded-xl flex items-center justify-between"
+                            style={{ background: 'rgba(255,255,255,0.03)', border: `1px solid ${typeInfo.color}20` }}
                           >
-                            <div className="text-lg font-black" style={{ color: social.color }}>
-                              {count}
+                            <div className="flex items-center gap-2">
+                              <span className="text-lg">{typeInfo.icon}</span>
+                              <div>
+                                <span className="text-sm font-bold" style={{ color: typeInfo.color }}>{typeInfo.label}</span>
+                                <span className="text-xs ml-2" style={{ color: 'rgba(255,255,255,0.3)' }}>{typeInfo.description}</span>
+                              </div>
                             </div>
-                            <div className="text-xs" style={{ color: 'rgba(255,255,255,0.4)' }}>
-                              {social.label}
+                            <div className="flex items-center gap-3">
+                              <span className="text-xs" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                                {typeGames.length} juego{typeGames.length !== 1 ? 's' : ''}
+                              </span>
+                              <span className="text-xs" style={{ color: `${typeInfo.color}80` }}>
+                                👥 {typeParticipants}
+                              </span>
                             </div>
-                            <div className="mt-1.5 w-full rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.05)', height: '4px' }}>
-                              <div
-                                className="h-full rounded-full transition-all"
-                                style={{ width: `${pct}%`, background: social.color, boxShadow: `0 0 6px ${social.color}60` }}
-                              />
-                            </div>
-                            <div className="text-xs mt-1" style={{ color: 'rgba(255,255,255,0.3)' }}>{pct}%</div>
                           </div>
                         )
                       })}
                     </div>
                   </div>
-                )}
-              </div>
-            )}
+
+                  {participants.length > 0 && (
+                    <div>
+                      <h3 className="text-sm font-bold uppercase tracking-wider mb-3" style={{ color: '#fde047' }}>
+                        Top 5 Participantes
+                      </h3>
+                      <div className="space-y-2">
+                        {[...participants]
+                          .sort((a, b) => b.totalPoints - a.totalPoints)
+                          .slice(0, 5)
+                          .map((p, i) => (
+                            <div
+                              key={p.id}
+                              className="p-3 rounded-xl flex items-center justify-between"
+                              style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(234, 179, 8, 0.15)' }}
+                            >
+                              <div className="flex items-center gap-3">
+                                <span
+                                  className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-black"
+                                  style={{
+                                    background: i === 0 ? 'rgba(234, 179, 8, 0.3)' : i === 1 ? 'rgba(192, 192, 192, 0.2)' : i === 2 ? 'rgba(205, 127, 50, 0.2)' : 'rgba(255,255,255,0.05)',
+                                    color: i === 0 ? '#fde047' : i === 1 ? '#d1d5db' : i === 2 ? '#cd7f32' : 'rgba(255,255,255,0.4)',
+                                    border: `1px solid ${i === 0 ? 'rgba(234, 179, 8, 0.4)' : i === 1 ? 'rgba(192, 192, 192, 0.3)' : i === 2 ? 'rgba(205, 127, 50, 0.3)' : 'rgba(255,255,255,0.1)'}`,
+                                  }}
+                                >
+                                  {i + 1}
+                                </span>
+                                <div>
+                                  <span className="text-sm font-bold" style={{ color: '#fed7aa' }}>{p.name}</span>
+                                  <span className="text-xs ml-2" style={{ color: 'rgba(255,255,255,0.3)' }}>{p.code}</span>
+                                </div>
+                              </div>
+                              <span className="text-sm font-bold" style={{ color: '#fde047' }}>
+                                ⭐ {p.totalPoints} pts
+                              </span>
+                            </div>
+                          ))
+                        }
+                      </div>
+                    </div>
+                  )}
+
+                  {participants.length > 0 && (
+                    <div>
+                      <h3 className="text-sm font-bold uppercase tracking-wider mb-3" style={{ color: '#4ade80' }}>
+                        Seguimiento Redes Sociales
+                      </h3>
+                      <div className="grid grid-cols-3 gap-3">
+                        {[
+                          { label: 'Facebook', key: 'followedFb' as const, color: '#3b82f6' },
+                          { label: 'Instagram', key: 'followedIg' as const, color: '#ec4899' },
+                          { label: 'WhatsApp', key: 'followedWa' as const, color: '#22c55e' },
+                        ].map((social) => {
+                          const count = participants.filter(p => p[social.key]).length
+                          const pct = Math.round((count / totalParticipants) * 100)
+                          return (
+                            <div
+                              key={social.key}
+                              className="p-3 rounded-xl text-center"
+                              style={{ background: `${social.color}08`, border: `1px solid ${social.color}20` }}
+                            >
+                              <div className="text-lg font-black" style={{ color: social.color }}>
+                                {count}
+                              </div>
+                              <div className="text-xs" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                                {social.label}
+                              </div>
+                              <div className="mt-1.5 w-full rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.05)', height: '4px' }}>
+                                <div
+                                  className="h-full rounded-full transition-all"
+                                  style={{ width: `${pct}%`, background: social.color, boxShadow: `0 0 6px ${social.color}60` }}
+                                />
+                              </div>
+                              <div className="text-xs mt-1" style={{ color: 'rgba(255,255,255,0.3)' }}>{pct}%</div>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -1930,7 +2056,6 @@ export default function AdminPanel() {
 
             {/* Form Content */}
             <div className="flex-1 overflow-y-auto p-4 space-y-3" style={{ scrollbarColor: 'rgba(168,85,247,0.3) transparent' }}>
-              {/* Name */}
               <div>
                 <label className="block text-xs font-bold uppercase tracking-wider mb-1.5" style={{ color: '#d8b4fe' }}>
                   Nombre *
@@ -1945,7 +2070,6 @@ export default function AdminPanel() {
                 />
               </div>
 
-              {/* Type */}
               <div>
                 <label className="block text-xs font-bold uppercase tracking-wider mb-1.5" style={{ color: '#fdba74' }}>
                   Tipo de Juego
@@ -1969,7 +2093,6 @@ export default function AdminPanel() {
                 )}
               </div>
 
-              {/* Description */}
               <div>
                 <label className="block text-xs font-bold uppercase tracking-wider mb-1.5" style={{ color: '#4ade80' }}>
                   Descripción
@@ -1984,7 +2107,6 @@ export default function AdminPanel() {
                 />
               </div>
 
-              {/* Image URL */}
               <div>
                 <label className="block text-xs font-bold uppercase tracking-wider mb-1.5" style={{ color: '#d8b4fe' }}>
                   URL de Imagen
@@ -1999,7 +2121,6 @@ export default function AdminPanel() {
                 />
               </div>
 
-              {/* Order + Active */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-bold uppercase tracking-wider mb-1.5" style={{ color: '#fde047' }}>
@@ -2033,7 +2154,6 @@ export default function AdminPanel() {
                 </div>
               </div>
 
-              {/* Config JSON */}
               <div>
                 <label className="block text-xs font-bold uppercase tracking-wider mb-1.5" style={{ color: '#fdba74' }}>
                   Configuración (JSON)
