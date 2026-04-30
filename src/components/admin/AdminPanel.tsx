@@ -2878,12 +2878,12 @@ export default function AdminPanel() {
                       }}
                     >
                       {Array.from({ length: loteriaForm.boardSize * loteriaForm.boardSize }).map((_, i) => {
-                        const teamIndex = i % 22
+                        const teamIndex = i % 20
                         const teamSlug = [
                           'millonarios', 'atletico-nacional', 'america-de-cali', 'deportivo-cali',
                           'atletico-junior', 'independiente-santa-fe', 'independiente-medellin', 'once-caldas',
-                          'deportes-tolima', 'deportivo-pereira', 'la-equidad', 'aguilas-doradas',
-                          'atletico-bucaramanga', 'deportivo-pasto', 'envigado', 'fortaleza-ceif',
+                          'deportes-tolima', 'deportivo-pereira', 'aguilas-doradas',
+                          'atletico-bucaramanga', 'deportivo-pasto', 'fortaleza-ceif',
                           'boyaca-chico', 'jaguares-de-cordoba', 'cucuta-deportivo', 'alianza-valledupar',
                           'llaneros', 'internacional-de-bogota'
                         ][teamIndex]
