@@ -432,6 +432,23 @@ model AudioConfig {
 // CANAL EN VIVO - Streaming Liga BetPlay
 // ============================================
 
+// ============================================
+// CÓDIGOS PLAY - Acceso único al Canal en Vivo
+// ============================================
+
+model CanalVivoCode {
+  id              String   @id @default(cuid())
+  code            String   @unique            // Código alfanumérico único que inicia con "PLAY"
+  usedBy          String?                     // Nombre o identificador de quien usó el código
+  usedAt          DateTime?                   // Fecha/hora en que se usó el código
+  isUsed          Boolean  @default(false)    // Si ya fue utilizado
+  isRevoked       Boolean  @default(false)    // Si fue revocado por el admin
+  generatedBy     String   @default("admin")  // Quién generó el código
+  description     String?                     // Nota opcional del admin sobre el código
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
 model CanalVivoConfig {
   id                String   @id @default(cuid())
   primarySource     String   @default("winplay")  // "winplay" | "winplus" | "youtube" - fuente principal seleccionada por admin

@@ -174,9 +174,7 @@ export default function Home() {
           background: 'linear-gradient(to right, transparent, rgba(239, 68, 68, 0.5), rgba(249, 115, 22, 0.5), transparent)',
         }} />
         <div className="relative z-10">
-          <GameGuard gameName="Canal en Vivo" gameIcon="📺" accentColor="#ef4444">
-            <CanalEnVivo />
-          </GameGuard>
+          <CanalEnVivo />
         </div>
       </section>
 

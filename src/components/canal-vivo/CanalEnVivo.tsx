@@ -95,11 +95,86 @@ export default function CanalEnVivo() {
   const [elapsedTime, setElapsedTime] = useState(0)
   const [signalQuality, setSignalQuality] = useState<'HD' | 'SD' | 'LD'>('HD')
 
+  // PLAY code verification state
+  const [playCodeVerified, setPlayCodeVerified] = useState(false)
+  const [playCodeInput, setPlayCodeInput] = useState('')
+  const [playCodeError, setPlayCodeError] = useState('')
+  const [playCodeVerifying, setPlayCodeVerifying] = useState(false)
+  const [playCodePulse, setPlayCodePulse] = useState(true)
+
   const iframeRef = useRef<HTMLIFrameElement>(null)
   const sourceMenuRef = useRef<HTMLDivElement>(null)
   const playerRef = useRef<HTMLDivElement>(null)
   const controlsTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const settingsRef = useRef<HTMLDivElement>(null)
+
+  // Check PLAY code from localStorage on mount
+  useEffect(() => {
+    try {
+      const savedPlayCode = localStorage.getItem('tpk_play_code')
+      const savedPlayTime = localStorage.getItem('tpk_play_time')
+      // Allow session within 24 hours
+      if (savedPlayCode && savedPlayTime) {
+        const elapsed = Date.now() - parseInt(savedPlayTime)
+        if (elapsed < 24 * 60 * 60 * 1000) {
+          setPlayCodeVerified(true)
+        } else {
+          localStorage.removeItem('tpk_play_code')
+          localStorage.removeItem('tpk_play_time')
+        }
+      }
+    } catch {
+      // localStorage not available
+    }
+  }, [])
+
+  // PLAY code pulse animation
+  useEffect(() => {
+    const interval = setInterval(() => setPlayCodePulse(p => !p), 1200)
+    return () => clearInterval(interval)
+  }, [])
+
+  const handleVerifyPlayCode = async () => {
+    setPlayCodeError('')
+    if (!playCodeInput.trim()) {
+      setPlayCodeError('Ingresa tu código PLAY')
+      return
+    }
+    setPlayCodeVerifying(true)
+    try {
+      const res = await fetch('/api/canal-vivo/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: playCodeInput.trim().toUpperCase(), userName: 'viewer' }),
+      })
+      const data = await res.json()
+      if (res.ok && data.valid) {
+        try {
+          localStorage.setItem('tpk_play_code', data.code)
+          localStorage.setItem('tpk_play_time', Date.now().toString())
+        } catch {
+          // localStorage not available
+        }
+        setPlayCodeVerified(true)
+      } else {
+        setPlayCodeError(data.error || 'Código PLAY no válido')
+      }
+    } catch {
+      setPlayCodeError('Error de conexión. Intenta de nuevo.')
+    }
+    setPlayCodeVerifying(false)
+  }
+
+  const handlePlayCodeLogout = () => {
+    try {
+      localStorage.removeItem('tpk_play_code')
+      localStorage.removeItem('tpk_play_time')
+    } catch {
+      // localStorage not available
+    }
+    setPlayCodeVerified(false)
+    setPlayCodeInput('')
+  }
 
   // Fetch config
   useEffect(() => {
@@ -333,6 +408,117 @@ export default function CanalEnVivo() {
     return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${sec.toString().padStart(2, '0')}`
   }
 
+  // PLAY code gate - show code input if not verified
+  if (!playCodeVerified) {
+    return (
+      <div className="max-w-5xl mx-auto px-3 md:px-4">
+        <div className="rounded-2xl overflow-hidden relative" style={{
+          background: 'linear-gradient(145deg, #0a0015 0%, #1a0030 30%, #0d0a20 60%, #0a0015 100%)',
+          border: '1px solid rgba(249,115,22,0.25)',
+          boxShadow: '0 0 40px rgba(249,115,22,0.1), 0 0 80px rgba(168,85,247,0.05)',
+          minHeight: '400px',
+        }}>
+          {/* Background animated elements */}
+          <div className="absolute inset-0 overflow-hidden pointer-events-none">
+            <div className="absolute top-1/4 left-1/4 w-32 h-32 rounded-full opacity-10" style={{
+              background: 'radial-gradient(circle, #f97316 0%, transparent 70%)',
+              animation: 'pulse 4s ease-in-out infinite',
+            }} />
+            <div className="absolute bottom-1/4 right-1/4 w-24 h-24 rounded-full opacity-10" style={{
+              background: 'radial-gradient(circle, #ef4444 0%, transparent 70%)',
+              animation: 'pulse 3s ease-in-out infinite 1s',
+            }} />
+          </div>
+
+          {/* PLAY code lock screen */}
+          <div className="relative z-10 flex items-center justify-center min-h-[400px] p-4">
+            <div className="max-w-sm w-full text-center space-y-4">
+              {/* Lock icon with animation */}
+              <div className="relative w-20 h-20 mx-auto">
+                <div className="absolute inset-0 rounded-full" style={{
+                  background: 'linear-gradient(135deg, rgba(249,115,22,0.2), rgba(234,179,8,0.1))',
+                  border: '2px solid rgba(249,115,22,0.3)',
+                  boxShadow: playCodePulse ? '0 0 25px rgba(249,115,22,0.3), 0 0 50px rgba(249,115,22,0.1)' : '0 0 10px rgba(249,115,22,0.1)',
+                  transition: 'box-shadow 0.4s ease',
+                }} />
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <span className="text-3xl">🔑</span>
+                </div>
+              </div>
+
+              {/* Title */}
+              <div>
+                <h3 className="text-lg font-black uppercase tracking-wider" style={{
+                  background: 'linear-gradient(90deg, #f97316, #fbbf24, #f97316)',
+                  backgroundSize: '200% auto',
+                  WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text',
+                  animation: 'gradient-shift 3s linear infinite',
+                }}>Canal en Vivo</h3>
+                <p className="text-xs mt-1" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                  Liga BetPlay en directo
+                </p>
+              </div>
+
+              {/* Info badges */}
+              <div className="flex justify-center gap-2 flex-wrap">
+                <div className="px-2.5 py-1 rounded-lg" style={{ background: 'rgba(249,115,22,0.08)', border: '1px solid rgba(249,115,22,0.2)' }}>
+                  <span className="text-[0.5rem] font-bold" style={{ color: 'rgba(249,115,22,0.7)' }}>🔑 Código PLAY requerido</span>
+                </div>
+                <div className="px-2.5 py-1 rounded-lg" style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)' }}>
+                  <span className="text-[0.5rem] font-bold" style={{ color: 'rgba(239,68,68,0.7)' }}>🔴 Señal en vivo</span>
+                </div>
+              </div>
+
+              {/* Code input */}
+              <div className="space-y-3">
+                <input
+                  type="text"
+                  value={playCodeInput}
+                  onChange={(e) => setPlayCodeInput(e.target.value.toUpperCase())}
+                  placeholder="PLAYXXXXXXXX"
+                  maxLength={12}
+                  className="w-full px-4 py-3 rounded-xl text-center text-base font-mono font-bold uppercase tracking-widest"
+                  style={{
+                    background: 'rgba(0,0,0,0.4)',
+                    border: '2px solid rgba(249,115,22,0.25)',
+                    color: '#f97316',
+                    outline: 'none',
+                    letterSpacing: '0.15em',
+                  }}
+                  onKeyDown={(e) => e.key === 'Enter' && handleVerifyPlayCode()}
+                  autoFocus
+                />
+
+                {playCodeError && (
+                  <div className="px-3 py-2 rounded-lg" style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)' }}>
+                    <p className="text-[0.6rem] font-bold" style={{ color: '#fca5a5' }}>{playCodeError}</p>
+                  </div>
+                )}
+
+                <button
+                  onClick={handleVerifyPlayCode}
+                  disabled={playCodeVerifying}
+                  className="w-full py-3 rounded-xl font-bold text-sm uppercase tracking-wider cursor-pointer transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50"
+                  style={{
+                    background: 'linear-gradient(135deg, #f97316, #eab308)',
+                    color: '#000',
+                    boxShadow: '0 0 20px rgba(249,115,22,0.3)',
+                  }}
+                >
+                  {playCodeVerifying ? 'Verificando...' : '🔑 Ingresar al Canal'}
+                </button>
+
+                <p className="text-[0.45rem]" style={{ color: 'rgba(255,255,255,0.2)' }}>
+                  Solicita tu código PLAY al administrador de TPK PLAY
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   // Loading state
   if (!config) {
     return (
@@ -366,6 +552,28 @@ export default function CanalEnVivo() {
         onMouseMove={resetControlsTimeout}
         onTouchStart={resetControlsTimeout}
       >
+        {/* PLAY code verified bar */}
+        {!isFullscreen && playCodeVerified && (
+          <div className="flex items-center justify-between px-3 py-1.5" style={{
+            background: 'rgba(249,115,22,0.06)',
+            borderBottom: '1px solid rgba(249,115,22,0.12)',
+          }}>
+            <div className="flex items-center gap-2">
+              <div className="w-1.5 h-1.5 rounded-full" style={{ background: '#4ade80', boxShadow: '0 0 6px rgba(34,197,94,0.5)' }} />
+              <span className="text-[0.45rem] font-bold uppercase tracking-wider" style={{ color: 'rgba(249,115,22,0.6)' }}>
+                🔑 Código PLAY activo
+              </span>
+              <span className="text-[0.4rem] font-mono" style={{ color: 'rgba(255,255,255,0.2)' }}>
+                {typeof window !== 'undefined' ? localStorage.getItem('tpk_play_code') || '' : ''}
+              </span>
+            </div>
+            <button onClick={handlePlayCodeLogout}
+              className="text-[0.4rem] uppercase tracking-wider cursor-pointer px-2 py-0.5 rounded transition-all hover:bg-white/5"
+              style={{ color: 'rgba(255,255,255,0.25)' }}>
+              Salir
+            </button>
+          </div>
+        )}
         {/* ===== IFRAME PLAYER ===== */}
         {isStreamView && (
           <div className="relative" style={{ 

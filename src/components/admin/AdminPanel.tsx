@@ -310,6 +310,16 @@ export default function AdminPanel() {
   const [canalVivoForm, setCanalVivoForm] = useState({ primarySource: 'winplay', winplayEmail: '', winplayPassword: '', winplayUrl: 'https://winplay.co', winplusEmail: '', winplusPassword: '', winplusUrl: 'https://winsports.co/win-mas', youtubeChannelId: 'UCZjpA3YBPXvJv3pg4SPEjfw', youtubeVideoId: '', streamTitle: 'Liga BetPlay en Vivo', streamSubtitle: 'Señal en Vivo', altStreamUrl: '', altStreamLabel: 'Señal Alternativa', stealthMode: true, embedProtection: true, showChat: true, showSchedule: true, autoPlay: true, alwaysActive: true, isActive: true })
   const [savingCanalVivo, setSavingCanalVivo] = useState(false)
 
+  // Canal Vivo PLAY codes state
+  const [playCodes, setPlayCodes] = useState<any[]>([])
+  const [playCodesStats, setPlayCodesStats] = useState({ total: 0, active: 0, used: 0, revoked: 0 })
+  const [playCodesFilter, setPlayCodesFilter] = useState('all')
+  const [playCodesLoading, setPlayCodesLoading] = useState(false)
+  const [playCodeGenCount, setPlayCodeGenCount] = useState(1)
+  const [playCodeGenDesc, setPlayCodeGenDesc] = useState('')
+  const [playCodeGenerating, setPlayCodeGenerating] = useState(false)
+  const [playCodeGenResult, setPlayCodeGenResult] = useState<any>(null)
+
   // Parques rooms state
   const [parquesRooms, setParquesRooms] = useState<any[]>([])
   const [parquesRoomsLoading, setParquesRoomsLoading] = useState(false)
@@ -809,6 +819,74 @@ export default function AdminPanel() {
       console.error('Error fetching canal vivo config:', err)
     }
   }, [])
+
+  const fetchPlayCodes = useCallback(async (filter?: string) => {
+    setPlayCodesLoading(true)
+    try {
+      const res = await fetch(`/api/canal-vivo/codes?filter=${filter || playCodesFilter}`)
+      if (res.ok) {
+        const data = await res.json()
+        setPlayCodes(data.codes || [])
+        setPlayCodesStats(data.stats || { total: 0, active: 0, used: 0, revoked: 0 })
+      }
+    } catch (err) {
+      console.error('Error fetching PLAY codes:', err)
+    }
+    setPlayCodesLoading(false)
+  }, [playCodesFilter])
+
+  const handleGeneratePlayCodes = async () => {
+    setPlayCodeGenerating(true)
+    setPlayCodeGenResult(null)
+    try {
+      const res = await fetch('/api/canal-vivo/codes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ count: playCodeGenCount, description: playCodeGenDesc || null }),
+      })
+      if (res.ok) {
+        const data = await res.json()
+        setPlayCodeGenResult(data)
+        setPlayCodeGenDesc('')
+        fetchPlayCodes()
+      }
+    } catch (err) {
+      console.error('Error generating PLAY codes:', err)
+    }
+    setPlayCodeGenerating(false)
+  }
+
+  const handleRevokePlayCode = async (id: string, action: 'revoke' | 'reactivate') => {
+    try {
+      await fetch('/api/canal-vivo/codes', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, action }),
+      })
+      fetchPlayCodes()
+    } catch (err) {
+      console.error('Error updating PLAY code:', err)
+    }
+  }
+
+  const handleDeletePlayCode = async (id: string) => {
+    try {
+      await fetch(`/api/canal-vivo/codes?id=${id}`, { method: 'DELETE' })
+      fetchPlayCodes()
+    } catch (err) {
+      console.error('Error deleting PLAY code:', err)
+    }
+  }
+
+  const handleCopyPlayCode = (code: string) => {
+    navigator.clipboard.writeText(code).catch(() => {})
+  }
+
+  useEffect(() => {
+    if (isAuthenticated && showPanel && activeTab === 'canal-vivo') {
+      fetchPlayCodes()
+    }
+  }, [isAuthenticated, showPanel, activeTab, playCodesFilter])
 
   useEffect(() => {
     if (isAuthenticated && showPanel) {
@@ -6446,6 +6524,168 @@ export default function AdminPanel() {
                       style={{ background: 'linear-gradient(135deg, #ef4444, #f97316)', color: '#fff', boxShadow: '0 0 12px rgba(239,68,68,0.2)' }}>
                       {savingCanalVivo ? 'Guardando...' : 'Guardar Configuración'}
                     </button>
+                  </div>
+
+                  {/* ===== GENERADOR DE CÓDIGOS PLAY ===== */}
+                  <div className="p-4 rounded-xl" style={{ background: 'linear-gradient(135deg, rgba(249,115,22,0.06) 0%, rgba(234,179,8,0.04) 50%, rgba(249,115,22,0.06) 100%)', border: '1px solid rgba(249,115,22,0.2)' }}>
+                    <div className="flex items-center gap-2 mb-3">
+                      <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: 'rgba(249,115,22,0.15)', border: '1px solid rgba(249,115,22,0.3)' }}>
+                        <span className="text-base">🔑</span>
+                      </div>
+                      <div>
+                        <div className="text-sm font-black uppercase tracking-wider" style={{ color: '#f97316' }}>Generador de Códigos PLAY</div>
+                        <div className="text-[0.5rem]" style={{ color: 'rgba(255,255,255,0.35)' }}>Códigos únicos e irrepetibles para acceso al Canal en Vivo</div>
+                      </div>
+                    </div>
+
+                    {/* Stats */}
+                    <div className="grid grid-cols-4 gap-2 mb-3">
+                      <div className="p-2 rounded-lg text-center" style={{ background: 'rgba(249,115,22,0.08)', border: '1px solid rgba(249,115,22,0.15)' }}>
+                        <div className="text-[0.45rem] uppercase" style={{ color: 'rgba(249,115,22,0.5)' }}>Total</div>
+                        <div className="text-sm font-black" style={{ color: '#f97316' }}>{playCodesStats.total}</div>
+                      </div>
+                      <div className="p-2 rounded-lg text-center" style={{ background: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.15)' }}>
+                        <div className="text-[0.45rem] uppercase" style={{ color: 'rgba(34,197,94,0.5)' }}>Activos</div>
+                        <div className="text-sm font-black" style={{ color: '#4ade80' }}>{playCodesStats.active}</div>
+                      </div>
+                      <div className="p-2 rounded-lg text-center" style={{ background: 'rgba(59,130,246,0.08)', border: '1px solid rgba(59,130,246,0.15)' }}>
+                        <div className="text-[0.45rem] uppercase" style={{ color: 'rgba(59,130,246,0.5)' }}>Usados</div>
+                        <div className="text-sm font-black" style={{ color: '#60a5fa' }}>{playCodesStats.used}</div>
+                      </div>
+                      <div className="p-2 rounded-lg text-center" style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.15)' }}>
+                        <div className="text-[0.45rem] uppercase" style={{ color: 'rgba(239,68,68,0.5)' }}>Revocados</div>
+                        <div className="text-sm font-black" style={{ color: '#ef4444' }}>{playCodesStats.revoked}</div>
+                      </div>
+                    </div>
+
+                    {/* Generator */}
+                    <div className="p-3 rounded-lg mb-3" style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(249,115,22,0.12)' }}>
+                      <div className="text-[0.55rem] font-bold uppercase tracking-wider mb-2" style={{ color: 'rgba(249,115,22,0.6)' }}>Generar Nuevos Códigos</div>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mb-2">
+                        <div>
+                          <label className="text-[0.45rem] font-bold block mb-1" style={{ color: 'rgba(255,255,255,0.35)' }}>Cantidad (1-100)</label>
+                          <input type="number" min={1} max={100}
+                            value={playCodeGenCount}
+                            onChange={(e) => setPlayCodeGenCount(Math.min(100, Math.max(1, parseInt(e.target.value) || 1)))}
+                            className="w-full px-3 py-2 rounded-lg text-sm font-bold outline-none"
+                            style={{ background: 'rgba(0,0,0,0.5)', border: '1px solid rgba(249,115,22,0.2)', color: '#f97316' }}
+                          />
+                        </div>
+                        <div>
+                          <label className="text-[0.45rem] font-bold block mb-1" style={{ color: 'rgba(255,255,255,0.35)' }}>Descripción (opcional)</label>
+                          <input type="text"
+                            value={playCodeGenDesc}
+                            onChange={(e) => setPlayCodeGenDesc(e.target.value)}
+                            className="w-full px-3 py-2 rounded-lg text-sm outline-none"
+                            style={{ background: 'rgba(0,0,0,0.5)', border: '1px solid rgba(249,115,22,0.2)', color: '#fbbf24' }}
+                            placeholder="Ej: Partido Millonarios vs Nacional"
+                          />
+                        </div>
+                        <div className="flex items-end">
+                          <button onClick={handleGeneratePlayCodes} disabled={playCodeGenerating}
+                            className="w-full px-4 py-2 rounded-lg font-bold text-sm cursor-pointer transition-all hover:scale-105 disabled:opacity-50"
+                            style={{ background: 'linear-gradient(135deg, #f97316, #eab308)', color: '#000', boxShadow: '0 0 12px rgba(249,115,22,0.3)' }}>
+                            {playCodeGenerating ? 'Generando...' : '🔑 Generar Códigos PLAY'}
+                          </button>
+                        </div>
+                      </div>
+                      {playCodeGenResult && (
+                        <div className="p-2 rounded-lg" style={{ background: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.2)' }}>
+                          <div className="text-[0.5rem] font-bold mb-1" style={{ color: '#4ade80' }}>{playCodeGenResult.message}</div>
+                          <div className="flex flex-wrap gap-1">
+                            {playCodeGenResult.codes?.map((c: any) => (
+                              <button key={c.id} onClick={() => handleCopyPlayCode(c.code)} title="Click para copiar"
+                                className="px-2 py-1 rounded text-[0.55rem] font-mono font-bold cursor-pointer transition-all hover:scale-105"
+                                style={{ background: 'rgba(249,115,22,0.12)', border: '1px solid rgba(249,115,22,0.25)', color: '#f97316' }}>
+                                {c.code} 📋
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Filter */}
+                    <div className="flex gap-1.5 mb-2">
+                      {[
+                        { key: 'all', label: 'Todos', color: '#f97316' },
+                        { key: 'active', label: 'Activos', color: '#4ade80' },
+                        { key: 'used', label: 'Usados', color: '#60a5fa' },
+                        { key: 'revoked', label: 'Revocados', color: '#ef4444' },
+                      ].map(f => (
+                        <button key={f.key} onClick={() => setPlayCodesFilter(f.key)}
+                          className="px-2.5 py-1 rounded-lg text-[0.5rem] font-bold cursor-pointer transition-all"
+                          style={{
+                            background: playCodesFilter === f.key ? `${f.color}20` : 'rgba(0,0,0,0.2)',
+                            border: `1px solid ${playCodesFilter === f.key ? `${f.color}40` : 'rgba(255,255,255,0.08)'}`,
+                            color: playCodesFilter === f.key ? f.color : 'rgba(255,255,255,0.3)',
+                          }}>
+                          {f.label}
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* Code list */}
+                    <div className="space-y-1 max-h-64 overflow-y-auto pr-1" style={{ scrollbarWidth: 'thin', scrollbarColor: 'rgba(249,115,22,0.3) transparent' }}>
+                      {playCodesLoading && (
+                        <div className="text-center py-4">
+                          <div className="text-[0.6rem] animate-pulse" style={{ color: 'rgba(249,115,22,0.4)' }}>Cargando códigos...</div>
+                        </div>
+                      )}
+                      {!playCodesLoading && playCodes.length === 0 && (
+                        <div className="text-center py-4">
+                          <div className="text-[0.6rem]" style={{ color: 'rgba(255,255,255,0.2)' }}>No hay códigos. Genera el primero arriba.</div>
+                        </div>
+                      )}
+                      {playCodes.map((pc: any) => (
+                        <div key={pc.id} className="flex items-center justify-between p-2 rounded-lg transition-all hover:scale-[1.005]"
+                          style={{
+                            background: pc.isRevoked ? 'rgba(239,68,68,0.04)' : pc.isUsed ? 'rgba(59,130,246,0.04)' : 'rgba(34,197,94,0.04)',
+                            border: `1px solid ${pc.isRevoked ? 'rgba(239,68,68,0.12)' : pc.isUsed ? 'rgba(59,130,246,0.12)' : 'rgba(34,197,94,0.12)'}`,
+                          }}>
+                          <div className="flex items-center gap-2 flex-1 min-w-0">
+                            <div className={`w-2 h-2 rounded-full flex-shrink-0`} style={{
+                              background: pc.isRevoked ? '#ef4444' : pc.isUsed ? '#60a5fa' : '#4ade80',
+                              boxShadow: !pc.isUsed && !pc.isRevoked ? '0 0 6px rgba(34,197,94,0.5)' : 'none',
+                            }} />
+                            <button onClick={() => handleCopyPlayCode(pc.code)} title="Click para copiar"
+                              className="font-mono font-bold text-[0.65rem] cursor-pointer hover:underline" style={{ color: pc.isRevoked ? '#ef4444' : pc.isUsed ? '#60a5fa' : '#4ade80' }}>
+                              {pc.code}
+                            </button>
+                            {pc.description && (
+                              <span className="text-[0.4rem] truncate" style={{ color: 'rgba(255,255,255,0.25)' }}>{pc.description}</span>
+                            )}
+                            {pc.isUsed && pc.usedBy && (
+                              <span className="text-[0.4rem]" style={{ color: 'rgba(59,130,246,0.4)' }}>→ {pc.usedBy}</span>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-1 flex-shrink-0">
+                            <span className="text-[0.4rem]" style={{ color: 'rgba(255,255,255,0.15)' }}>
+                              {new Date(pc.createdAt).toLocaleDateString('es-CO', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                            </span>
+                            {!pc.isUsed && !pc.isRevoked && (
+                              <button onClick={() => handleRevokePlayCode(pc.id, 'revoke')} title="Revocar"
+                                className="px-1.5 py-0.5 rounded text-[0.4rem] font-bold cursor-pointer transition-all hover:scale-105"
+                                style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', color: '#ef4444' }}>
+                                Revocar
+                              </button>
+                            )}
+                            {pc.isRevoked && (
+                              <button onClick={() => handleRevokePlayCode(pc.id, 'reactivate')} title="Reactivar"
+                                className="px-1.5 py-0.5 rounded text-[0.4rem] font-bold cursor-pointer transition-all hover:scale-105"
+                                style={{ background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.2)', color: '#4ade80' }}>
+                                Reactivar
+                              </button>
+                            )}
+                            <button onClick={() => handleDeletePlayCode(pc.id)} title="Eliminar"
+                              className="px-1.5 py-0.5 rounded text-[0.4rem] font-bold cursor-pointer transition-all hover:scale-105"
+                              style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.2)' }}>
+                              ✕
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
 
                   {/* Quick Links */}
