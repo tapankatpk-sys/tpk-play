@@ -56,7 +56,22 @@ interface TpkBannerData {
   updatedAt: string
 }
 
-type Tab = 'dashboard' | 'games' | 'participants' | 'stats' | 'popup' | 'banners'
+interface MatchPredictionData {
+  id: string
+  homeTeam: string
+  awayTeam: string
+  homeScore: number | null
+  awayScore: number | null
+  matchDate: string
+  venue: string | null
+  status: string
+  isActive: boolean
+  order: number
+  createdAt: string
+  updatedAt: string
+}
+
+type Tab = 'dashboard' | 'games' | 'participants' | 'stats' | 'popup' | 'banners' | 'predictions'
 
 interface SidebarSection {
   id: string
@@ -88,6 +103,35 @@ const GAME_TYPES: Record<string, { label: string; icon: string; color: string; d
 }
 
 const GAME_TYPE_OPTIONS = Object.entries(GAME_TYPES).map(([value, { label }]) => ({ value, label }))
+
+const TEAM_NAMES_MAP: Record<string, string> = {
+  'aguilas-doradas': 'Águilas Doradas',
+  'alianza-valledupar': 'Alianza Valledupar',
+  'america-de-cali': 'América de Cali',
+  'atletico-bucaramanga': 'Atl. Bucaramanga',
+  'atletico-junior': 'Atl. Junior',
+  'atletico-nacional': 'Atl. Nacional',
+  'boyaca-chico': 'Boyacá Chicó',
+  'cucuta-deportivo': 'Cúcuta Deportivo',
+  'deportes-tolima': 'Deportes Tolima',
+  'deportivo-cali': 'Deportivo Cali',
+  'deportivo-pasto': 'Deportivo Pasto',
+  'deportivo-pereira': 'Deportivo Pereira',
+  'envigado': 'Envigado FC',
+  'fortaleza-ceif': 'Fortaleza CEIF',
+  'independiente-medellin': 'Ind. Medellín',
+  'independiente-santa-fe': 'Ind. Santa Fe',
+  'internacional-de-bogota': 'Internacional',
+  'jaguares-de-cordoba': 'Jaguares de Córdoba',
+  'la-equidad': 'La Equidad',
+  'llaneros': 'Llaneros',
+  'millonarios': 'Millonarios',
+  'once-caldas': 'Once Caldas',
+}
+
+const PNG_ONLY = ['internacional-de-bogota']
+
+const TEAM_OPTIONS = Object.entries(TEAM_NAMES_MAP).map(([value, label]) => ({ value, label }))
 
 interface GameFormData {
   name: string
@@ -147,6 +191,13 @@ export default function AdminPanel() {
   const [editingBanner, setEditingBanner] = useState<TpkBannerData | null>(null)
   const [showBannerForm, setShowBannerForm] = useState(false)
   const [savingBanner, setSavingBanner] = useState(false)
+
+  // Predictions state
+  const [predictions, setPredictions] = useState<MatchPredictionData[]>([])
+  const [predictionForm, setPredictionForm] = useState({ homeTeam: 'millonarios', awayTeam: 'atletico-nacional', homeScore: '' as string, awayScore: '' as string, matchDate: '', venue: '', status: 'upcoming', isActive: true, order: 0 })
+  const [editingPrediction, setEditingPrediction] = useState<MatchPredictionData | null>(null)
+  const [showPredictionForm, setShowPredictionForm] = useState(false)
+  const [savingPrediction, setSavingPrediction] = useState(false)
 
   // Auth state
   const [isAuthenticated, setIsAuthenticated] = useState(false)
@@ -303,16 +354,32 @@ export default function AdminPanel() {
     }
   }, [])
 
+  const fetchPredictions = useCallback(async () => {
+    try {
+      const res = await fetch('/api/predictions')
+      if (!res.ok) throw new Error(`Error ${res.status}`)
+      const data = await res.json()
+      if (Array.isArray(data)) {
+        setPredictions(data)
+      } else {
+        setPredictions([])
+      }
+    } catch (err) {
+      console.error('Error fetching predictions:', err)
+      setPredictions([])
+    }
+  }, [])
+
   useEffect(() => {
     if (isAuthenticated && showPanel) {
       const load = async () => {
         setLoading(true)
-        await Promise.all([fetchGames(), fetchParticipants(), fetchPopups(), fetchBanners()])
+        await Promise.all([fetchGames(), fetchParticipants(), fetchPopups(), fetchBanners(), fetchPredictions()])
         setLoading(false)
       }
       load()
     }
-  }, [isAuthenticated, showPanel, fetchGames, fetchParticipants, fetchPopups, fetchBanners])
+  }, [isAuthenticated, showPanel, fetchGames, fetchParticipants, fetchPopups, fetchBanners, fetchPredictions])
 
   // Game CRUD
   const handleOpenAddGame = () => {
@@ -577,6 +644,68 @@ export default function AdminPanel() {
     }
   }
 
+  // Prediction CRUD
+  const handleSavePrediction = async () => {
+    if (!predictionForm.homeTeam || !predictionForm.awayTeam || !predictionForm.matchDate) return
+    setSavingPrediction(true)
+    try {
+      const payload = {
+        homeTeam: predictionForm.homeTeam,
+        awayTeam: predictionForm.awayTeam,
+        homeScore: predictionForm.homeScore !== '' ? parseInt(predictionForm.homeScore) : null,
+        awayScore: predictionForm.awayScore !== '' ? parseInt(predictionForm.awayScore) : null,
+        matchDate: predictionForm.matchDate,
+        venue: predictionForm.venue || null,
+        status: predictionForm.status,
+        isActive: predictionForm.isActive,
+        order: predictionForm.order,
+      }
+      if (editingPrediction) {
+        await fetch('/api/predictions', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: editingPrediction.id, ...payload }),
+        })
+      } else {
+        await fetch('/api/predictions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        })
+      }
+      setEditingPrediction(null)
+      setShowPredictionForm(false)
+      setPredictionForm({ homeTeam: 'millonarios', awayTeam: 'atletico-nacional', homeScore: '', awayScore: '', matchDate: '', venue: '', status: 'upcoming', isActive: true, order: 0 })
+      fetchPredictions()
+    } catch (err) {
+      console.error('Error saving prediction:', err)
+    } finally {
+      setSavingPrediction(false)
+    }
+  }
+
+  const handleDeletePrediction = async (id: string) => {
+    try {
+      await fetch(`/api/predictions?id=${id}`, { method: 'DELETE' })
+      fetchPredictions()
+    } catch (err) {
+      console.error('Error deleting prediction:', err)
+    }
+  }
+
+  const handleTogglePrediction = async (prediction: MatchPredictionData) => {
+    try {
+      await fetch('/api/predictions', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: prediction.id, isActive: !prediction.isActive }),
+      })
+      fetchPredictions()
+    } catch (err) {
+      console.error('Error toggling prediction:', err)
+    }
+  }
+
   // Stats calculations
   const totalParticipants = participants.length
   const totalPoints = participants.reduce((sum, p) => sum + p.totalPoints, 0)
@@ -595,6 +724,7 @@ export default function AdminPanel() {
       color: '#a855f7',
       items: [
         { id: 'games', label: 'Juegos', icon: '⚽', color: '#a855f7', count: games.length },
+        { id: 'predictions', label: 'Predicciones', icon: '⚽', color: '#00ff80', count: predictions.length },
         { id: 'popup', label: 'Popup', icon: '💬', color: '#eab308', count: popups.length },
       ],
     },
@@ -1016,6 +1146,7 @@ export default function AdminPanel() {
                     style={{
                       color: activeTab === 'dashboard' ? '#fbbf24'
                         : activeTab === 'games' ? '#a855f7'
+                        : activeTab === 'predictions' ? '#00ff80'
                         : activeTab === 'banners' ? '#00ffff'
                         : activeTab === 'popup' ? '#eab308'
                         : activeTab === 'participants' ? '#f97316'
@@ -1024,6 +1155,7 @@ export default function AdminPanel() {
                   >
                     {activeTab === 'dashboard' ? 'Dashboard'
                       : activeTab === 'games' ? 'Juegos'
+                      : activeTab === 'predictions' ? 'Predicciones'
                       : activeTab === 'banners' ? 'Banners'
                       : activeTab === 'popup' ? 'Popup'
                       : activeTab === 'participants' ? 'Participantes'
@@ -2054,6 +2186,309 @@ export default function AdminPanel() {
                               </button>
                               <button
                                 onClick={() => handleDeleteBanner(banner.id)}
+                                className="w-7 h-7 rounded-lg flex items-center justify-center cursor-pointer"
+                                style={{ background: 'rgba(239,68,68,0.1)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.2)' }}
+                                title="Eliminar"
+                              >
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      )
+                    })
+                  )}
+                </div>
+              ) : activeTab === 'predictions' ? (
+                /* ========== PREDICTIONS TAB ========== */
+                <div className="space-y-3">
+                  <div
+                    className="p-3 rounded-xl flex items-center gap-3"
+                    style={{
+                      background: 'rgba(0, 255, 128, 0.05)',
+                      border: '1px solid rgba(0, 255, 128, 0.2)',
+                    }}
+                  >
+                    <span style={{ color: '#00ff80', fontSize: '1.2rem' }}>⚽</span>
+                    <span className="text-xs" style={{ color: 'rgba(0,255,128,0.7)' }}>
+                      Agrega los partidos de la <b style={{ color: '#00ff80' }}>Liga BetPlay</b> con fecha, equipos y marcador. Los partidos se muestran en la página principal.
+                    </span>
+                  </div>
+
+                  <button
+                    onClick={() => {
+                      setEditingPrediction(null)
+                      setPredictionForm({ homeTeam: 'millonarios', awayTeam: 'atletico-nacional', homeScore: '', awayScore: '', matchDate: '', venue: '', status: 'upcoming', isActive: true, order: predictions.length })
+                      setShowPredictionForm(true)
+                    }}
+                    className="w-full py-3 rounded-xl text-sm font-bold uppercase tracking-wider cursor-pointer transition-all"
+                    style={{
+                      border: '1px dashed rgba(0, 255, 128, 0.4)',
+                      color: '#00ff80',
+                      background: 'rgba(0, 255, 128, 0.05)',
+                    }}
+                  >
+                    + Agregar Partido
+                  </button>
+
+                  {showPredictionForm && (
+                    <div
+                      className="p-4 rounded-xl space-y-3"
+                      style={{
+                        background: 'rgba(0, 255, 128, 0.05)',
+                        border: '1px solid rgba(0, 255, 128, 0.2)',
+                      }}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-bold" style={{ color: '#00ff80' }}>
+                          {editingPrediction ? 'Editar Partido' : 'Nuevo Partido'}
+                        </span>
+                        <button
+                          onClick={() => { setEditingPrediction(null); setShowPredictionForm(false) }}
+                          className="text-xs cursor-pointer"
+                          style={{ color: 'rgba(255,255,255,0.4)' }}
+                        >
+                          Cancelar
+                        </button>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-xs font-bold uppercase tracking-wider mb-1" style={{ color: '#00ff80' }}>Equipo Local</label>
+                          <select
+                            value={predictionForm.homeTeam}
+                            onChange={(e) => setPredictionForm({ ...predictionForm, homeTeam: e.target.value })}
+                            className="w-full px-3 py-2 rounded-lg text-sm text-white outline-none"
+                            style={{ background: 'rgba(0,0,0,0.5)', border: '1px solid rgba(0,255,128,0.3)' }}
+                          >
+                            {TEAM_OPTIONS.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-xs font-bold uppercase tracking-wider mb-1" style={{ color: '#00ff80' }}>Equipo Visitante</label>
+                          <select
+                            value={predictionForm.awayTeam}
+                            onChange={(e) => setPredictionForm({ ...predictionForm, awayTeam: e.target.value })}
+                            className="w-full px-3 py-2 rounded-lg text-sm text-white outline-none"
+                            style={{ background: 'rgba(0,0,0,0.5)', border: '1px solid rgba(0,255,128,0.3)' }}
+                          >
+                            {TEAM_OPTIONS.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-xs font-bold uppercase tracking-wider mb-1" style={{ color: '#00ff80' }}>Fecha y Hora</label>
+                          <input
+                            type="datetime-local"
+                            value={predictionForm.matchDate}
+                            onChange={(e) => setPredictionForm({ ...predictionForm, matchDate: e.target.value })}
+                            className="w-full px-3 py-2 rounded-lg text-sm text-white outline-none"
+                            style={{ background: 'rgba(0,0,0,0.5)', border: '1px solid rgba(0,255,128,0.3)' }}
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-bold uppercase tracking-wider mb-1" style={{ color: '#00ff80' }}>Estadio / Sede</label>
+                          <input
+                            type="text"
+                            value={predictionForm.venue}
+                            onChange={(e) => setPredictionForm({ ...predictionForm, venue: e.target.value })}
+                            className="w-full px-3 py-2 rounded-lg text-sm text-white outline-none"
+                            style={{ background: 'rgba(0,0,0,0.5)', border: '1px solid rgba(0,255,128,0.3)' }}
+                            placeholder="Estadio El Campín"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-bold uppercase tracking-wider mb-1" style={{ color: '#ffc800' }}>Marcador Local</label>
+                          <input
+                            type="number"
+                            min="0"
+                            value={predictionForm.homeScore}
+                            onChange={(e) => setPredictionForm({ ...predictionForm, homeScore: e.target.value })}
+                            className="w-full px-3 py-2 rounded-lg text-sm text-white outline-none"
+                            style={{ background: 'rgba(0,0,0,0.5)', border: '1px solid rgba(255,200,0,0.3)' }}
+                            placeholder="-"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-bold uppercase tracking-wider mb-1" style={{ color: '#ffc800' }}>Marcador Visitante</label>
+                          <input
+                            type="number"
+                            min="0"
+                            value={predictionForm.awayScore}
+                            onChange={(e) => setPredictionForm({ ...predictionForm, awayScore: e.target.value })}
+                            className="w-full px-3 py-2 rounded-lg text-sm text-white outline-none"
+                            style={{ background: 'rgba(0,0,0,0.5)', border: '1px solid rgba(255,200,0,0.3)' }}
+                            placeholder="-"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-bold uppercase tracking-wider mb-1" style={{ color: '#00ff80' }}>Estado</label>
+                          <select
+                            value={predictionForm.status}
+                            onChange={(e) => setPredictionForm({ ...predictionForm, status: e.target.value })}
+                            className="w-full px-3 py-2 rounded-lg text-sm text-white outline-none"
+                            style={{ background: 'rgba(0,0,0,0.5)', border: '1px solid rgba(0,255,128,0.3)' }}
+                          >
+                            <option value="upcoming">Próximo</option>
+                            <option value="live">En Vivo</option>
+                            <option value="finished">Finalizado</option>
+                          </select>
+                        </div>
+                        <div className="flex items-center gap-3 pt-4">
+                          <button
+                            onClick={() => setPredictionForm({ ...predictionForm, isActive: !predictionForm.isActive })}
+                            className="px-3 py-1.5 rounded-lg text-xs font-bold cursor-pointer"
+                            style={{
+                              background: predictionForm.isActive ? 'rgba(34,197,94,0.15)' : 'rgba(239,68,68,0.15)',
+                              color: predictionForm.isActive ? '#4ade80' : '#ef4444',
+                              border: `1px solid ${predictionForm.isActive ? 'rgba(34,197,94,0.3)' : 'rgba(239,68,68,0.3)'}`,
+                            }}
+                          >
+                            {predictionForm.isActive ? '● Activo' : '○ Inactivo'}
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="flex gap-2 pt-2">
+                        <button
+                          onClick={handleSavePrediction}
+                          disabled={savingPrediction || !predictionForm.matchDate}
+                          className="flex-1 py-2 rounded-lg text-sm font-bold cursor-pointer transition-all disabled:opacity-50"
+                          style={{
+                            background: 'linear-gradient(135deg, #00ff80, #00c8ff)',
+                            color: '#000',
+                            boxShadow: '0 0 10px rgba(0,255,128,0.3)',
+                          }}
+                        >
+                          {savingPrediction ? 'Guardando...' : 'Guardar Partido'}
+                        </button>
+                        <button
+                          onClick={() => { setEditingPrediction(null); setShowPredictionForm(false) }}
+                          className="px-4 py-2 rounded-lg text-sm cursor-pointer"
+                          style={{ background: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.6)' }}
+                        >
+                          Cancelar
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {predictions.length === 0 ? (
+                    <div className="text-center py-8" style={{ color: 'rgba(255,255,255,0.3)' }}>
+                      No hay partidos agregados. Agrega partidos de la Liga BetPlay.
+                    </div>
+                  ) : (
+                    predictions.map((prediction) => {
+                      const isLive = prediction.status === 'live'
+                      const isFinished = prediction.status === 'finished'
+                      const statusColor = isLive ? '#ff3333' : isFinished ? '#00ff80' : '#ffc800'
+                      const statusLabel = isLive ? 'EN VIVO' : isFinished ? 'FINALIZADO' : 'PRÓXIMO'
+                      const teamName = (slug: string) => TEAM_NAMES_MAP[slug] || slug.replace(/-/g, ' ')
+                      return (
+                        <div
+                          key={prediction.id}
+                          className="rounded-xl transition-all"
+                          style={{
+                            background: 'rgba(255,255,255,0.03)',
+                            border: `1px solid ${prediction.isActive ? 'rgba(0,255,128,0.2)' : 'rgba(255,255,255,0.08)'}`,
+                            boxShadow: prediction.isActive ? '0 0 8px rgba(0,255,128,0.05)' : 'none',
+                          }}
+                        >
+                          <div className="p-3 flex items-center gap-3">
+                            {/* Home team shield */}
+                            <div
+                              className="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0 flex items-center justify-center"
+                              style={{ border: '1px solid rgba(0,255,128,0.2)', background: 'rgba(0,0,0,0.3)' }}
+                            >
+                              <img
+                                src={`/images/teams/${prediction.homeTeam}.${PNG_ONLY.includes(prediction.homeTeam) ? 'png' : 'svg'}`}
+                                alt={teamName(prediction.homeTeam)}
+                                className="w-7 h-7 object-contain"
+                                onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
+                              />
+                            </div>
+
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 mb-1 flex-wrap">
+                                <span
+                                  className="px-2 py-0.5 rounded text-[0.6rem] font-bold"
+                                  style={{ background: `${statusColor}15`, color: statusColor, border: `1px solid ${statusColor}30` }}
+                                >
+                                  {statusLabel}
+                                </span>
+                                <span
+                                  className="px-2 py-0.5 rounded text-[0.6rem] font-bold"
+                                  style={{
+                                    background: prediction.isActive ? 'rgba(34,197,94,0.15)' : 'rgba(239,68,68,0.15)',
+                                    color: prediction.isActive ? '#4ade80' : '#ef4444',
+                                    border: `1px solid ${prediction.isActive ? 'rgba(34,197,94,0.3)' : 'rgba(239,68,68,0.3)'}`,
+                                  }}
+                                >
+                                  {prediction.isActive ? '● Activo' : '○ Inactivo'}
+                                </span>
+                              </div>
+                              <div className="font-bold text-sm" style={{ color: 'rgba(255,255,255,0.8)' }}>
+                                {teamName(prediction.homeTeam)} {prediction.homeScore !== null ? prediction.homeScore : '-'} : {prediction.awayScore !== null ? prediction.awayScore : '-'} {teamName(prediction.awayTeam)}
+                              </div>
+                              <div className="text-[0.6rem] mt-0.5" style={{ color: 'rgba(255,255,255,0.3)' }}>
+                                {new Date(prediction.matchDate).toLocaleDateString('es-CO', { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                                {prediction.venue && ` · ${prediction.venue}`}
+                              </div>
+                            </div>
+
+                            {/* Away team shield */}
+                            <div
+                              className="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0 flex items-center justify-center"
+                              style={{ border: '1px solid rgba(0,255,128,0.2)', background: 'rgba(0,0,0,0.3)' }}
+                            >
+                              <img
+                                src={`/images/teams/${prediction.awayTeam}.${PNG_ONLY.includes(prediction.awayTeam) ? 'png' : 'svg'}`}
+                                alt={teamName(prediction.awayTeam)}
+                                className="w-7 h-7 object-contain"
+                                onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
+                              />
+                            </div>
+
+                            <div className="flex items-center gap-1.5">
+                              <button
+                                onClick={() => handleTogglePrediction(prediction)}
+                                className="w-7 h-7 rounded-lg flex items-center justify-center cursor-pointer"
+                                style={{
+                                  background: prediction.isActive ? 'rgba(34,197,94,0.1)' : 'rgba(239,68,68,0.1)',
+                                  color: prediction.isActive ? '#4ade80' : '#ef4444',
+                                  border: `1px solid ${prediction.isActive ? 'rgba(34,197,94,0.2)' : 'rgba(239,68,68,0.2)'}`,
+                                }}
+                                title={prediction.isActive ? 'Desactivar' : 'Activar'}
+                              >
+                                {prediction.isActive ? (
+                                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18.36 6.64a9 9 0 1 1-12.73 0"/><line x1="12" y1="2" x2="12" y2="12"/></svg>
+                                ) : (
+                                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+                                )}
+                              </button>
+                              <button
+                                onClick={() => {
+                                  setEditingPrediction(prediction)
+                                  setPredictionForm({
+                                    homeTeam: prediction.homeTeam,
+                                    awayTeam: prediction.awayTeam,
+                                    homeScore: prediction.homeScore !== null ? String(prediction.homeScore) : '',
+                                    awayScore: prediction.awayScore !== null ? String(prediction.awayScore) : '',
+                                    matchDate: new Date(prediction.matchDate).toISOString().slice(0, 16),
+                                    venue: prediction.venue || '',
+                                    status: prediction.status,
+                                    isActive: prediction.isActive,
+                                    order: prediction.order,
+                                  })
+                                  setShowPredictionForm(true)
+                                }}
+                                className="w-7 h-7 rounded-lg flex items-center justify-center cursor-pointer"
+                                style={{ background: 'rgba(0,255,128,0.1)', color: '#00ff80', border: '1px solid rgba(0,255,128,0.2)' }}
+                                title="Editar"
+                              >
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                              </button>
+                              <button
+                                onClick={() => handleDeletePrediction(prediction.id)}
                                 className="w-7 h-7 rounded-lg flex items-center justify-center cursor-pointer"
                                 style={{ background: 'rgba(239,68,68,0.1)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.2)' }}
                                 title="Eliminar"

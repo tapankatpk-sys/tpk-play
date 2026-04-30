@@ -1,5 +1,6 @@
 import HeroSection from '@/components/hero/HeroSection'
 import TPKBanners from '@/components/banners/TPKBanners'
+import MatchPredictions from '@/components/predictions/MatchPredictions'
 import RegistrationSection from '@/components/registration/RegistrationSection'
 import TriviaGame from '@/components/trivia/TriviaGame'
 import LightningTriviaGame from '@/components/lightning/LightningTriviaGame'
@@ -16,6 +17,9 @@ export default function Home() {
       
       {/* TPK Banners - Ganador & Premio */}
       <TPKBanners />
+      
+      {/* Match Predictions - Liga BetPlay */}
+      <MatchPredictions />
       
       {/* Games Section */}
       <section className="relative py-12">

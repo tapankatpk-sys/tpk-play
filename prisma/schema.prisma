@@ -154,3 +154,22 @@ model TpkBanner {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
+
+// ============================================
+// PREDICCIONES - Resultados de partidos Liga BetPlay
+// ============================================
+
+model MatchPrediction {
+  id          String   @id @default(cuid())
+  homeTeam    String   // slug del equipo local (ej: "millonarios")
+  awayTeam    String   // slug del equipo visitante (ej: "atletico-nacional")
+  homeScore   Int?     // marcador local (null si no se ha jugado)
+  awayScore   Int?     // marcador visitante (null si no se ha jugado)
+  matchDate   DateTime // fecha y hora del partido
+  venue       String?  // estadio/sede
+  status      String   @default("upcoming") // "upcoming", "live", "finished"
+  isActive    Boolean  @default(true)
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
